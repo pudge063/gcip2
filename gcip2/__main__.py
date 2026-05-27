@@ -3,7 +3,7 @@ import pathlib
 from typing import Any
 
 
-from . import PipelineBuilder, BasePipeline, Pipeline
+from . import PipelineBuilder, BasePipeline, Pipeline, TriggerPipeline
 
 
 def load_pipeline(path: Any):
@@ -46,4 +46,16 @@ def build_pipeline(path: str = "test_pipeline.py"):
     builder.build_file(
         pipeline=pipeline,
         path=pathlib.Path("out/pipeline.gitlab-ci.yml"),
+    )
+
+
+def build_gitlab_ci():
+    builder = PipelineBuilder()
+
+    trigger_pipeline = TriggerPipeline()
+    pipeline = trigger_pipeline.impl()
+
+    builder.build_file(
+        pipeline=pipeline,
+        path=pathlib.Path(".gitlab-ci.yml"),
     )

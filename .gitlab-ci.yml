@@ -1,9 +1,15 @@
-stages:
-  - jobs
-
-test:
+build-pipeline:
   script:
-    - echo 123
-  stage: jobs
-  tags: [immortal]
-  image: python:3.11
+    - poetry install && . .venv/bin/activate
+    - build-pipeline
+  tags:
+    - immortal
+
+trigger-pipeline:
+  trigger:
+    include:
+      - job: build-pipeline
+        artifact: out/pipeline.gitlab-ci.yml
+  needs:
+    - job: build-pipeline
+      artifacts: true

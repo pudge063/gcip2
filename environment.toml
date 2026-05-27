@@ -1,0 +1,17 @@
+[pipeline]
+
+[pipeline.build]
+image = "rockylinux:9"
+tags = ["immortal-x86"]
+
+[pipeline.publish]
+image = "python:3.11"
+tags = ["immortal-k8s"]
+
+[components.client]
+name = "client"
+artifacts = ["build_client/*", "build_log/"]
+
+[components.server]
+name = "server"
+artifacts = ["build_server/*", "out/*"]
