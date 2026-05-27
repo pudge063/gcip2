@@ -1,16 +1,19 @@
 from enum import Enum
 from typing import Any, Optional, Self
 from pydantic import BaseModel, ConfigDict
+import jsonschema
+import json
 
 
 class BasePipelineModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    def dump(self: Self) -> dict[str, Any]:
+    def dump(self: Self, **kwargs: Any) -> dict[str, Any]:
         return self.model_dump(
             mode="json",
             exclude_none=True,
             exclude_defaults=True,
+            **kwargs,
         )
 
 
@@ -21,6 +24,13 @@ class TriggerStrategy(str, Enum):
 
 class TriggerInclude(BasePipelineModel):
     local: Optional[str] = None
+    "Relative path from local repository root (`/`) to the local YAML file to define the pipeline configuration."
+
+    template: Optional[str] = None
+    "Name of the template YAML file to use in the pipeline configuration."
+
+    artifact: Optional[str] = None
+    "Relative path to the generated YAML file which is extracted from the artifacts and used as the configuration for triggering the child pipeline."
 
 
 class TriggerForward(BasePipelineModel):
@@ -50,3 +60,50 @@ class Trigger(BasePipelineModel):
 
     forward: Optional[TriggerForward] = None
     "Specify what to forward to the downstream pipeline."
+
+
+class Stage(str, Enum):
+    PRE = ".pre"
+    POST = ".post"
+    JOBS = "jobs"
+    BUILD = "build"
+    TEST = "test"
+    DEPLOY = "deploy"
+
+
+class Image(BasePipelineModel):
+    name: Optional[str] = None
+
+    entrypoint: list[str] = []
+
+
+class Job(BasePipelineModel):
+    name: str
+
+    image: Image = Image()
+
+    script: list[str] = []
+
+    stage: Optional[Stage | str] = None
+
+
+class Pipeline(BasePipelineModel):
+    jobs: list[Job] = []
+
+    stages: Optional[list[Stage | str]] = None
+    "Groups jobs into stages. All jobs in one stage must complete before next stage is executed."
+    "https://docs.gitlab.com/ci/yaml/#stages"
+
+    @staticmethod
+    def load_pipeline_default_schema() -> dict[str, Any]:
+        with open("gcip2/ci.json", "r") as f:
+            return json.loads(f.read())
+
+    def validate_pipeline(self: Self) -> None:
+        try:
+            jsonschema.validate(
+                instance=self.dump(),
+                schema=self.load_pipeline_default_schema(),
+            )
+        except jsonschema.ValidationError as exc:
+            raise exc

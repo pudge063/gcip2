@@ -1,13 +1,18 @@
 [tool.poetry]
-name = "dev"
+name = "gcip2"
 version = "0.0.1"
-description = "pivlab gcip"
+description = "pivlab gcip2"
 authors = ["PivLab Tech"]
 package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
 pydantic = "^2.13.4"
+jsonschema = "^4.26.0"
+pyyaml = "^6.0.3"
+
+[tool.poetry.scripts]
+build-pipeline = "gcip2.__main__:build_pipeline"
 
 [tool.black]
 line-length = 120

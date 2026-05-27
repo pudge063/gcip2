@@ -1,0 +1,9 @@
+stages:
+  - jobs
+
+test:
+  script:
+    - echo 123
+  stage: jobs
+  tags: [immortal]
+  image: python:3.11
