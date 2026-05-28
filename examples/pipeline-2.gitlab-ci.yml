@@ -1,0 +1,19 @@
+stages:
+  - jobs
+
+include:
+  - inputs:
+      gitconfig:
+        description: path to ssh config
+        default: $HOME/.ssh/config
+    component: $CI_SERVER_FQDN/ci-components/git-config/gitlab-ci@master
+
+test:job-1:
+  image:
+    name: python:3.11
+  script:
+    - echo 123
+    - echo 321
+  stage: test
+  tags:
+    - immortal-test

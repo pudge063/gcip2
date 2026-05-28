@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Self
 
-from .ci_model import Pipeline, Job, Trigger, TriggerIncludeArtifact, Needs
+from .ci_model import Pipeline, Job, Trigger, TriggerIncludeArtifact, Needs, Artifacts
 
 
 def pipeline(func: Any):
@@ -23,10 +23,12 @@ class TriggerPipeline:
         build_pipeline_job = Job(
             name="build-pipeline",
             script=[
+                "pip3 install poetry",
                 "poetry install && . .venv/bin/activate",
-                "build-pipeline",
+                "gcip2 build-pipeline",
             ],
             tags=["immortal"],
+            artifacts=Artifacts(paths=["out"]),
         )
 
         return Pipeline(

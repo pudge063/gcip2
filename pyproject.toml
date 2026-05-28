@@ -3,7 +3,7 @@ name = "gcip2"
 version = "0.0.1"
 description = "pivlab gcip2"
 authors = ["Arsenii Nikulin <a.nikulin@pivlab.space>", "PivLab Tech"]
-package-mode = false
+packages = [ { include = "gcip2" } ]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"

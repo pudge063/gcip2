@@ -17,6 +17,30 @@ class BasePipelineModel(BaseModel):
         )
 
 
+class BaseInputType(Enum):
+    ARRAY = "array"
+    BOOLEAN = "boolean"
+    NUMBER = "number"
+    STRING = "string"
+
+
+class BaseInput(BasePipelineModel):
+    type: Optional[BaseInputType] = BaseInputType.STRING
+    "Input type. Defaults to 'string' when not specified."
+
+    description: Optional[str] = None
+    "Human-readable explanation of the parameter."
+
+    options: Optional[list[BaseInputType]] = None
+    "List of allowed values for this input."
+
+    regex: Optional[str] = None
+    "Regular expression that string values must match."
+
+    default: Optional[Any] = None
+    "Default value for this input."
+
+
 class TriggerStrategy(str, Enum):
     DEPEND = "depend"
     MIRROR = "mirror"
@@ -80,6 +104,19 @@ class Trigger(BasePipelineModel):
     "URL to a `yaml`/`yml` template file using HTTP/HTTPS."
 
     inputs: Optional[Any] = None
+    "Used to pass input values to included templates, components, downstream pipelines, or child pipelines."
+    "https://docs.gitlab.com/ci/inputs"
+
+
+class IncludeItem(BasePipelineModel):
+    inputs: Optional[dict[str, BaseInput]] = None
+
+
+class IncludeComponent(IncludeItem):
+    component: Optional[str] = None
+    "Local path to component directory or full path to external component directory."
+
+    rules: Optional[Any] = None
 
 
 class Stage(str, Enum):
@@ -156,6 +193,8 @@ class Pipeline(BasePipelineModel):
     stages: Optional[list[Stage | str]] = None
     "Groups jobs into stages. All jobs in one stage must complete before next stage is executed."
     "https://docs.gitlab.com/ci/yaml/#stages"
+
+    include: list[IncludeComponent] = []
 
     @staticmethod
     def load_pipeline_default_schema() -> dict[str, Any]:

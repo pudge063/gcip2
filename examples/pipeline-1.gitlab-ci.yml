@@ -1,0 +1,73 @@
+stages:
+  - jobs
+  - test
+
+build:client:
+  artifacts:
+    paths:
+      - build_client/*
+      - build_log/
+  image:
+    name: rockylinux:9
+  script:
+    - echo build job client
+  stage: jobs
+  tags:
+    - immortal-x86
+
+build:server:
+  artifacts:
+    paths:
+      - build_server/*
+      - out/*
+  image:
+    name: rockylinux:9
+  script:
+    - echo build job server
+  stage: jobs
+  tags:
+    - immortal-x86
+
+publish:client:
+  image:
+    name: rockylinux:9
+  script:
+    - echo build job client
+  stage: jobs
+  tags:
+    - immortal-x86
+  needs:
+    - job: build:client
+
+publish:server:
+  image:
+    name: rockylinux:9
+  script:
+    - echo build job server
+  stage: jobs
+  tags:
+    - immortal-x86
+  needs:
+    - job: build:server
+
+test:job-1:
+  image:
+    name: python:3.11
+  script:
+    - |
+      echo 123
+      poetry run python --version
+      rm -rf *.log
+  stage: test
+  tags:
+    - immortal-test
+
+test:job-2:
+  image:
+    name: python:3.11
+  script:
+    - echo 123
+    - poetry install
+  stage: test
+  tags:
+    - immortal-test

@@ -1,4 +1,14 @@
-from gcip2.ci_model import Trigger, Pipeline, Job, Stage, Image, Needs, Artifacts
+from gcip2.ci_model import (
+    Trigger,
+    Pipeline,
+    Job,
+    Stage,
+    Image,
+    Needs,
+    Artifacts,
+    IncludeComponent,
+    BaseInput,
+)
 from gcip2.builder_model import BasePipeline, pipeline, TriggerPipeline
 
 __all__ = (
@@ -12,4 +22,6 @@ __all__ = (
     "TriggerPipeline",
     "Needs",
     "Artifacts",
+    "IncludeComponent",
+    "BaseInput",
 )

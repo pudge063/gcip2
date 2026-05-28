@@ -1,4 +1,5 @@
-from typing import Any, Optional, Self, override
+from typing import Any, Optional, Self
+from typing_extensions import override
 import pathlib
 import yaml
 import os
@@ -83,6 +84,8 @@ class PipelineBuilder:
         return result
 
     def build_pipeline_file(self: Self, pipeline: Pipeline, path: Optional[pathlib.Path]) -> None:
+        os.makedirs("out", exist_ok=True)
+
         data = yaml.dump(
             self.render_pipeline(pipeline=pipeline),
             sort_keys=False,

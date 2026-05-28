@@ -9,18 +9,21 @@ CallableCliOption = typing.TypeVar("CallableCliOption", bound=typing.Callable)  
 OPTIONS: dict[str, typing.Any] = {
     "ci-file": click.option(
         "--ci-file",
+        "-f",
         help="file with source code for pipeline",
         type=str,
         default="ci.py",
     ),
     "out-gitlab-ci": click.option(
         "--out-gitlab-ci",
+        "-O",
         help="output file with parent trigger pipeline",
         type=str,
         default=".gitlab-ci.yml",
     ),
     "out-pipeline": click.option(
         "--out-pipeline",
+        "-o",
         help="output file with child downstream pipeline",
         type=str,
         default="out/pipeline.gitlab-ci.yml",

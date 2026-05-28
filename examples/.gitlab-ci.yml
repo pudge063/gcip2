@@ -1,11 +1,7 @@
 build-pipeline:
-  artifacts:
-    paths:
-      - out
   script:
-    - pip3 install poetry
     - poetry install && . .venv/bin/activate
-    - gcip2 build-pipeline
+    - build-pipeline
   tags:
     - immortal
 
