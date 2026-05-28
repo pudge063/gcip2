@@ -10,10 +10,10 @@ python = ">=3.11,<4.0"
 pydantic = "^2.13.4"
 jsonschema = "^4.26.0"
 pyyaml = "^6.0.3"
+click = "^8.4.1"
 
 [tool.poetry.scripts]
-build-pipeline = "gcip2.__main__:build_pipeline"
-build-gitlab-ci = "gcip2.__main__:build_gitlab_ci"
+gcip2 = "gcip2.cli:cli"
 
 [tool.black]
 line-length = 120

@@ -1,18 +1,25 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Self
 
 from .ci_model import Pipeline, Job, Trigger, TriggerIncludeArtifact, Needs
+
+
+def pipeline(func: Any):
+
+    func.__gcip2_pipeline__ = True
+
+    return func
 
 
 class BasePipeline(ABC):
 
     @abstractmethod
-    def impl(self) -> Pipeline:
+    def impl(self: Self) -> Pipeline:
         pass
 
 
-class TriggerPipeline(BasePipeline):
-    def impl(self) -> Pipeline:
+class TriggerPipeline:
+    def impl(self: Self) -> Pipeline:
         build_pipeline_job = Job(
             name="build-pipeline",
             script=[
@@ -44,10 +51,3 @@ class TriggerPipeline(BasePipeline):
                 ),
             ]
         )
-
-
-def pipeline(func: Any):
-
-    func.__gcip2_pipeline__ = True
-
-    return func
