@@ -3,76 +3,48 @@ from gcip2 import (
     Job,
     Stage,
     Image,
-    BasePipeline,
-    pipeline,  # pyright: ignore[reportUnusedImport]
+    pipeline,
     Needs,
     Artifacts,
+    ArtifactsReports,
 )
-import tomllib
 
 
-class CustomPipeline(BasePipeline):
-    def impl(self) -> Pipeline:
-        with open("environment.toml", "r") as f:
-            config = tomllib.loads(f.read())
+@pipeline
+def impl() -> Pipeline:
 
-        components = config["components"]
+    jobs: list[Job] = []
 
-        build_jobs: list[Job] = []
-        publish_jobs: list[Job] = []
-        for component in components:
-            build_job = Job(
-                name=f"build:{components[component]['name']}",
-                image=Image(name=config["pipeline"]["build"]["image"]),
-                script=[f"echo build job {components[component]['name']}"],
-                stage=Stage.JOBS,
-                tags=config["pipeline"]["build"]["tags"],
-                artifacts=Artifacts(paths=components[component]["artifacts"]),
+    job = Job(
+        name="test-reports",
+        image=Image(name="python:3.11"),
+        script=["echo ID=$CI_JOB_ID > dotenv.txt"],
+        stage=Stage.JOBS,
+        tags=["immortal"],
+        artifacts=Artifacts(
+            reports=ArtifactsReports(
+                dotenv=["dotenv.txt"],
             )
-            build_jobs.append(build_job)
+        ),
+    )
 
-            publish_jobs.append(
-                Job(
-                    name=f"publish:{components[component]['name']}",
-                    image=Image(name=config["pipeline"]["build"]["image"]),
-                    script=[f"echo build job {components[component]['name']}"],
-                    stage=Stage.JOBS,
-                    tags=config["pipeline"]["build"]["tags"],
-                    needs=[Needs(job=build_job.name)],
-                ),
-            )
+    jobs.append(job)
 
-        jobs = build_jobs + publish_jobs
-
-        script = ["""echo 123
-poetry run python --version
-rm -rf *.log
-"""]
-
-        jobs.append(
-            Job(
-                name="test:job-1",
-                stage="test",
-                image=Image(name="python:3.11"),
-                tags=["immortal-test"],
-                script=script,
-            )
+    jobs.append(
+        Job(
+            name="test:job-2",
+            image=Image(name="python:3.11"),
+            tags=["immortal"],
+            script=["echo $ID"],
+            stage=Stage.JOBS,
+            needs=[Needs(job=job.name)],
         )
+    )
 
-        jobs.append(
-            Job(
-                name="test:job-2",
-                stage="test",
-                image=Image(name="python:3.11"),
-                tags=["immortal-test"],
-                script=["echo 123", "poetry install"],
-            )
-        )
-
-        return Pipeline(
-            stages=[Stage.JOBS, "test"],
-            jobs=jobs,
-        )
+    return Pipeline(
+        stages=[Stage.JOBS],
+        jobs=jobs,
+    )
 
 
 # @pipeline

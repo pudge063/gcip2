@@ -152,10 +152,79 @@ class Image(BasePipelineModel):
     entrypoint: list[str] = []
 
 
+class ArtifactsReportsCoverage(BasePipelineModel):
+    coverage_format: Optional[str] = None
+    path: Optional[str] = None
+
+
+class ArtifactsReports(BasePipelineModel):
+    accessibility: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsaccessibility"
+
+    annotations: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsannotations"
+
+    api_fuzzing: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsapi_fuzzing"
+
+    browser_performance: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsbrowser_performance"
+
+    coverage_report: Optional[ArtifactsReportsCoverage] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscoverage_report"
+
+    codequality: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscodequality"
+
+    container_scanning: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscontainer_scanning"
+
+    coverage_fuzzing: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscoverage_fuzzing"
+
+    cyclonedx: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscyclonedx"
+
+    dast: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsdast"
+
+    dependency_scanning: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsdependency_scanning"
+
+    dotenv: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsdotenv"
+
+    junit: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsjunit"
+
+    load_performance: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsload_performance"
+
+    metrics: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsmetrics"
+
+    requirements: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsrequirements"
+
+    sarif: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportssarif"
+
+    sast: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportssast"
+
+    secret_detection: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportssecret_detection"
+
+    terraform: Optional[list[str]] = None
+    "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsterraform"
+
+
 class Artifacts(BasePipelineModel):
     paths: Optional[list[str]] = None
     "A list of paths to files/folders that should be included in the artifact."
     "https://docs.gitlab.com/ci/yaml/#artifactspaths"
+
+    reports: Optional[ArtifactsReports] = None
 
     exclude: Optional[list[str]] = None
     "A list of paths to files/folders that should be excluded in the artifact."

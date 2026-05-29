@@ -6,6 +6,7 @@ from gcip2.ci_model import (
     Image,
     Needs,
     Artifacts,
+    ArtifactsReports,
     IncludeComponent,
     BaseInput,
 )
@@ -22,6 +23,7 @@ __all__ = (
     "TriggerPipeline",
     "Needs",
     "Artifacts",
+    "ArtifactsReports",
     "IncludeComponent",
     "BaseInput",
 )
