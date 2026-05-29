@@ -1,20 +1,21 @@
+from gcip2 import WorkflowAutoCancelOnNewCommit  # type: ignore
 from gcip2 import (
     Artifacts,
     ArtifactsReports,
+    Default,
+    GlobalVariables,
     Image,
     Job,
+    JobVariables,
     Needs,
     Pipeline,
+    Rule,
+    RuleChanges,
     Stage,
-    pipeline,
     Workflow,
     WorkflowAutoCancel,
-    Rules,
-    WorkflowAutoCancelOnNewCommit,
     WorkflowAutoCancelOnJobFailure,
-    RulesChanges,
-    JobVariables,
-    GlobalVariables,
+    pipeline,
 )
 
 
@@ -23,16 +24,32 @@ def impl() -> Pipeline:
 
     jobs: list[Job] = []
 
+    job_for_extend = Job(
+        name=".test",
+        image=Image(name="python:3.12"),
+    )
+
+    jobs.extend(
+        [
+            job_for_extend,
+            Job(name="test", extends=job_for_extend.name, script="python3 --version", stage=Stage.JOBS),
+        ]
+    )
+
     job = Job(
         name="test-1",
         image=Image(name="python:3.11"),
-        script=["echo ID=$CI_JOB_ID > dotenv.txt"],
+        script=[
+            "echo ID=$CI_JOB_ID > dotenv.txt",
+            "env",
+        ],
         stage=Stage.JOBS,
         tags=["immortal"],
         artifacts=Artifacts(
             reports=ArtifactsReports(
                 dotenv=["dotenv.txt"],
-            )
+            ),
+            paths=["builds/*"],
         ),
         variables={
             "TEST_JOB_VARIABLE_1": JobVariables(
@@ -41,6 +58,14 @@ def impl() -> Pipeline:
             ),
             "TEST_JOB_VARIABLE_2": "B",
         },
+        rules=[
+            Rule(
+                if_='$CUSTOM_VAR == "1"',
+                variables={
+                    "RULE_TEST_VARIABLE": "1",
+                },
+            )
+        ],
     )
 
     jobs.append(job)
@@ -60,21 +85,28 @@ def impl() -> Pipeline:
         stages=[Stage.JOBS],
         jobs=jobs,
         workflow=Workflow(
-            name="default name",
+            name="default",
             auto_cancel=WorkflowAutoCancel(
                 on_job_failure=WorkflowAutoCancelOnJobFailure.NONE,
             ),
             rules=[
-                Rules(
-                    if_='CI_PIPELINE_SOURCE == "merge_request_event"',
-                    changes=["out"],
+                Rule(
+                    if_='$CUSTOM_VAR == "1"',
                     variables={
-                        "CUSTOM_VARIABLE": "test_value_1",
+                        "CUSTOM_VAR_CI_PIPELINE_SOURCE": "push_",
                         "RULE": "1",
                     },
                 ),
-                Rules(
-                    changes=RulesChanges(
+                Rule(
+                    if_='$CI_PIPELINE_SOURCE == "merge_request_event"',
+                    changes=["out"],
+                    variables={
+                        "CUSTOM_VAR_CI_PIPELINE_SOURCE": "merge_request_event_",
+                        "RULE": "2",
+                    },
+                ),
+                Rule(
+                    changes=RuleChanges(
                         paths=[
                             "pipelines",
                             "examples",
@@ -94,25 +126,13 @@ def impl() -> Pipeline:
                 expand=True,
             )
         },
+        default=Default(
+            after_script=["rm -rf .venv"],
+            before_script=["poetry install && . .venv/bin/activate"],
+            artifacts=Artifacts(
+                paths=["logs/*"],
+            ),
+            image=Image(name="python:3.11"),
+            tags=["immortal"],
+        ),
     )
-
-
-# @pipeline
-# def impl() -> Pipeline:
-#     return Pipeline(
-#         stages=[Stage.JOBS],
-#         jobs=[
-#             Job(
-#                 name="job-1",
-#                 image=Image(name="python:3.11"),
-#                 script=["echo job-1"],
-#                 stage=Stage.JOBS,
-#             ),
-#             Job(
-#                 name="job-2",
-#                 image=Image(name="python:3.11"),
-#                 script=["echo job-2"],
-#                 stage=Stage.JOBS,
-#             ),
-#         ],
-#     )

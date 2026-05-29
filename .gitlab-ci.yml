@@ -1,19 +1,19 @@
 build-pipeline:
-  artifacts:
-    paths:
-      - out
   script:
     - pip3 install poetry
     - poetry install && . .venv/bin/activate
     - gcip2 build-pipeline
   tags:
     - immortal
+  artifacts:
+    paths:
+      - out
 
 trigger-pipeline:
+  needs:
+    - job: build-pipeline
+      artifacts: true
   trigger:
     include:
       - job: build-pipeline
         artifact: out/pipeline.gitlab-ci.yml
-  needs:
-    - job: build-pipeline
-      artifacts: true

@@ -258,30 +258,7 @@ class GlobalVariables(JobVariables):
     "https://docs.gitlab.com/ci/yaml/#variablesoptions"
 
 
-class Job(BasePipelineModel):
-    name: str
-
-    artifacts: Artifacts = Artifacts()
-
-    image: Image = Image()
-
-    script: list[str] | str = []
-
-    stage: Optional[Stage | str] = None
-
-    tags: list[str] = []
-
-    trigger: Optional[Trigger] = None
-
-    parallel: Optional[Parallel | int] = None
-
-    needs: Optional[list[Needs]] = None
-    "The list of jobs in previous stages whose sole completion is needed to start the current job."
-
-    variables: Optional[dict[str, JobVariables | str]] = None
-
-
-class RulesChanges(BasePipelineModel):
+class RuleChanges(BasePipelineModel):
     paths: list[str] = []
     "List of file paths."
 
@@ -289,7 +266,7 @@ class RulesChanges(BasePipelineModel):
     "Ref for comparing changes."
 
 
-class RulesExists(BasePipelineModel):
+class RuleExists(BasePipelineModel):
     paths: list[str] = []
     "List of file paths."
 
@@ -329,18 +306,18 @@ class WorkflowAutoCancel(BasePipelineModel):
     "https://docs.gitlab.com/ci/yaml/#workflowauto_cancelon_new_commit"
 
 
-class Rules(BasePipelineModel):
+class Rule(BasePipelineModel):
     model_config = pydantic.ConfigDict(populate_by_name=True)
 
     if_: Optional[str] = pydantic.Field(serialization_alias="if", validation_alias="if", default=None)
     "Expression to evaluate whether additional attributes should be provided to the job."
     "https://docs.gitlab.com/ci/yaml/#rulesif"
 
-    changes: Optional[RulesChanges | list[str]] = None
+    changes: Optional[RuleChanges | list[str]] = None
     "Additional attributes will be provided to job if any of the provided paths matches a modified file."
     "https://docs.gitlab.com/ci/yaml/#ruleschanges"
 
-    exists: Optional[RulesExists | list[str]] = None
+    exists: Optional[RuleExists | list[str]] = None
     "Additional attributes will be provided to job if any of the provided paths matches an existing file in the repository."
     "https://docs.gitlab.com/ci/yaml/#rulesexists"
 
@@ -353,6 +330,121 @@ class Rules(BasePipelineModel):
     auto_cancel: Optional[WorkflowAutoCancel] = None
 
 
+class IdTokens(BasePipelineModel):
+    aud: Optional[str | list[str]] = []
+
+
+class Identity(str, Enum):
+    GOOGLE_CLOUD = "google_cloud"
+
+
+class JobTemplate(BasePipelineModel):
+    model_config = pydantic.ConfigDict(populate_by_name=True)
+
+    image: Image = Image()
+
+    services: Optional[Any] = None
+
+    before_script: Optional[list[str] | str] = None
+
+    after_script: Optional[list[str] | str] = None
+
+    hooks: Optional[Any] = None
+
+    rules: Optional[list[Rule]] = None
+
+    variables: Optional[dict[str, JobVariables | str]] = None
+
+    cache: Optional[Any] = None
+
+    id_tokens: Optional[IdTokens] = None
+
+    identity: Optional[Identity] = None
+
+    inputs: Optional[BaseInput] = None
+
+    secrets: Optional[Any] = None
+
+    script: list[str] | str = []
+
+    run: Optional[Any] = None
+    "Specifies a list of steps to execute in the job. The `run` keyword is an alternative to `script` and allows for more advanced job configuration."
+    "Each step is an object that defines a single task or command."
+    "Use either `run` or `script` in a job, but not both, otherwise the pipeline will error out."
+
+    stage: Optional[Stage | str] = None
+
+    only: Optional[Any] = None
+    "Job will run *only* when these filtering options match."
+
+    extends: Optional[str | list[str]] = None
+    "The name of one or more jobs to inherit configuration from."
+
+    needs: Optional[list[Needs]] = None
+    "The list of jobs in previous stages whose sole completion is needed to start the current job."
+
+    except_: Optional[Any] = pydantic.Field(serialization_alias="except", validation_alias="except", default=None)
+
+    tags: list[str] = []
+
+    allow_failure: Optional[list[bool | int | list[int]]] = None
+
+    timeout: Optional[str] = None
+    "Allows you to configure a timeout for a specific job (e.g. `1 minute`, `1h 30m 12s`)."
+    "https://docs.gitlab.com/ci/yaml/#timeout"
+
+    when: Optional[JobWhen] = None
+    "Describes the conditions for when to run the job. Defaults to 'on_success'."
+    "https://docs.gitlab.com/ci/yaml/#when"
+
+    start_in: Optional[str] = None
+    "Used in conjunction with 'when: delayed' to set how long to delay before starting a job. e.g. '5', 5 seconds, 30 minutes, 1 week, etc."
+    "https://docs.gitlab.com/ci/jobs/job_control/#run-a-job-after-a-delay"
+
+    manual_confirmation: Optional[str] = None
+    "Describes the Custom confirmation message for a manual job."
+    "https://docs.gitlab.com/ci/yaml/#when"
+
+    dependencies: Optional[list[str]] = None
+    "Specify a list of job names from earlier stages from which artifacts should be loaded."
+    "By default, all previous artifacts are passed."
+    "Use an empty array to skip downloading artifacts."
+
+    artifacts: Artifacts = Artifacts()
+
+    environment: Optional[Any] = None
+
+    release: Optional[Any] = None
+
+    coverage: Optional[str] = None
+    "Must be a regular expression, optionally but recommended to be quoted, and must be surrounded with '/'."
+    "Example: '/Code coverage: \\d+\\.\\d+/'"
+
+    retry: Optional[Any] = None
+
+    parallel: Optional[Parallel | int] = None
+
+    interruptible: Optional[bool] = None
+    "Interruptible is used to indicate that a job should be canceled if made redundant by a newer pipeline run."
+    "https://docs.gitlab.com/ci/yaml/#interruptible)."
+
+    resource_group: Optional[str] = None
+    "Limit job concurrency. Can be used to ensure that the Runner will not run certain jobs simultaneously."
+
+    trigger: Optional[Trigger] = None
+
+    inherit: Optional[Any] = None
+
+    publish: Optional[str] = None
+    "Deprecated. Use `pages.publish` instead. A path to a directory that contains the files to be published with Pages."
+
+    pages: Optional[Any] = None
+
+
+class Job(JobTemplate):
+    name: Optional[str] = None
+
+
 class Workflow(BasePipelineModel):
     name: Optional[str] = None
     "Defines the pipeline name."
@@ -361,7 +453,51 @@ class Workflow(BasePipelineModel):
     auto_cancel: Optional[WorkflowAutoCancel] = None
     "Define the rules for when pipeline should be automatically cancelled."
 
-    rules: Optional[list[Rules]] = None
+    rules: Optional[list[Rule]] = None
+
+
+class Default(BasePipelineModel):
+    model_config = pydantic.ConfigDict(populate_by_name=True)
+
+    after_script: Optional[list[str] | str] = None
+
+    artifacts: Optional[Artifacts] = None
+
+    before_script: Optional[list[str] | str] = None
+
+    hooks: Optional[Any] = None
+
+    cache: Optional[Any] = None
+
+    image: Optional[Image] = None
+
+    interuptable: Optional[bool] = None
+    "Interruptible is used to indicate that a job should be canceled if made redundant by a newer pipeline run."
+    "https://docs.gitlab.com/ci/yaml/#interruptible"
+
+    id_tokens: Optional[IdTokens] = None
+    "Defines JWTs to be injected as environment variables."
+
+    identity: Optional[Identity] = None
+    "Sets a workload identity (experimental), allowing automatic authentication with the external system."
+    "https://docs.gitlab.com/ci/yaml/#identity"
+
+    retry: Optional[Any] = None
+    "Retry a job if it fails. Can be a simple integer or object definition."
+    "https://docs.gitlab.com/ci/yaml/#retry)."
+
+    services: Optional[Any] = None
+
+    tags: Optional[list[str]] = None
+
+    timeout: Optional[str] = None
+    "Allows you to configure a timeout for a specific job (e.g. `1 minute`, `1h 30m 12s`)."
+    "https://docs.gitlab.com/ci/yaml/#timeout"
+
+    # reference_: Optional[str] = pydantic.Field(
+    #     serialization_alias="!reference", validation_alias="!reference", default=None
+    # )
+    # invalid schema
 
 
 class Pipeline(BasePipelineModel):
@@ -374,6 +510,8 @@ class Pipeline(BasePipelineModel):
     "https://docs.gitlab.com/ci/yaml/#stages"
 
     include: list[IncludeComponent] = []
+
+    default: Optional[Default] = None
 
     variables: Optional[dict[str, GlobalVariables]] = {}
 
