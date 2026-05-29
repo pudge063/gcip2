@@ -1,12 +1,4 @@
-from gcip2 import (
-    Pipeline,
-    Job,
-    Stage,
-    Image,
-    pipeline,
-    IncludeComponent,
-    BaseInput,
-)
+from gcip2 import BaseInput, Image, IncludeComponent, Job, Pipeline, Stage, pipeline
 
 
 @pipeline

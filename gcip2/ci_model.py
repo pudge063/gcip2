@@ -1,18 +1,20 @@
+import json
 from enum import Enum
 from typing import Any, Optional, Self
-from pydantic import BaseModel, ConfigDict
+
 import jsonschema
-import json
+import pydantic
 
 
-class BasePipelineModel(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+class BasePipelineModel(pydantic.BaseModel):
+    model_config = pydantic.ConfigDict(extra="allow")
 
     def dump(self: Self, **kwargs: Any) -> dict[str, Any]:
         return self.model_dump(
             mode="json",
             exclude_none=True,
             exclude_defaults=True,
+            by_alias=True,
             **kwargs,
         )
 
@@ -235,6 +237,27 @@ class Artifacts(BasePipelineModel):
     "https://docs.gitlab.com/ci/yaml/#artifactsexpose_as"
 
 
+class JobVariables(BasePipelineModel):
+    value: Optional[str | bool | int | float] = None
+    "Default value of the variable. If used with `options`, `value` must be included in the array."
+    "https://docs.gitlab.com/ci/yaml/#variablesvalue"
+
+    expand: Optional[bool] = None
+    "If the variable is expandable or not."
+    "https://docs.gitlab.com/ci/yaml/#variablesexpand"
+
+
+class GlobalVariables(JobVariables):
+    description: Optional[str] = None
+    "Explains what the variable is used for, what the acceptable values are."
+    "Variables with `description` are prefilled when running a pipeline manually."
+    "https://docs.gitlab.com/ci/yaml/#variablesdescription"
+
+    options: Optional[list[str | bool | int | float]] = []
+    "A list of predefined values that users can select from in the **Run pipeline** page when running a pipeline manually."
+    "https://docs.gitlab.com/ci/yaml/#variablesoptions"
+
+
 class Job(BasePipelineModel):
     name: str
 
@@ -255,15 +278,104 @@ class Job(BasePipelineModel):
     needs: Optional[list[Needs]] = None
     "The list of jobs in previous stages whose sole completion is needed to start the current job."
 
+    variables: Optional[dict[str, JobVariables | str]] = None
+
+
+class RulesChanges(BasePipelineModel):
+    paths: list[str] = []
+    "List of file paths."
+
+    compare_to: Optional[str] = None
+    "Ref for comparing changes."
+
+
+class RulesExists(BasePipelineModel):
+    paths: list[str] = []
+    "List of file paths."
+
+    project: Optional[str] = None
+    "Path of the project to search in."
+
+    ref: Optional[str] = None
+    "Ref of the project to search in."
+
+
+class JobWhen(str, Enum):
+    ON_SUCCESS = "on_success"
+    ON_FAILURE = "on_failure"
+    ALWAYS = "always"
+    NEVER = "never"
+    MANUAL = "manual"
+    DELAYED = "delayed"
+
+
+class WorkflowAutoCancelOnJobFailure(str, Enum):
+    NONE = "none"
+    ALL = "all"
+
+
+class WorkflowAutoCancelOnNewCommit(str, Enum):
+    NONE = "none"
+    CONSERVATIVE = "conservative"
+    INTERRUPTIBLE = "interruptible"
+
+
+class WorkflowAutoCancel(BasePipelineModel):
+    on_job_failure: Optional[WorkflowAutoCancelOnJobFailure] = None
+    "Define which jobs to stop after a job fails."
+
+    on_new_commit: Optional[WorkflowAutoCancelOnNewCommit] = None
+    "Configure the behavior of the auto-cancel redundant pipelines feature."
+    "https://docs.gitlab.com/ci/yaml/#workflowauto_cancelon_new_commit"
+
+
+class Rules(BasePipelineModel):
+    model_config = pydantic.ConfigDict(populate_by_name=True)
+
+    if_: Optional[str] = pydantic.Field(serialization_alias="if", validation_alias="if", default=None)
+    "Expression to evaluate whether additional attributes should be provided to the job."
+    "https://docs.gitlab.com/ci/yaml/#rulesif"
+
+    changes: Optional[RulesChanges | list[str]] = None
+    "Additional attributes will be provided to job if any of the provided paths matches a modified file."
+    "https://docs.gitlab.com/ci/yaml/#ruleschanges"
+
+    exists: Optional[RulesExists | list[str]] = None
+    "Additional attributes will be provided to job if any of the provided paths matches an existing file in the repository."
+    "https://docs.gitlab.com/ci/yaml/#rulesexists"
+
+    variables: Optional[dict[str, str]] = None
+    "Defines variables for a rule result."
+    "https://docs.gitlab.com/ci/yaml/#rulesvariables"
+
+    when: Optional[JobWhen] = None
+
+    auto_cancel: Optional[WorkflowAutoCancel] = None
+
+
+class Workflow(BasePipelineModel):
+    name: Optional[str] = None
+    "Defines the pipeline name."
+    "https://docs.gitlab.com/ci/yaml/#workflowname"
+
+    auto_cancel: Optional[WorkflowAutoCancel] = None
+    "Define the rules for when pipeline should be automatically cancelled."
+
+    rules: Optional[list[Rules]] = None
+
 
 class Pipeline(BasePipelineModel):
     jobs: list[Job] = []
+
+    workflow: Optional[Workflow] = None
 
     stages: Optional[list[Stage | str]] = None
     "Groups jobs into stages. All jobs in one stage must complete before next stage is executed."
     "https://docs.gitlab.com/ci/yaml/#stages"
 
     include: list[IncludeComponent] = []
+
+    variables: Optional[dict[str, GlobalVariables]] = {}
 
     @staticmethod
     def load_pipeline_default_schema() -> dict[str, Any]:

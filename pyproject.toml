@@ -11,9 +11,19 @@ pydantic = "^2.13.4"
 jsonschema = "^4.26.0"
 pyyaml = "^6.0.3"
 click = "^8.4.1"
+pre-commit = "^4.6.0"
+black = "^26.5.1"
+isort = "^8.0.1"
 
 [tool.poetry.scripts]
 gcip2 = "gcip2.cli:cli"
+
+[tool.isort]
+py_version = 310
+profile = "black"
+line_length = 120
+group_by_package = true
+skip_gitignore = true
 
 [tool.black]
 line-length = 120

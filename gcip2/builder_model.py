@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Self
 
-from .ci_model import Pipeline, Job, Trigger, TriggerIncludeArtifact, Needs, Artifacts
+from .ci_model import Artifacts, Job, Needs, Pipeline, Trigger, TriggerIncludeArtifact
 
 
 def pipeline(func: Any):

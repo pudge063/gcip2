@@ -1,14 +1,7 @@
-from gcip2 import (
-    Pipeline,
-    Job,
-    Stage,
-    Image,
-    BasePipeline,
-    pipeline,  # pyright: ignore[reportUnusedImport]
-    Needs,
-    Artifacts,
-)
 import tomllib
+
+from gcip2 import pipeline  # pyright: ignore[reportUnusedImport]
+from gcip2 import Artifacts, BasePipeline, Image, Job, Needs, Pipeline, Stage
 
 
 class CustomPipeline(BasePipeline):

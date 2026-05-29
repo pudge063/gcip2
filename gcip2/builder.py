@@ -1,9 +1,10 @@
-from typing import Any, Optional, Self
-from typing_extensions import override
-import pathlib
-import yaml
-import os
 import importlib.util
+import os
+import pathlib
+from typing import Any, Optional, Self
+
+import yaml
+from typing_extensions import override
 
 from . import BasePipeline, Pipeline, TriggerPipeline
 
@@ -50,11 +51,16 @@ class CustomDumper(yaml.SafeDumper):
 class PipelineBuilder:
     yaml_dumper = CustomDumper
 
-    def build_gitlab_ci(self: Self, out_gitlab_ci: Any) -> None:
+    def build_gitlab_ci(
+        self: Self,
+        out_gitlab_ci: Any,
+        default_tags: str,
+    ) -> None:
         pipeline_obj = TriggerPipeline()
         self.build_pipeline_file(
             pipeline=pipeline_obj.impl(),
             path=out_gitlab_ci,
+            default_tags=default_tags,
         )
 
     def load_pipeline(self: Self, path: Any) -> BasePipeline:
@@ -79,12 +85,28 @@ class PipelineBuilder:
     def render_pipeline(self: Self, pipeline: Pipeline):
         pipeline = Pipeline.model_validate(pipeline, strict=True)
         result: dict[str, Any] = pipeline.dump(exclude=["jobs"])
+
         for job in pipeline.jobs:
+            if not job.name:
+                raise ValueError("Job name is missing.")
+            if job.name in result.keys():
+                raise ValueError("Job with same name already added.")
             result[job.name] = job.dump(exclude=["name"])
         return result
 
-    def build_pipeline_file(self: Self, pipeline: Pipeline, path: Optional[pathlib.Path]) -> None:
+    def build_pipeline_file(
+        self: Self,
+        pipeline: Pipeline,
+        path: Optional[pathlib.Path],
+        default_tags: Optional[str] = None,
+        **_: Any,
+    ) -> None:
         os.makedirs("out", exist_ok=True)
+
+        if default_tags:
+            for job in pipeline.jobs:
+                if job.name == "build-pipeline":
+                    job.tags = default_tags.split(sep=" ")
 
         data = yaml.dump(
             self.render_pipeline(pipeline=pipeline),
