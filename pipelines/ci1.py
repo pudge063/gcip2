@@ -1,10 +1,10 @@
 import tomllib
 
-from gcip2 import pipeline  # pyright: ignore[reportUnusedImport]
-from gcip2 import Artifacts, BasePipeline, Image, Job, Needs, Pipeline, Stage
+from gcip2.pipeline_core import pipeline  # pyright: ignore[reportUnusedImport]
+from gcip2.pipeline_core import Artifacts, CiBuilder, Image, Job, Needs, Pipeline, Stage
 
 
-class CustomPipeline(BasePipeline):
+class CustomPipeline(CiBuilder):
     def impl(self) -> Pipeline:
         with open("environment.toml", "r") as f:
             config = tomllib.loads(f.read())

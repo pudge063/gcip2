@@ -1,9 +1,35 @@
+import dataclasses
 import json
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Optional, Self
 
 import jsonschema
 import pydantic
+
+__all__ = (
+    "Trigger",
+    "Pipeline",
+    "Job",
+    "Stage",
+    "Image",
+    "Needs",
+    "Artifacts",
+    "ArtifactsReports",
+    "IncludeComponent",
+    "BaseInput",
+    "Workflow",
+    "WorkflowAutoCancel",
+    "Rule",
+    "WorkflowAutoCancelOnJobFailure",
+    "RuleChanges",
+    "WorkflowAutoCancelOnNewCommit",
+    "JobVariables",
+    "GlobalVariables",
+    "Default",
+    "pipeline",
+    "PipelineBuilderImpl",
+)
 
 
 class BasePipelineModel(pydantic.BaseModel):
@@ -380,7 +406,7 @@ class JobTemplate(BasePipelineModel):
     extends: Optional[str | list[str]] = None
     "The name of one or more jobs to inherit configuration from."
 
-    needs: Optional[list[Needs]] = None
+    needs: Optional[list[Needs | str]] = None
     "The list of jobs in previous stages whose sole completion is needed to start the current job."
 
     except_: Optional[Any] = pydantic.Field(serialization_alias="except", validation_alias="except", default=None)
@@ -503,7 +529,7 @@ class Default(BasePipelineModel):
 class Pipeline(BasePipelineModel):
     jobs: list[Job] = []
 
-    workflow: Optional[Workflow] = None
+    workflow: Optional[Workflow] = Workflow()
 
     stages: Optional[list[Stage | str]] = None
     "Groups jobs into stages. All jobs in one stage must complete before next stage is executed."
@@ -528,3 +554,87 @@ class Pipeline(BasePipelineModel):
             )
         except jsonschema.ValidationError as exc:
             raise exc
+
+
+class JobBuilderImpl(Job):
+    model: Job = pydantic.Field(
+        repr=False,
+        default_factory=Job,
+        init=False,
+    )
+
+    def impl(self: Self) -> Self: ...
+
+    def apply(self: Self) -> Self: ...
+
+    def build(self: Self) -> Job:
+        return self.model.model_copy(deep=True)
+
+    def with_name(self: Self, name: str) -> Self:
+        self.model.name = name
+        return self
+
+    def with_image(self, image: str, entrypoint: list[str] = []) -> Self:
+        self.model.image = Image(name=image, entrypoint=entrypoint)
+        return self
+
+    def with_tags(self, tags: list[str]) -> Self:
+        self.model.tags = tags
+        return self
+
+    def with_stage(self, stage: str) -> Self:
+        self.model.stage = stage
+        return self
+
+    def with_artifacts(
+        self,
+        paths: Optional[list[str]] = None,
+        reports: Optional[ArtifactsReports] = None,
+        exclude: Optional[list[str]] = None,
+        expose_as: Optional[str] = None,
+    ) -> Self:
+        self.model.artifacts = Artifacts(
+            paths=paths,
+            reports=reports,
+            exclude=exclude,
+            expose_as=expose_as,
+        )
+        return self
+
+    def with_needs(self, needs: list[Needs | str]) -> Self:
+        self.model.needs = needs
+        return self
+
+
+class PipelineBuilderImpl(Pipeline):
+    model: Pipeline = pydantic.Field(
+        repr=False,
+        default_factory=Pipeline,
+        init=False,
+    )
+
+    def impl(self: Self) -> Self: ...
+
+    def apply(self: Self) -> Self: ...
+
+    def build(self: Self) -> Pipeline:
+        return self.model.model_copy(deep=True)
+
+    @staticmethod
+    def job(job_class: type[JobBuilderImpl]) -> JobBuilderImpl:
+        return job_class()
+
+    def with_workflow(self, workflow: Workflow = Workflow()):
+        self.model.workflow = workflow
+        return self
+
+    def with_default(self, default: Default = Default()):
+        self.model.default = default
+        return self
+
+
+def pipeline(func: Any):
+
+    func.__gcip2_pipeline__ = True
+
+    return func

@@ -1,138 +1,108 @@
-from gcip2 import WorkflowAutoCancelOnNewCommit  # type: ignore
-from gcip2 import (
+from typing import Self
+
+from gcip2.pipeline_core import WorkflowAutoCancelOnNewCommit  # type: ignore
+from gcip2.pipeline_core import (
     Artifacts,
     ArtifactsReports,
     Default,
     GlobalVariables,
     Image,
     Job,
+    JobBuilderImpl,
     JobVariables,
     Needs,
     Pipeline,
+    PipelineBuilderImpl,
     Rule,
     RuleChanges,
     Stage,
     Workflow,
     WorkflowAutoCancel,
     WorkflowAutoCancelOnJobFailure,
-    pipeline,
 )
 
 
-@pipeline
-def impl() -> Pipeline:
-
-    jobs: list[Job] = []
-
-    job_for_extend = Job(
-        name=".test",
-        image=Image(name="python:3.12"),
-    )
-
-    jobs.extend(
-        [
-            job_for_extend,
-            Job(name="test", extends=job_for_extend.name, script="python3 --version", stage=Stage.JOBS),
+class PreCommit(JobBuilderImpl):
+    def apply(self: Self) -> Self:
+        self.model.name = "pre-commit"
+        self.model.script = [
+            "pip3 install poetry",
+            "poetry install",
+            ". .venv/bin/activate",
+            "poetry run pre-commit run -av",
         ]
-    )
+        self.with_image(image="python:3.11")
+        self.with_stage("pre-commit")
+        return self
 
-    job = Job(
-        name="test-1",
-        image=Image(name="python:3.11"),
-        script=[
-            "echo ID=$CI_JOB_ID > dotenv.txt",
-            "env",
-        ],
-        stage=Stage.JOBS,
-        tags=["immortal"],
-        artifacts=Artifacts(
-            reports=ArtifactsReports(
-                dotenv=["dotenv.txt"],
-            ),
-            paths=["builds/*"],
-        ),
-        variables={
-            "TEST_JOB_VARIABLE_1": JobVariables(
-                value="A",
-                expand=False,
-            ),
-            "TEST_JOB_VARIABLE_2": "B",
-        },
-        rules=[
-            Rule(
-                if_='$CUSTOM_VAR == "1"',
-                variables={
-                    "RULE_TEST_VARIABLE": "1",
-                },
-            )
-        ],
-    )
 
-    jobs.append(job)
+class Build(JobBuilderImpl):
+    def apply(self: Self):
+        dotenv_file = "dotenv.txt"
 
-    jobs.append(
-        Job(
-            name="test-2",
-            image=Image(name="python:3.11"),
-            tags=["immortal"],
-            script=["echo $ID"],
-            stage=Stage.JOBS,
-            needs=[Needs(job=job.name)],
-        )
-    )
-
-    return Pipeline(
-        stages=[Stage.JOBS],
-        jobs=jobs,
-        workflow=Workflow(
-            name="default",
-            auto_cancel=WorkflowAutoCancel(
-                on_job_failure=WorkflowAutoCancelOnJobFailure.NONE,
-            ),
-            rules=[
-                Rule(
-                    if_='$CUSTOM_VAR == "1"',
-                    variables={
-                        "CUSTOM_VAR_CI_PIPELINE_SOURCE": "push_",
-                        "RULE": "1",
-                    },
-                ),
-                Rule(
-                    if_='$CI_PIPELINE_SOURCE == "merge_request_event"',
-                    changes=["out"],
-                    variables={
-                        "CUSTOM_VAR_CI_PIPELINE_SOURCE": "merge_request_event_",
-                        "RULE": "2",
-                    },
-                ),
-                Rule(
-                    changes=RuleChanges(
-                        paths=[
-                            "pipelines",
-                            "examples",
-                        ],
-                    ),
-                    variables={
-                        "CUSTOM_VARIABLE": "test_value_2",
-                        "RULE": "2",
-                    },
-                ),
+        self.with_stage("build")
+        self.model.script = [
+            f"echo PARENT_JOB_ID=$CI_JOB_ID > {dotenv_file}",
+            "mkdir -p out",
+            "touch out/test_$CI_JOB_ID",
+        ]
+        self.with_artifacts(
+            paths=[
+                "out/*",
+                "build/*",
+                "_build/*",
             ],
-        ),
-        variables={
-            "CUSTOM_VARIABLE": GlobalVariables(
-                value="test_value",
-                description="test custom variable",
-                expand=True,
+            reports=ArtifactsReports(dotenv=[dotenv_file]),
+        )
+        return self
+
+
+class CheckDotenv(JobBuilderImpl):
+    def apply(self: Self):
+
+        self.with_stage("check")
+        self.model.script = [
+            f"echo $PARENT_JOB_ID",
+            "ls -la out",
+        ]
+        return self
+
+
+class Ci(PipelineBuilderImpl):
+    def _add_build_jobs(self) -> list[Job]:
+        platforms = ["arm", "amd64", "dev-441", "dev-442", "dev-443", "dev-313"]
+
+        jobs: list[Job] = []
+
+        for platform in platforms:
+            build_job = self.job(Build).apply().with_name(f"build:{platform}")
+
+            check_job = self.job(CheckDotenv).apply().with_name(f"check:{platform}").with_needs([build_job.model.name])
+
+            jobs.extend([build_job, check_job])
+
+        return jobs
+
+    def apply(self: Self) -> Self:
+        self.model.jobs.append(self.job(PreCommit).apply().with_stage("pre-commit"))
+        self.model.jobs.extend(self._add_build_jobs())
+        self.model.stages = ["pre-commit", "build", "check"]
+        self.with_workflow(
+            Workflow(
+                name="default",
+                auto_cancel=WorkflowAutoCancel(
+                    on_job_failure=WorkflowAutoCancelOnJobFailure.NONE,
+                    on_new_commit=WorkflowAutoCancelOnNewCommit.NONE,
+                ),
+                rules=[
+                    Rule(
+                        if_="$CI_DEFAULT_BRANCH == $CI_COMMIT_BRANCH",
+                        variables={
+                            "TEST": "1",
+                        },
+                    )
+                ],
             )
-        },
-        default=Default(
-            after_script=["rm -rf .venv"],
-            before_script=["poetry install && . .venv/bin/activate"],
-            artifacts=Artifacts(
-                paths=["logs/*"],
-            ),
-            image=Image(name="python:3.11"),
-            tags=["immortal"],
-        ),
-    )
+        )
+        self.with_default(Default(tags=["immortal"]))
+        return self

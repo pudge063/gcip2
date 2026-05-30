@@ -1,6 +1,0 @@
-{
-    "yaml.schemas": {
-        "./gcip2/ci.json": ".gitlab-ci.yml",
-        "file:///Users/pudge_vibes/pgcip/gcip2/ci.json": "file:///Users/pudge_vibes/pgcip/out/pipeline.gitlab-ci.yml"
-    }
-}

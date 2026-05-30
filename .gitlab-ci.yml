@@ -1,6 +1,7 @@
 build-pipeline:
-  script:
+  before_script:
     - pip3 install poetry
+  script:
     - poetry install && . .venv/bin/activate
     - gcip2 build-pipeline
   tags:
