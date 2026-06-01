@@ -11,10 +11,17 @@ build-pipeline:
       - out
 
 trigger-pipeline:
+  variables:
+    PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
   needs:
     - job: build-pipeline
       artifacts: true
+  interruptible: false
   trigger:
+    strategy: depend
     include:
       - job: build-pipeline
         artifact: out/pipeline.gitlab-ci.yml
+    forward:
+      yaml_variables: true
+      pipeline_variables: true

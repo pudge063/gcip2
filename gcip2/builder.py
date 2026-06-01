@@ -15,7 +15,9 @@ from .pipeline_core import (
     Pipeline,
     PipelineBuilderImpl,
     Trigger,
+    TriggerForward,
     TriggerIncludeArtifact,
+    TriggerStrategy,
 )
 
 
@@ -87,6 +89,7 @@ class PipelineBuilder:
     def _gen_trigger_pipeline_job():
         return Job(
             name=TriggerPipelineDefaults.trigger_pipeline,
+            interruptible=False,
             trigger=Trigger(
                 include=[
                     TriggerIncludeArtifact(
@@ -94,6 +97,11 @@ class PipelineBuilder:
                         job=TriggerPipelineDefaults.build_pipeline,
                     )
                 ],
+                strategy=TriggerStrategy.DEPEND,
+                forward=TriggerForward(
+                    yaml_variables=True,
+                    pipeline_variables=True,
+                ),
             ),
             needs=[
                 Needs(
@@ -101,6 +109,9 @@ class PipelineBuilder:
                     artifacts=True,
                 )
             ],
+            variables={
+                "PARENT_PIPELINE_ID": "${CI_PIPELINE_ID}",
+            },
         )
 
     def build_gitlab_ci(
