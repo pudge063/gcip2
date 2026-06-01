@@ -586,6 +586,9 @@ class JobBuilderImpl(Job):
         self.model.stage = stage
         return self
 
+    def with_when(self: Self, when: JobWhen) -> Self:
+        self.model.when = when
+
     def with_artifacts(
         self,
         paths: Optional[list[str]] = None,

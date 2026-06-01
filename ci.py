@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Self
 
 from gcip2.pipeline_core import WorkflowAutoCancelOnNewCommit  # type: ignore
@@ -10,6 +11,7 @@ from gcip2.pipeline_core import (
     Job,
     JobBuilderImpl,
     JobVariables,
+    JobWhen,
     Needs,
     Pipeline,
     PipelineBuilderImpl,
@@ -22,6 +24,11 @@ from gcip2.pipeline_core import (
 )
 
 
+class Stages(str, Enum):
+    pre_commit = "pre-commit"
+    publish = "publish"
+
+
 class PreCommit(JobBuilderImpl):
     def apply(self: Self) -> Self:
         self.model.name = "pre-commit"
@@ -29,64 +36,37 @@ class PreCommit(JobBuilderImpl):
             "pip3 install poetry",
             "poetry install",
             ". .venv/bin/activate",
-            "poetry run pre-commit run -av",
+            "pre-commit run -av",
         ]
         self.with_image(image="python:3.11")
-        self.with_stage("pre-commit")
+        self.with_stage(Stages.pre_commit)
         return self
 
 
-class Build(JobBuilderImpl):
-    def apply(self: Self):
-        dotenv_file = "dotenv.txt"
-
-        self.with_stage("build")
+class PublishPackage(JobBuilderImpl):
+    def apply(self: Self) -> Self:
+        self.model.name = "publish"
         self.model.script = [
-            f"echo PARENT_JOB_ID=$CI_JOB_ID > {dotenv_file}",
-            "mkdir -p out",
-            "touch out/test_$CI_JOB_ID",
+            "pip3 install poetry",
+            "poetry install",
+            ". .venv/bin/activate",
+            "poetry build",
+            "poetry config pypi-token.pypi ${PYPI_TOKEN}",
+            "poetry publish",
         ]
-        self.with_artifacts(
-            paths=[
-                "out/*",
-                "build/*",
-                "_build/*",
-            ],
-            reports=ArtifactsReports(dotenv=[dotenv_file]),
-        )
-        return self
-
-
-class CheckDotenv(JobBuilderImpl):
-    def apply(self: Self):
-
-        self.with_stage("check")
-        self.model.script = [
-            f"echo $PARENT_JOB_ID",
-            "ls -la out",
-        ]
+        self.with_image(image="python:3.11")
+        self.with_stage(Stages.publish)
+        self.with_when(JobWhen.MANUAL)
         return self
 
 
 class Ci(PipelineBuilderImpl):
-    def _add_build_jobs(self) -> list[Job]:
-        platforms = ["arm", "amd64", "dev-441", "dev-442", "dev-443", "dev-313"]
-
-        jobs: list[Job] = []
-
-        for platform in platforms:
-            build_job = self.job(Build).apply().with_name(f"build:{platform}")
-
-            check_job = self.job(CheckDotenv).apply().with_name(f"check:{platform}").with_needs([build_job.model.name])
-
-            jobs.extend([build_job, check_job])
-
-        return jobs
-
     def apply(self: Self) -> Self:
-        self.model.jobs.append(self.job(PreCommit).apply().with_stage("pre-commit"))
-        self.model.jobs.extend(self._add_build_jobs())
-        self.model.stages = ["pre-commit", "build", "check"]
+        self.model.stages = [Stages.pre_commit, Stages.publish]
+
+        self.model.jobs.append(self.job(PreCommit).apply())
+        self.model.jobs.append(self.job(PublishPackage).apply().with_needs(["pre-commit"]))
+
         self.with_workflow(
             Workflow(
                 name="default",
@@ -94,14 +74,6 @@ class Ci(PipelineBuilderImpl):
                     on_job_failure=WorkflowAutoCancelOnJobFailure.NONE,
                     on_new_commit=WorkflowAutoCancelOnNewCommit.NONE,
                 ),
-                rules=[
-                    Rule(
-                        if_="$CI_DEFAULT_BRANCH == $CI_COMMIT_BRANCH",
-                        variables={
-                            "TEST": "1",
-                        },
-                    )
-                ],
             )
         )
         self.with_default(Default(tags=["immortal"]))
