@@ -32,7 +32,7 @@ __all__ = (
 )
 
 
-class BasePipelineModel(pydantic.BaseModel):
+class BaseModel(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(extra="allow")
 
     def dump(self: Self, **kwargs: Any) -> dict[str, Any]:
@@ -52,7 +52,30 @@ class BaseInputType(Enum):
     STRING = "string"
 
 
-class BaseInput(BasePipelineModel):
+class Stage(str, Enum):
+    PRE = ".pre"
+    POST = ".post"
+    JOBS = "jobs"
+    BUILD = "build"
+    TEST = "test"
+    DEPLOY = "deploy"
+
+
+class WorkflowWhen(str, Enum):
+    ALWAYS = "always"
+    NEVER = "never"
+
+
+class JobWhen(str, Enum):
+    ALWAYS = "always"
+    NEVER = "never"
+    ON_SUCCESS = "on_success"
+    ON_FAILURE = "on_failure"
+    MANUAL = "manual"
+    DELAYED = "delayed"
+
+
+class BaseInput(BaseModel):
     type: Optional[BaseInputType] = BaseInputType.STRING
     "Input type. Defaults to 'string' when not specified."
 
@@ -74,24 +97,24 @@ class TriggerStrategy(str, Enum):
     MIRROR = "mirror"
 
 
-class TriggerIncludeArtifact(BasePipelineModel):
+class TriggerIncludeArtifact(BaseModel):
     job: Optional[str] = None
 
     artifact: Optional[str] = None
     "Relative path to the generated YAML file which is extracted from the artifacts and used as the configuration for triggering the child pipeline."
 
 
-class TriggerIncludeLocal(BasePipelineModel):
+class TriggerIncludeLocal(BaseModel):
     local: Optional[str] = None
     "Relative path from local repository root (`/`) to the local YAML file to define the pipeline configuration."
 
 
-class TriggerIncludeTemplate(BasePipelineModel):
+class TriggerIncludeTemplate(BaseModel):
     template: Optional[str] = None
     "Name of the template YAML file to use in the pipeline configuration."
 
 
-class TriggerForward(BasePipelineModel):
+class TriggerForward(BaseModel):
     yaml_variables: Optional[bool] = None
     "Variables defined in the trigger job are passed to downstream pipelines."
 
@@ -99,7 +122,7 @@ class TriggerForward(BasePipelineModel):
     "Variables added for manual pipeline runs and scheduled pipelines are passed to downstream pipelines."
 
 
-class Trigger(BasePipelineModel):
+class Trigger(BaseModel):
     "Trigger allows you to define downstream pipeline trigger."
 
     "When a job created from trigger definition is started by GitLab, a downstream pipeline gets created."
@@ -136,31 +159,11 @@ class Trigger(BasePipelineModel):
     "https://docs.gitlab.com/ci/inputs"
 
 
-class IncludeItem(BasePipelineModel):
-    inputs: Optional[dict[str, BaseInput]] = None
-
-
-class IncludeComponent(IncludeItem):
-    component: Optional[str] = None
-    "Local path to component directory or full path to external component directory."
-
-    rules: Optional[Any] = None
-
-
-class Stage(str, Enum):
-    PRE = ".pre"
-    POST = ".post"
-    JOBS = "jobs"
-    BUILD = "build"
-    TEST = "test"
-    DEPLOY = "deploy"
-
-
-class Parallel(BasePipelineModel):
+class Parallel(BaseModel):
     matrix: dict[str, list[str]] = {}
 
 
-class Needs(BasePipelineModel):
+class Needs(BaseModel):
     pipeline: Optional[str] = None
 
     job: Optional[str] = None
@@ -174,18 +177,18 @@ class Needs(BasePipelineModel):
     parallel: Optional[Parallel | int] = None
 
 
-class Image(BasePipelineModel):
+class Image(BaseModel):
     name: Optional[str] = None
 
     entrypoint: list[str] = []
 
 
-class ArtifactsReportsCoverage(BasePipelineModel):
+class ArtifactsReportsCoverage(BaseModel):
     coverage_format: Optional[str] = None
     path: Optional[str] = None
 
 
-class ArtifactsReports(BasePipelineModel):
+class ArtifactsReports(BaseModel):
     accessibility: Optional[list[str]] = None
     "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsaccessibility"
 
@@ -247,7 +250,7 @@ class ArtifactsReports(BasePipelineModel):
     "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsterraform"
 
 
-class Artifacts(BasePipelineModel):
+class Artifacts(BaseModel):
     paths: Optional[list[str]] = None
     "A list of paths to files/folders that should be included in the artifact."
     "https://docs.gitlab.com/ci/yaml/#artifactspaths"
@@ -263,7 +266,11 @@ class Artifacts(BasePipelineModel):
     "https://docs.gitlab.com/ci/yaml/#artifactsexpose_as"
 
 
-class JobVariables(BasePipelineModel):
+class JobVariables(BaseModel):
+    "Defines default variables for all jobs. Job level property overrides global variables."
+
+    "https://docs.gitlab.com/ci/yaml/#variables)."
+
     value: Optional[str | bool | int | float] = None
     "Default value of the variable. If used with `options`, `value` must be included in the array."
     "https://docs.gitlab.com/ci/yaml/#variablesvalue"
@@ -284,7 +291,13 @@ class GlobalVariables(JobVariables):
     "https://docs.gitlab.com/ci/yaml/#variablesoptions"
 
 
-class RuleChanges(BasePipelineModel):
+class RuleVariables(JobVariables):
+    ...
+    "Defines variables for a rule result."
+    "https://docs.gitlab.com/ci/yaml/#rulesvariables"
+
+
+class RuleChanges(BaseModel):
     paths: list[str] = []
     "List of file paths."
 
@@ -292,7 +305,7 @@ class RuleChanges(BasePipelineModel):
     "Ref for comparing changes."
 
 
-class RuleExists(BasePipelineModel):
+class RuleExists(BaseModel):
     paths: list[str] = []
     "List of file paths."
 
@@ -301,15 +314,6 @@ class RuleExists(BasePipelineModel):
 
     ref: Optional[str] = None
     "Ref of the project to search in."
-
-
-class JobWhen(str, Enum):
-    ON_SUCCESS = "on_success"
-    ON_FAILURE = "on_failure"
-    ALWAYS = "always"
-    NEVER = "never"
-    MANUAL = "manual"
-    DELAYED = "delayed"
 
 
 class WorkflowAutoCancelOnJobFailure(str, Enum):
@@ -323,7 +327,7 @@ class WorkflowAutoCancelOnNewCommit(str, Enum):
     INTERRUPTIBLE = "interruptible"
 
 
-class WorkflowAutoCancel(BasePipelineModel):
+class WorkflowAutoCancel(BaseModel):
     on_job_failure: Optional[WorkflowAutoCancelOnJobFailure] = None
     "Define which jobs to stop after a job fails."
 
@@ -332,7 +336,7 @@ class WorkflowAutoCancel(BasePipelineModel):
     "https://docs.gitlab.com/ci/yaml/#workflowauto_cancelon_new_commit"
 
 
-class Rule(BasePipelineModel):
+class Rule(BaseModel):
     model_config = pydantic.ConfigDict(populate_by_name=True)
 
     if_: Optional[str] = pydantic.Field(serialization_alias="if", validation_alias="if", default=None)
@@ -351,12 +355,29 @@ class Rule(BasePipelineModel):
     "Defines variables for a rule result."
     "https://docs.gitlab.com/ci/yaml/#rulesvariables"
 
-    when: Optional[JobWhen] = None
 
-    auto_cancel: Optional[WorkflowAutoCancel] = None
+class IncludeRule(BaseModel): ...
 
 
-class IdTokens(BasePipelineModel):
+class IncludeItem(BaseModel):
+    inputs: Optional[dict[str, BaseInput]] = None
+
+    rules: Optional[list[IncludeRule]] = None
+    "You can use rules to conditionally include other configuration files."
+    "https://docs.gitlab.com/ci/yaml/includes/#use-rules-with-include"
+
+
+class IncludeLocalItem(BaseModel):
+    local: str
+    "Relative path from local repository root (`/`) to the `yaml`/`yml` file template. The file must be on the same branch, and does not work across git submodules."
+
+
+class IncludeComponent(IncludeItem):
+    component: Optional[str] = None
+    "Local path to component directory or full path to external component directory."
+
+
+class IdTokens(BaseModel):
     aud: Optional[str | list[str]] = []
 
 
@@ -364,12 +385,74 @@ class Identity(str, Enum):
     GOOGLE_CLOUD = "google_cloud"
 
 
-class JobTemplate(BasePipelineModel):
+class JobRule(Rule):
+    when: Optional[JobWhen] = None
+
+
+class Docker(BaseModel):
+    platform: Optional[str] = None
+    "Image architecture to pull."
+
+    user: Optional[str] = None
+    "Username or UID to use for the container."
+
+
+class Kubernetes(BaseModel):
+    user: str | int
+
+
+class PullPolicy(str, Enum):
+    ALWAYS = "always"
+    NEVER = "never"
+    IFNOTPRESENT = "if-not-present"
+
+
+class Services(BaseModel):
+    "Similar to `image` property, but will link the specified services to the `image` container."
+
+    name: str
+    "Full name of the image that should be used. It should contain the Registry part if needed."
+
+    entrypoint: Optional[list[str]] = None
+    "Command or script that should be executed as the container's entrypoint."
+    "It will be translated to Docker's --entrypoint option while creating the container."
+    "The syntax is similar to Dockerfile's ENTRYPOINT directive, where each shell token is a separate string in the array."
+    "https://docs.gitlab.com/ci/services/#available-settings-for-services"
+
+    docker: Optional[Docker] = None
+    "Options to pass to Runners Docker Executor."
+    "https://docs.gitlab.com/ci/yaml/#servicesdocker"
+
+    kubernetes: Optional[Kubernetes] = None
+    "Options to pass to Runners Kubernetes Executor."
+    "https://docs.gitlab.com/ci/yaml/#imagekubernetes"
+
+    pull_policy: Optional[PullPolicy | list[PullPolicy]] = None
+    "Specifies how to pull the image in Runner. It can be one of `always`, `never` or `if-not-present`. The default value is `always`."
+    "https://docs.gitlab.com/ci/yaml/#servicespull_policy"
+
+    command: Optional[list[str] | str | list[list[str]]] = None
+    "Command or script that should be used as the container's command. It will be translated to arguments passed to Docker after the image's name."
+    "The syntax is similar to Dockerfile's CMD directive, where each shell token is a separate string in the array."
+    "https://docs.gitlab.com/ci/services/#available-settings-for-services"
+
+    alias: Optional[str] = None
+    "Additional alias that can be used to access the service from the job's container. Read Accessing the services for more information."
+    "https://docs.gitlab.com/ci/services/#available-settings-for-services"
+
+    variables: Optional[JobVariables] = None
+    "Additional environment variables that are passed exclusively to the service. Service variables cannot reference themselves."
+    "https://docs.gitlab.com/ci/services/#available-settings-for-services)"
+
+
+class JobTemplate(BaseModel):
     model_config = pydantic.ConfigDict(populate_by_name=True)
 
-    image: Image = Image()
+    image: Optional[Image] = None
+    "Full name of the image that should be used. It should contain the Registry part if needed."
 
-    services: Optional[Any] = None
+    services: Optional[list[str | Services]] = None
+    "https://docs.gitlab.com/ci/yaml/#services"
 
     before_script: Optional[list[str] | str] = None
 
@@ -377,7 +460,7 @@ class JobTemplate(BasePipelineModel):
 
     hooks: Optional[Any] = None
 
-    rules: Optional[list[Rule]] = None
+    rules: Optional[list[JobRule]] = None
 
     variables: Optional[dict[str, JobVariables | str]] = None
 
@@ -471,7 +554,13 @@ class Job(JobTemplate):
     name: Optional[str] = None
 
 
-class Workflow(BasePipelineModel):
+class WorkflowRule(Rule):
+    when: Optional[WorkflowWhen] = None
+
+    auto_cancel: Optional[WorkflowAutoCancel] = None
+
+
+class Workflow(BaseModel):
     name: Optional[str] = None
     "Defines the pipeline name."
     "https://docs.gitlab.com/ci/yaml/#workflowname"
@@ -479,10 +568,10 @@ class Workflow(BasePipelineModel):
     auto_cancel: Optional[WorkflowAutoCancel] = None
     "Define the rules for when pipeline should be automatically cancelled."
 
-    rules: Optional[list[Rule]] = None
+    rules: Optional[list[WorkflowRule]] = None
 
 
-class Default(BasePipelineModel):
+class Default(BaseModel):
     model_config = pydantic.ConfigDict(populate_by_name=True)
 
     after_script: Optional[list[str] | str] = None
@@ -497,7 +586,7 @@ class Default(BasePipelineModel):
 
     image: Optional[Image] = None
 
-    interuptable: Optional[bool] = None
+    interruptible: Optional[bool] = None
     "Interruptible is used to indicate that a job should be canceled if made redundant by a newer pipeline run."
     "https://docs.gitlab.com/ci/yaml/#interruptible"
 
@@ -526,7 +615,7 @@ class Default(BasePipelineModel):
     # invalid schema
 
 
-class Pipeline(BasePipelineModel):
+class Pipeline(BaseModel):
     jobs: list[Job] = []
 
     workflow: Optional[Workflow] = Workflow()
