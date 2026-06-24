@@ -1,6 +1,4 @@
-import dataclasses
 import json
-from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Optional, Self
 
@@ -698,7 +696,7 @@ class JobBuilderImpl(Job):
         return self
 
     def with_poetry_before_script(self: Self) -> Self:
-        self.model.before_script = """#!/usr/bin/env sh
+        self.model.before_script = ["""#!/usr/bin/env sh
 set -o errexit -o nounset -o xtrace
 section=\"$(date +'%s'):setup\"
 printf '\\e[0Ksection_start:%s[collapsed=true]\\r\\e[0K%s\\n' \"${section}\" \"setup\"
@@ -706,7 +704,7 @@ printf '\\e[0Ksection_start:%s[collapsed=true]\\r\\e[0K%s\\n' \"${section}\" \"s
 poetry install
 . \".venv/bin/activate\"
 printf '\\e[0Ksection_end:%s\\r\\e[0K\\n' \"${section}\"
-"""
+"""]
         return self
 
 

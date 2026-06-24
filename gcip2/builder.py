@@ -76,7 +76,7 @@ class PipelineBuilder:
     def _gen_build_pipeline_job():
         return Job(
             name=TriggerPipelineDefaults.build_pipeline,
-            before_script="""#!/usr/bin/env sh
+            before_script=["""#!/usr/bin/env sh
 set -o errexit -o nounset -o xtrace
 section=\"$(date +'%s'):setup\"
 printf '\\e[0Ksection_start:%s[collapsed=true]\\r\\e[0K%s\\n' \"${section}\" \"setup\"
@@ -84,7 +84,7 @@ printf '\\e[0Ksection_start:%s[collapsed=true]\\r\\e[0K%s\\n' \"${section}\" \"s
 poetry install
 . \".venv/bin/activate\"
 printf '\\e[0Ksection_end:%s\\r\\e[0K\\n' \"${section}\"
-""",
+"""],
             script=['exec sh -c "gcip2 build-pipeline"'],
             artifacts=Artifacts(paths=[TriggerPipelineDefaults.out_dir]),
         )

@@ -25,19 +25,19 @@ BUILD_PIPELINE_OPTIONS: dict[str, typing.Any] = {
 }
 
 BUILD_GITLAB_CI_OPTIONS: dict[str, typing.Any] = {
-    "out-gitlab-ci": click.option(
-        "--out-gitlab-ci",
-        "-O",
-        help="output file with parent trigger pipeline",
-        type=str,
-        default=".gitlab-ci.yml",
-    ),
     "ci-file": click.option(
         "--ci-file",
         "-f",
         help="file with source code for pipeline",
         type=str,
         default="ci.py",
+    ),
+    "out-gitlab-ci": click.option(
+        "--out-gitlab-ci",
+        "-o",
+        help="output file with parent trigger pipeline",
+        type=str,
+        default=".gitlab-ci.yml",
     ),
 }
 

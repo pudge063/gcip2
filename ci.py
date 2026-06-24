@@ -10,6 +10,7 @@ from gcip2.pipeline_core import (
     Image,
     Job,
     JobBuilderImpl,
+    JobRule,
     JobVariables,
     JobWhen,
     Needs,
@@ -50,6 +51,10 @@ class PublishPackage(JobBuilderImpl):
             "poetry config pypi-token.pypi ${PYPI_TOKEN}",
             "poetry publish",
         ]
+        self.model.rules = [
+            JobRule(if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'", when=JobWhen.ALWAYS),
+            JobRule(when=JobWhen.NEVER),
+        ]
         self.with_stage(Stages.publish)
         self.with_when(JobWhen.MANUAL)
         self.with_poetry_before_script()
@@ -71,6 +76,10 @@ class Ci(PipelineBuilderImpl):
                     on_new_commit=WorkflowAutoCancelOnNewCommit.NONE,
                 ),
                 rules=[
+                    WorkflowRule(
+                        if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'",
+                        when=WorkflowWhen.ALWAYS,
+                    ),
                     WorkflowRule(
                         if_='$CI_PIPELINE_SOURCE == "web"',
                         when=WorkflowWhen.ALWAYS,
