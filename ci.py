@@ -21,6 +21,8 @@ from gcip2.pipeline_core import (
     Workflow,
     WorkflowAutoCancel,
     WorkflowAutoCancelOnJobFailure,
+    WorkflowRule,
+    WorkflowWhen,
 )
 
 
@@ -33,13 +35,10 @@ class PreCommit(JobBuilderImpl):
     def apply(self: Self) -> Self:
         self.model.name = "pre-commit"
         self.model.script = [
-            "pip3 install poetry",
-            "poetry install",
-            ". .venv/bin/activate",
             "pre-commit run -av",
         ]
-        self.with_image(image="python:3.11")
         self.with_stage(Stages.pre_commit)
+        self.with_poetry_before_script()
         return self
 
 
@@ -47,16 +46,13 @@ class PublishPackage(JobBuilderImpl):
     def apply(self: Self) -> Self:
         self.model.name = "publish"
         self.model.script = [
-            "pip3 install poetry",
-            "poetry install",
-            ". .venv/bin/activate",
             "poetry build",
             "poetry config pypi-token.pypi ${PYPI_TOKEN}",
             "poetry publish",
         ]
-        self.with_image(image="python:3.11")
         self.with_stage(Stages.publish)
         self.with_when(JobWhen.MANUAL)
+        self.with_poetry_before_script()
         return self
 
 
@@ -74,7 +70,21 @@ class Ci(PipelineBuilderImpl):
                     on_job_failure=WorkflowAutoCancelOnJobFailure.NONE,
                     on_new_commit=WorkflowAutoCancelOnNewCommit.NONE,
                 ),
+                rules=[
+                    WorkflowRule(
+                        if_='$CI_PIPELINE_SOURCE == "web"',
+                        when=WorkflowWhen.ALWAYS,
+                    ),
+                    WorkflowRule(when=WorkflowWhen.NEVER),
+                ],
             )
         )
-        self.with_default(Default(tags=["immortal"]))
+        self.with_default(
+            Default(
+                tags=["immortal"],
+                image=Image(
+                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
+                ),
+            )
+        )
         return self

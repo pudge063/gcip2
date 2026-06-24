@@ -1,7 +1,7 @@
 repos:
   - repo: local
     hooks:
-      - id: build-gitlab-ci -t immortal-1
+      - id: build-gitlab-ci
         name: generate .gitlab-ci.yml
         entry: poetry run -- gcip2 -- build-gitlab-ci
         language: system

@@ -18,6 +18,8 @@ from .pipeline_core import (
     TriggerForward,
     TriggerIncludeArtifact,
     TriggerStrategy,
+    WorkflowRule,
+    WorkflowWhen,
 )
 
 
@@ -74,14 +76,16 @@ class PipelineBuilder:
     def _gen_build_pipeline_job():
         return Job(
             name=TriggerPipelineDefaults.build_pipeline,
-            before_script=[
-                "pip3 install poetry",
-            ],
-            script=[
-                "poetry install && . .venv/bin/activate",
-                "gcip2 build-pipeline",
-            ],
-            tags=["immortal"],
+            before_script="""#!/usr/bin/env sh
+set -o errexit -o nounset -o xtrace
+section=\"$(date +'%s'):setup\"
+printf '\\e[0Ksection_start:%s[collapsed=true]\\r\\e[0K%s\\n' \"${section}\" \"setup\"
+# shellcheck disable=SC2086
+poetry install
+. \".venv/bin/activate\"
+printf '\\e[0Ksection_end:%s\\r\\e[0K\\n' \"${section}\"
+""",
+            script=['exec sh -c "gcip2 build-pipeline"'],
             artifacts=Artifacts(paths=[TriggerPipelineDefaults.out_dir]),
         )
 
@@ -114,23 +118,6 @@ class PipelineBuilder:
             },
         )
 
-    def build_gitlab_ci(
-        self: Self,
-        out_gitlab_ci: Any,
-        default_tags: str,
-    ) -> None:
-        pipeline_obj = Pipeline(
-            jobs=[
-                self._gen_build_pipeline_job(),
-                self._gen_trigger_pipeline_job(),
-            ]
-        )
-        self.build_pipeline_file(
-            pipeline=pipeline_obj,
-            path=out_gitlab_ci,
-            default_tags=default_tags,
-        )
-
     def load_pipeline(self: Self, path: Any) -> PipelineBuilderImpl:
         path = pathlib.Path(path)
         spec: Any = importlib.util.spec_from_file_location(
@@ -141,10 +128,6 @@ class PipelineBuilder:
         spec.loader.exec_module(module)
 
         for obj in module.__dict__.values():
-
-            if callable(obj) and getattr(obj, "__gcip2_pipeline__", False):
-                return obj  # type: ignore
-
             if isinstance(obj, type) and issubclass(obj, PipelineBuilderImpl) and obj is not PipelineBuilderImpl:
                 return obj()
 
@@ -168,15 +151,10 @@ class PipelineBuilder:
         self: Self,
         pipeline: Pipeline,
         path: Optional[pathlib.Path],
-        default_tags: Optional[str] = None,
         **_: Any,
     ) -> None:
         os.makedirs("out", exist_ok=True)
         pipeline_copy = pipeline.model_copy(deep=True)
-        if default_tags:
-            for job in pipeline_copy.jobs:
-                if job.name == TriggerPipelineDefaults.build_pipeline:
-                    job.tags = default_tags.split(sep=" ")
 
         data = yaml.dump(
             self.render_pipeline(pipeline=pipeline_copy),
@@ -184,22 +162,52 @@ class PipelineBuilder:
             allow_unicode=True,
             Dumper=CustomDumper,
         )
-        path = path or pathlib.Path(os.getcwd()) / "out" / "pipeline.gitlab-ci.yml"
+
+        path = path or pathlib.Path(os.getcwd()) / TriggerPipelineDefaults.out_file.value
         with open(path, "w") as f:
             f.write(data)
 
-    def build_pipeline(self: Self, ci_file_path: str, out_pipeline_path: str) -> None:
+    def build_gitlab_ci(
+        self: Self,
+        out_gitlab_ci: Any,
+        ci_file_path: str,
+    ) -> None:
         pipeline_entry = self.load_pipeline(ci_file_path)
 
-        # decorator API
-        if callable(pipeline_entry):
-            pipeline: Pipeline = pipeline_entry()  # type: ignore
+        pipeline: Pipeline = pipeline_entry.apply().build()
 
-        # class API
-        else:
-            pipeline: Pipeline = pipeline_entry.apply().build()
+        pipeline_obj = Pipeline(
+            jobs=[
+                self._gen_build_pipeline_job(),
+                self._gen_trigger_pipeline_job(),
+            ],
+            workflow=pipeline.workflow,
+            default=pipeline.default,
+        )
 
         self.build_pipeline_file(
-            pipeline=pipeline,  # type: ignore
+            pipeline=pipeline_obj,
+            path=out_gitlab_ci,
+        )
+
+    def build_pipeline(
+        self: Self,
+        ci_file_path: str,
+        out_pipeline_path: str,
+    ) -> None:
+        pipeline_entry = self.load_pipeline(ci_file_path)
+
+        pipeline: Pipeline = pipeline_entry.apply().build()
+
+        downstream_rule = WorkflowRule(
+            if_='$CI_PIPELINE_SOURCE == "parent_pipeline"',
+            when=WorkflowWhen.ALWAYS,
+        )
+
+        if pipeline.workflow and pipeline.workflow.rules and downstream_rule not in pipeline.workflow.rules:
+            pipeline.workflow.rules = [downstream_rule] + pipeline.workflow.rules
+
+        self.build_pipeline_file(
+            pipeline=pipeline,
             path=pathlib.Path(out_pipeline_path),
         )

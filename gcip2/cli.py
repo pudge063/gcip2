@@ -32,12 +32,12 @@ BUILD_GITLAB_CI_OPTIONS: dict[str, typing.Any] = {
         type=str,
         default=".gitlab-ci.yml",
     ),
-    "ci-tags": click.option(
-        "--ci-tags",
-        "-t",
-        help="tags section for gitlab-ci",
+    "ci-file": click.option(
+        "--ci-file",
+        "-f",
+        help="file with source code for pipeline",
         type=str,
-        default="immortal",
+        default="ci.py",
     ),
 }
 
@@ -69,11 +69,11 @@ BUILDER = PipelineBuilder()
 @build_gitlab_ci_options
 def build_gitlab_ci(
     out_gitlab_ci: str,
-    ci_tags: str,
+    ci_file: str,
 ):
     BUILDER.build_gitlab_ci(
         out_gitlab_ci=out_gitlab_ci,
-        default_tags=ci_tags,
+        ci_file_path=ci_file,
     )
 
 

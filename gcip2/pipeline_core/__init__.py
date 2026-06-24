@@ -27,7 +27,6 @@ __all__ = (
     "JobVariables",
     "GlobalVariables",
     "Default",
-    "pipeline",
     "PipelineBuilderImpl",
 )
 
@@ -677,6 +676,7 @@ class JobBuilderImpl(Job):
 
     def with_when(self: Self, when: JobWhen) -> Self:
         self.model.when = when
+        return self
 
     def with_artifacts(
         self,
@@ -695,6 +695,18 @@ class JobBuilderImpl(Job):
 
     def with_needs(self, needs: list[Needs | str]) -> Self:
         self.model.needs = needs
+        return self
+
+    def with_poetry_before_script(self: Self) -> Self:
+        self.model.before_script = """#!/usr/bin/env sh
+set -o errexit -o nounset -o xtrace
+section=\"$(date +'%s'):setup\"
+printf '\\e[0Ksection_start:%s[collapsed=true]\\r\\e[0K%s\\n' \"${section}\" \"setup\"
+# shellcheck disable=SC2086
+poetry install
+. \".venv/bin/activate\"
+printf '\\e[0Ksection_end:%s\\r\\e[0K\\n' \"${section}\"
+"""
         return self
 
 
@@ -723,10 +735,3 @@ class PipelineBuilderImpl(Pipeline):
     def with_default(self, default: Default = Default()):
         self.model.default = default
         return self
-
-
-def pipeline(func: Any):
-
-    func.__gcip2_pipeline__ = True
-
-    return func
