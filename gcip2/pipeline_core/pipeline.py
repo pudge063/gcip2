@@ -1,21 +1,21 @@
-import typing
+from typing import Self
 
 import pydantic
 
 from ..pipeline_core import Default, JobBuilderImpl, Pipeline, Workflow
 
 
-class GitlabCiBuilderImpl(Pipeline):
+class PipelineBuilderImpl(Pipeline):
     model: Pipeline = pydantic.Field(
         repr=False,
         default_factory=Pipeline,
         init=False,
     )
 
-    def apply(self: typing.Self) -> typing.Self:
+    def apply(self: Self) -> Self:
         return self
 
-    def build(self: typing.Self) -> Pipeline:
+    def build(self: Self) -> Pipeline:
         return self.model.model_copy(deep=True)
 
     @staticmethod

@@ -1,14 +1,13 @@
 from enum import Enum
 from typing import Self
 
+from gcip2 import Base, BaseLinux, GitlabCiBuilderImpl, PipelineBuilderImpl
 from gcip2.pipeline_core import (
     Default,
-    GitlabCiBuilderImpl,
     Image,
     JobBuilderImpl,
     JobRule,
     JobWhen,
-    PipelineBuilderImpl,
     Trigger,
     TriggerForward,
     TriggerIncludeArtifact,
@@ -20,7 +19,6 @@ from gcip2.pipeline_core import (
     WorkflowRule,
     WorkflowWhen,
 )
-from gcip2.pipeline_core.jobs.base import Base, BaseLinux
 
 
 class Stages(str, Enum):

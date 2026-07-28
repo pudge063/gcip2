@@ -1,12 +1,11 @@
 from enum import Enum
 from typing import Self
 
+from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
 from gcip2.pipeline_core import (
     Default,
-    GitlabCiBuilderImpl,
     Image,
     JobBuilderImpl,
-    PipelineBuilderImpl,
     Workflow,
     WorkflowAutoCancel,
     WorkflowAutoCancelOnJobFailure,

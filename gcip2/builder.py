@@ -7,18 +7,12 @@ from typing import Any, Optional, Self
 import yaml
 from typing_extensions import override
 
-from .pipeline_core import (
-    Artifacts,
-    GitlabCiBuilderImpl,
-    Job,
+from gcip2.pipeline_core.gitlab_ci import GitlabCiBuilderImpl
+from gcip2.pipeline_core.pipeline import PipelineBuilderImpl
+
+from .pipeline_core import (  # GitlabCiBuilderImpl,
     JobBuilderImpl,
-    Needs,
     Pipeline,
-    PipelineBuilderImpl,
-    Trigger,
-    TriggerForward,
-    TriggerIncludeArtifact,
-    TriggerStrategy,
     WorkflowRule,
     WorkflowWhen,
 )
@@ -65,9 +59,6 @@ class CustomDumper(yaml.SafeDumper):
 
 
 class TriggerPipelineDefaults(str, Enum):
-    build_pipeline = "build-pipeline"
-    trigger_pipeline = "trigger-pipeline"
-    out_dir = "out"
     out_file = "out/pipeline.gitlab-ci.yml"
 
 
