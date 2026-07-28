@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from typing import Any, Optional, Self
+from typing import Any, ClassVar, Optional, Self
 
 import jsonschema
 import pydantic
@@ -643,17 +643,37 @@ class Pipeline(BaseModel):
 
 
 class JobBuilderImpl(Job):
+    _base: ClassVar[type["JobBuilderImpl"] | None] = None
+
     model: Job = pydantic.Field(
         repr=False,
         default_factory=Job,
         init=False,
     )
 
-    def impl(self: Self) -> Self: ...
+    def _apply_base(self) -> None:
+        if self._base is None:
+            return
+
+        base = self._base()
+        base._apply_base()
+        base.apply()
+
+        base_model = base.model.model_dump(exclude_none=True)
+        current_model = self.model.model_dump(exclude_none=True)
+
+        merged = {
+            **base_model,
+            **current_model,
+        }
+
+        self.model = Job.model_validate(merged)
 
     def apply(self: Self) -> Self: ...
 
     def build(self: Self) -> Job:
+        self._apply_base()
+        self.apply()
         return self.model.model_copy(deep=True)
 
     def with_name(self: Self, name: str) -> Self:
@@ -695,18 +715,6 @@ class JobBuilderImpl(Job):
         self.model.needs = needs
         return self
 
-    def with_poetry_before_script(self: Self) -> Self:
-        self.model.before_script = ["""#!/usr/bin/env sh
-set -o errexit -o nounset -o xtrace
-section=\"$(date +'%s'):setup\"
-printf '\\e[0Ksection_start:%s[collapsed=true]\\r\\e[0K%s\\n' \"${section}\" \"setup\"
-# shellcheck disable=SC2086
-poetry install
-. \".venv/bin/activate\"
-printf '\\e[0Ksection_end:%s\\r\\e[0K\\n' \"${section}\"
-"""]
-        return self
-
 
 class PipelineBuilderImpl(Pipeline):
     model: Pipeline = pydantic.Field(
@@ -715,9 +723,34 @@ class PipelineBuilderImpl(Pipeline):
         init=False,
     )
 
-    def impl(self: Self) -> Self: ...
+    def apply(self: Self) -> Self:
+        return self
 
-    def apply(self: Self) -> Self: ...
+    def build(self: Self) -> Pipeline:
+        return self.model.model_copy(deep=True)
+
+    @staticmethod
+    def job(job_class: type[JobBuilderImpl]) -> JobBuilderImpl:
+        return job_class()
+
+    def with_workflow(self, workflow: Workflow = Workflow()):
+        self.model.workflow = workflow
+        return self
+
+    def with_default(self, default: Default = Default()):
+        self.model.default = default
+        return self
+
+
+class GitlabCiBuilderImpl(Pipeline):
+    model: Pipeline = pydantic.Field(
+        repr=False,
+        default_factory=Pipeline,
+        init=False,
+    )
+
+    def apply(self: Self) -> Self:
+        return self
 
     def build(self: Self) -> Pipeline:
         return self.model.model_copy(deep=True)
