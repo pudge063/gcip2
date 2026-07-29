@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Self
 
-from gcip2 import Base, BaseLinux, GitlabCiBuilderImpl, PipelineBuilderImpl
+from gcip2 import Base, BaseLinux, GitlabCiBuilderImpl, PipelineBuilderImpl, Predefined
 from gcip2.pipeline_core import (
     Default,
     Image,
@@ -109,30 +109,29 @@ class Pipeline(PipelineBuilderImpl):
         return job
 
     def apply(self: Self) -> Self:
-        # self.model.stages = [Stages.pre_commit, Stages.publish, Stages.test]
-
         self.model.jobs.append(self.job(PreCommit).apply())
 
-        for test in ["e1", "e2", "e3", "pipeline", "secrets", "artifacts"]:
-            build_test_job = (
-                self.job(BuildTestPipeline).apply().with_name(f"{JobName.build_test_pipeline.value}:{test}")
-            )
-            trigger_test_job = (
-                self.job(TriggerTestPipeline)
-                .apply()
-                .with_name(f"{JobName.trigger_test_pipeline.value}:{test}")
-                .with_needs([f"{JobName.build_test_pipeline.value}:{test}"])
-            )
-            trigger_test_job.model.trigger = Trigger(
-                strategy=TriggerStrategy.DEPEND,
-                include=[
-                    TriggerIncludeArtifact(
-                        job=f"{JobName.build_test_pipeline.value}:{test}",
-                        artifact="gcip2/tests/base_pipeline/out/pipeline.gitlab-ci.yml",
-                    )
-                ],
-                forward=TriggerForward(yaml_variables=True, pipeline_variables=True),
-            )
+        if Predefined.CI_PIPELINE_SOURCE.getenv() == "merge_request_event":
+            for test in ["e1", "e2", "e3", "pipeline", "secrets", "artifacts"]:
+                build_test_job = (
+                    self.job(BuildTestPipeline).apply().with_name(f"{JobName.build_test_pipeline.value}:{test}")
+                )
+                trigger_test_job = (
+                    self.job(TriggerTestPipeline)
+                    .apply()
+                    .with_name(f"{JobName.trigger_test_pipeline.value}:{test}")
+                    .with_needs([f"{JobName.build_test_pipeline.value}:{test}"])
+                )
+                trigger_test_job.model.trigger = Trigger(
+                    strategy=TriggerStrategy.DEPEND,
+                    include=[
+                        TriggerIncludeArtifact(
+                            job=f"{JobName.build_test_pipeline.value}:{test}",
+                            artifact="gcip2/tests/base_pipeline/out/pipeline.gitlab-ci.yml",
+                        )
+                    ],
+                    forward=TriggerForward(yaml_variables=True, pipeline_variables=True),
+                )
 
             self.model.jobs.extend([build_test_job, trigger_test_job])
 
