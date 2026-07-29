@@ -34,3 +34,4 @@ class Predefined(VarEnum, enum.Enum):
     CI_COMMIT_BRANCH = enum.auto()
     CI_DEFAULT_BRANCH = enum.auto()
     CI_PIPELINE_SOURCE = enum.auto()
+    CI_JOB_IMAGE = enum.auto()
