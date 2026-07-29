@@ -14,6 +14,9 @@ workflow:
       when: always
     - when: never
 
+stages:
+  - jobs
+
 default:
   image:
     name: pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie
@@ -44,6 +47,7 @@ build-pipeline:
     - echo Do nothing.
   script:
     - exec sh -c "gcip2 build-pipeline"
+  stage: jobs
   artifacts:
     paths:
       - out
@@ -51,6 +55,7 @@ build-pipeline:
 trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+  stage: jobs
   needs:
     - job: build-pipeline
       artifacts: true

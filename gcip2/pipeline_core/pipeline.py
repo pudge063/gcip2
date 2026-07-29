@@ -2,7 +2,7 @@ from typing import Self
 
 import pydantic
 
-from ..pipeline_core import Default, JobBuilderImpl, Pipeline, Workflow
+from ..pipeline_core import Default, JobBuilderImpl, Pipeline, Stage, Workflow
 
 
 class PipelineBuilderImpl(Pipeline):
@@ -16,6 +16,8 @@ class PipelineBuilderImpl(Pipeline):
         return self
 
     def build(self: Self) -> Pipeline:
+        if not self.model.stages:
+            self.model.stages = [Stage.JOBS]
         return self.model.model_copy(deep=True)
 
     @staticmethod

@@ -26,6 +26,7 @@ class PreCommit(JobBuilderImpl):
     def apply(self: Self) -> Self:
         self.model.name = "pre-commit"
         self.model.script = [
+            "ls -la",
             "pre-commit run -av",
         ]
         self.with_stage(Stages.pre_commit)

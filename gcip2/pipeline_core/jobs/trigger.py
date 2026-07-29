@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Self
 
 from gcip2 import pipeline_core
-from gcip2.pipeline_core.jobs.base import BaseLinux
+from gcip2.pipeline_core.jobs.base import Base, BaseLinux
 
 
 class TriggerPipelineDefaults(str, Enum):
@@ -23,6 +23,8 @@ class BuildTriggerPipeline(pipeline_core.JobBuilderImpl):
 
 
 class TriggerPipeline(pipeline_core.JobBuilderImpl):
+    _base = Base
+
     def apply(self: Self) -> Self:
         self.with_name(TriggerPipelineDefaults.trigger_pipeline.value)
         self.model.variables = {"PARENT_PIPELINE_ID": "${CI_PIPELINE_ID}"}

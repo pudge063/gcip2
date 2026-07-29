@@ -21,12 +21,6 @@ from gcip2.pipeline_core import (
 )
 
 
-class Stages(str, Enum):
-    pre_commit = "pre-commit"
-    publish = "publish"
-    test = "test"
-
-
 class JobName(str, Enum):
     pre_commit = "pre-commit"
     build_test_pipeline = "build-test-pipeline"
@@ -42,7 +36,6 @@ class PreCommit(JobBuilderImpl):
         self.model.script = [
             "pre-commit run -av",
         ]
-        self.with_stage(Stages.pre_commit)
         return self
 
 
@@ -50,7 +43,6 @@ class BuildTestPipeline(JobBuilderImpl):
     _base = BaseLinux
 
     def apply(self: Self) -> Self:
-        self.with_stage(Stages.test)
         self.model.script = [
             "cd gcip2/tests/base_pipeline",
             "gcip2 build-pipeline",
@@ -63,8 +55,6 @@ class TriggerTestPipeline(JobBuilderImpl):
     _base = Base
 
     def apply(self: Self) -> Self:
-        self.with_stage(Stages.test)
-
         return self
 
 
@@ -79,10 +69,9 @@ class PublishPackage(JobBuilderImpl):
             "poetry publish",
         ]
         self.model.rules = [
-            JobRule(if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'", when=JobWhen.ALWAYS),
+            JobRule(if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'", when=JobWhen.MANUAL),
             JobRule(when=JobWhen.NEVER),
         ]
-        self.with_stage(Stages.publish)
         self.with_when(JobWhen.MANUAL)
         return self
 
@@ -120,7 +109,7 @@ class Pipeline(PipelineBuilderImpl):
         return job
 
     def apply(self: Self) -> Self:
-        self.model.stages = [Stages.pre_commit, Stages.publish, Stages.test]
+        # self.model.stages = [Stages.pre_commit, Stages.publish, Stages.test]
 
         self.model.jobs.append(self.job(PreCommit).apply())
 

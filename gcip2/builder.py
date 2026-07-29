@@ -10,12 +10,7 @@ from typing_extensions import override
 from gcip2.pipeline_core.gitlab_ci import GitlabCiBuilderImpl
 from gcip2.pipeline_core.pipeline import PipelineBuilderImpl
 
-from .pipeline_core import (  # GitlabCiBuilderImpl,
-    JobBuilderImpl,
-    Pipeline,
-    WorkflowRule,
-    WorkflowWhen,
-)
+from .pipeline_core import JobBuilderImpl, Pipeline, Stage, WorkflowRule, WorkflowWhen
 from .pipeline_core.jobs import trigger
 
 
@@ -159,6 +154,9 @@ class PipelineBuilder:
             and downstream_rule not in pipeline_entry.workflow.rules
         ):
             pipeline_entry.workflow.rules = [downstream_rule] + pipeline_entry.workflow.rules
+
+        if not pipeline_entry.stages:
+            pipeline_entry.stages = [Stage.JOBS]
 
         self.build_pipeline_file(
             pipeline=pipeline_entry,

@@ -608,7 +608,6 @@ class Default(BaseModel):
     # reference_: Optional[str] = pydantic.Field(
     #     serialization_alias="!reference", validation_alias="!reference", default=None
     # )
-    # invalid schema
 
 
 class Pipeline(BaseModel):

@@ -2,12 +2,9 @@ import dataclasses
 import pathlib
 import typing
 
-import injector
-
 ASSERTS_DIR = pathlib.Path(__file__).parent
 
 
-@injector.singleton
 @dataclasses.dataclass
 class TextAsset:
     script: str

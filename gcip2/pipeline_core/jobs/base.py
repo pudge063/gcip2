@@ -1,6 +1,6 @@
 from typing import Self
 
-from gcip2.pipeline_core import JobBuilderImpl
+from gcip2.pipeline_core import JobBuilderImpl, Stage
 
 from ..jobs import assets
 
@@ -9,6 +9,7 @@ class Base(JobBuilderImpl):
     _base = None
 
     def apply(self: Self) -> Self:
+        self.with_stage(Stage.JOBS)
         return self
 
 
