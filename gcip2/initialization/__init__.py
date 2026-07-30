@@ -18,6 +18,7 @@ class TemplateNames(str, enum.Enum):
     ENVIRONMENT_TOML = "environment.toml"
     POETRY_TOML = "poetry.toml"
     PYPROJECT_TOML = "pyproject.toml"
+    GITIGNORE = ".gitignore"
 
 
 class TemplateGenerator:

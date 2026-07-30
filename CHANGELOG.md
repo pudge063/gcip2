@@ -1,5 +1,8 @@
 ## Changelog
 
+### [30.07.26 = 0.0.6]
+- added py.typed
+
 ### [30.07.26 = 0.0.5]
 - added base project structure initialization with `gcip2 init`
 - added base predefined CI variables for pipelines
