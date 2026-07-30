@@ -1,10 +1,12 @@
 from typing import Self
 
-from gcip2 import GitlabCiBuilderImpl
+from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl, Predefined
 from gcip2.pipeline_core import (
     Default,
     Image,
-    TriggerIncludeArtifact,
+    JobBuilderImpl,
+    JobRule,
+    JobWhen,
     Workflow,
     WorkflowAutoCancel,
     WorkflowAutoCancelOnJobFailure,
@@ -12,7 +14,30 @@ from gcip2.pipeline_core import (
     WorkflowRule,
     WorkflowWhen,
 )
-from gcip2.pipeline_core.jobs.trigger import BuildTriggerPipeline, TriggerPipeline
+from gcip2.pipeline_core.jobs.base import BaseLinux
+
+
+class PublishPackage(JobBuilderImpl):
+    _base = BaseLinux
+
+    def apply(self: Self) -> Self:
+        self.model.name = "publish-package"
+
+        publish_cmd = "poetry publish"
+        publish_cmd += " --dry-run" if not Predefined.CI_COMMIT_TAG.getenv() else ""
+
+        self.model.script = [
+            "poetry build",
+            "poetry config pypi-token.pypi ${PYPI_TOKEN}",
+            publish_cmd,
+        ]
+        self.model.rules = [
+            JobRule(if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'", when=JobWhen.MANUAL),
+            JobRule(when=JobWhen.ALWAYS),
+        ]
+        self.with_when(JobWhen.MANUAL)
+        return self
+
 
 workflow = Workflow(
     name="default",
@@ -38,37 +63,26 @@ workflow = Workflow(
 )
 
 
-class GitlabCi(GitlabCiBuilderImpl):
-    def _add_test_jobs(self: Self) -> Self:
-        for test_name in ["checkstyle", "multipipeline", "integration", "publish"]:
-            build_pipeline_job = (
-                self.job(BuildTriggerPipeline)
-                .apply()
-                .with_name(f"{test_name}/build-pipeline")
-                .with_tags(["static-k8s"])
-            )
-            build_pipeline_job.model.script = [
-                f'exec sh -c "gcip2 build-pipeline -f tests/pipelines/{test_name}/ci.py"'
-            ]
+class Pipeline(PipelineBuilderImpl):
+    def apply(self: Self) -> Self:
 
-            trigger_pipeline_job = (
-                self.job(TriggerPipeline)
-                .apply()
-                .with_name(f"{test_name}/trigger-pipeline")
-                .with_needs([build_pipeline_job.model.name])  # type: ignore
-            )
-            trigger_pipeline_job.model.trigger.include = [  # type: ignore
-                TriggerIncludeArtifact(job=build_pipeline_job.model.name, artifact="out/pipeline.gitlab-ci.yml")
-            ]
+        self.model.jobs.append(self.job(PublishPackage).apply())
 
-            self.model.jobs.extend([build_pipeline_job, trigger_pipeline_job])
+        self.with_default(
+            Default(
+                tags=["static-k8s"],
+                image=Image(
+                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
+                ),
+            )
+        )
+        self.with_workflow(workflow=workflow)
         return self
 
+
+class GitlabCi(GitlabCiBuilderImpl):
     def apply(self: Self) -> Self:
         super(GitlabCi, self).apply()
-
-        self._add_test_jobs()
-
         self.with_workflow(workflow=workflow)
         self.with_default(
             Default(

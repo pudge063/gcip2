@@ -1,9 +1,11 @@
+import pathlib
 import sys
 import typing
 
 import click
 
-from .builder import PipelineBuilder
+from gcip2.builder import PipelineBuilder
+from gcip2.initialization import TemplateGenerator
 
 CallableCliOption = typing.TypeVar("CallableCliOption", bound=typing.Callable)  # type: ignore
 
@@ -41,6 +43,16 @@ BUILD_GITLAB_CI_OPTIONS: dict[str, typing.Any] = {
     ),
 }
 
+INIT_OPTIONS: dict[str, typing.Any] = {
+    "force": click.option(
+        "--force",
+        "-f",
+        is_flag=True,
+        default=False,
+        help="force overwrite base project structure",
+    )
+}
+
 
 @click.group()
 def cli() -> None:
@@ -56,6 +68,12 @@ def build_gitlab_ci_options(fn: CallableCliOption) -> CallableCliOption:
 def build_pipeline_options(fn: CallableCliOption) -> CallableCliOption:
     for option in BUILD_PIPELINE_OPTIONS.keys():
         fn = BUILD_PIPELINE_OPTIONS[option](fn)
+    return fn
+
+
+def init_options(fn: CallableCliOption) -> CallableCliOption:
+    for option in INIT_OPTIONS.keys():
+        fn = INIT_OPTIONS[option](fn)
     return fn
 
 
@@ -87,6 +105,15 @@ def build_pipeline(
     out_pipeline: str,
 ):
     BUILDER.build_pipeline(ci_file_path=ci_file, out_pipeline_path=out_pipeline)
+
+
+@cli.command(
+    "init",
+    help="init base project structure",
+)
+@init_options
+def init(force: bool):
+    TemplateGenerator().generate_base_structure(overwrite=force)
 
 
 if __name__ == "__main__":

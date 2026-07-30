@@ -1,10 +1,12 @@
+from enum import Enum
 from typing import Self
 
-from gcip2 import GitlabCiBuilderImpl
+from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
 from gcip2.pipeline_core import (
     Default,
     Image,
-    TriggerIncludeArtifact,
+    JobBuilderImpl,
+    Parallel,
     Workflow,
     WorkflowAutoCancel,
     WorkflowAutoCancelOnJobFailure,
@@ -12,7 +14,18 @@ from gcip2.pipeline_core import (
     WorkflowRule,
     WorkflowWhen,
 )
-from gcip2.pipeline_core.jobs.trigger import BuildTriggerPipeline, TriggerPipeline
+from gcip2.pipeline_core.jobs.base import BaseLinux
+
+
+class MatrixJob(JobBuilderImpl):
+    _base = BaseLinux
+
+    def apply(self: Self) -> Self:
+        self.model.name = "matrix-job"
+        self.model.parallel = Parallel(matrix=[{"TEST": ["1", "2", "3"]}])
+        self.model.script = ["echo $TEST"]
+        return self
+
 
 workflow = Workflow(
     name="default",
@@ -38,37 +51,26 @@ workflow = Workflow(
 )
 
 
-class GitlabCi(GitlabCiBuilderImpl):
-    def _add_test_jobs(self: Self) -> Self:
-        for test_name in ["checkstyle", "multipipeline", "integration", "publish"]:
-            build_pipeline_job = (
-                self.job(BuildTriggerPipeline)
-                .apply()
-                .with_name(f"{test_name}/build-pipeline")
-                .with_tags(["static-k8s"])
-            )
-            build_pipeline_job.model.script = [
-                f'exec sh -c "gcip2 build-pipeline -f tests/pipelines/{test_name}/ci.py"'
-            ]
+class Pipeline(PipelineBuilderImpl):
+    def apply(self: Self) -> Self:
 
-            trigger_pipeline_job = (
-                self.job(TriggerPipeline)
-                .apply()
-                .with_name(f"{test_name}/trigger-pipeline")
-                .with_needs([build_pipeline_job.model.name])  # type: ignore
-            )
-            trigger_pipeline_job.model.trigger.include = [  # type: ignore
-                TriggerIncludeArtifact(job=build_pipeline_job.model.name, artifact="out/pipeline.gitlab-ci.yml")
-            ]
+        self.model.jobs.append(self.job(MatrixJob).apply())
 
-            self.model.jobs.extend([build_pipeline_job, trigger_pipeline_job])
+        self.with_default(
+            Default(
+                tags=["static-k8s"],
+                image=Image(
+                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
+                ),
+            )
+        )
+        self.with_workflow(workflow=workflow)
         return self
 
+
+class GitlabCi(GitlabCiBuilderImpl):
     def apply(self: Self) -> Self:
         super(GitlabCi, self).apply()
-
-        self._add_test_jobs()
-
         self.with_workflow(workflow=workflow)
         self.with_default(
             Default(

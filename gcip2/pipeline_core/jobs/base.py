@@ -10,6 +10,7 @@ class Base(JobBuilderImpl):
 
     def apply(self: Self) -> Self:
         self.with_stage(Stage.JOBS)
+        self.model.interruptible = True
         return self
 
 

@@ -2,7 +2,7 @@ import importlib.util
 import os
 import pathlib
 from enum import Enum
-from typing import Any, Optional, Self
+from typing import Any, Optional, Self, TypeVar
 
 import yaml
 from typing_extensions import override
@@ -12,6 +12,8 @@ from gcip2.pipeline_core.pipeline import PipelineBuilderImpl
 
 from .pipeline_core import JobBuilderImpl, Pipeline, Stage, WorkflowRule, WorkflowWhen
 from .pipeline_core.jobs import trigger
+
+T = TypeVar("T", PipelineBuilderImpl, GitlabCiBuilderImpl)
 
 
 class CustomDumper(yaml.SafeDumper):
@@ -60,7 +62,11 @@ class TriggerPipelineDefaults(str, Enum):
 class PipelineBuilder:
     yaml_dumper = CustomDumper
 
-    def load_pipeline(self: Self, path: Any) -> PipelineBuilderImpl:
+    def load_pipeline(
+        self: Self,
+        path: Any,
+        obj_type: type[T],
+    ) -> T:
         path = pathlib.Path(path)
         spec: Any = importlib.util.spec_from_file_location(
             "user_pipeline",
@@ -70,27 +76,12 @@ class PipelineBuilder:
         spec.loader.exec_module(module)
 
         for obj in module.__dict__.values():
-            if isinstance(obj, type) and issubclass(obj, PipelineBuilderImpl) and obj is not PipelineBuilderImpl:
+            if isinstance(obj, type) and issubclass(obj, obj_type) and obj is not obj_type:
                 return obj()
 
-        raise RuntimeError("PipelineBuilderImpl child class not found")
+        raise RuntimeError(f"{obj_type.__name__} child class not found")
 
-    def load_gitlab_ci(self: Self, path: Any) -> GitlabCiBuilderImpl:
-        path = pathlib.Path(path)
-        spec: Any = importlib.util.spec_from_file_location(
-            "user_pipeline",
-            path,
-        )
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-
-        for obj in module.__dict__.values():
-            if isinstance(obj, type) and issubclass(obj, GitlabCiBuilderImpl) and obj is not GitlabCiBuilderImpl:
-                return obj()
-
-        raise RuntimeError("GitlabCiBuilderimpl child class not found")
-
-    def render_pipeline(self: Self, pipeline: Pipeline):
+    def render_pipeline(self: Self, pipeline: Pipeline) -> dict[str, Any]:
         pipeline = Pipeline.model_validate(pipeline, strict=True)
         result: dict[str, Any] = pipeline.dump(exclude=["jobs"])
 
@@ -132,34 +123,26 @@ class PipelineBuilder:
         _build_trigger_pipeline = trigger.BuildTriggerPipeline()
         _trigger_pipeline = trigger.TriggerPipeline()
 
-        pipeline_entry = self.load_gitlab_ci(ci_file_path).apply()
+        pipeline_entry = self.load_pipeline(ci_file_path, obj_type=GitlabCiBuilderImpl)
 
-        pipeline_entry = GitlabCiBuilderImpl(
-            jobs=[
-                _build_trigger_pipeline.apply(),
-                _trigger_pipeline.apply(),
-            ],
-            workflow=pipeline_entry.model.workflow,
-            default=pipeline_entry.model.default,
-        )
+        pipeline_obj: Pipeline = pipeline_entry.apply().build()
 
         downstream_rule = WorkflowRule(
             if_='$CI_PIPELINE_SOURCE == "parent_pipeline"',
             when=WorkflowWhen.ALWAYS,
         )
 
-        if (
-            pipeline_entry.workflow
-            and pipeline_entry.workflow.rules
-            and downstream_rule not in pipeline_entry.workflow.rules
-        ):
-            pipeline_entry.workflow.rules = [downstream_rule] + pipeline_entry.workflow.rules
+        if not pipeline_obj.jobs:
+            pipeline_obj.jobs = [_build_trigger_pipeline.apply(), _trigger_pipeline.apply()]
 
-        if not pipeline_entry.stages:
+        if pipeline_obj.workflow and pipeline_obj.workflow.rules and downstream_rule not in pipeline_obj.workflow.rules:
+            pipeline_obj.workflow.rules = [downstream_rule] + pipeline_obj.workflow.rules
+
+        if not pipeline_obj.stages:
             pipeline_entry.stages = [Stage.JOBS]
 
         self.build_pipeline_file(
-            pipeline=pipeline_entry,
+            pipeline=pipeline_obj,
             path=out_gitlab_ci,
         )
 
@@ -168,7 +151,7 @@ class PipelineBuilder:
         ci_file_path: str,
         out_pipeline_path: str,
     ) -> None:
-        pipeline_entry: PipelineBuilderImpl = self.load_pipeline(ci_file_path)
+        pipeline_entry: PipelineBuilderImpl = self.load_pipeline(ci_file_path, obj_type=PipelineBuilderImpl)
 
         pipeline_obj: Pipeline = pipeline_entry.apply().build()
 

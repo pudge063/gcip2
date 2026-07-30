@@ -23,7 +23,7 @@ default:
   tags:
     - static-k8s
 
-build-pipeline:
+checkstyle/build-pipeline:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -46,24 +46,170 @@ build-pipeline:
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - exec sh -c "gcip2 build-pipeline"
+    - exec sh -c "gcip2 build-pipeline -f tests/pipelines/checkstyle/ci.py"
   stage: jobs
+  tags:
+    - static-k8s
   artifacts:
     paths:
       - out
+  interruptible: true
 
-trigger-pipeline:
+checkstyle/trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
   stage: jobs
   needs:
-    - job: build-pipeline
-      artifacts: true
+    - checkstyle/build-pipeline
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: build-pipeline
+      - job: checkstyle/build-pipeline
+        artifact: out/pipeline.gitlab-ci.yml
+    forward:
+      yaml_variables: true
+      pipeline_variables: true
+
+multipipeline/build-pipeline:
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - exec sh -c "gcip2 build-pipeline -f tests/pipelines/multipipeline/ci.py"
+  stage: jobs
+  tags:
+    - static-k8s
+  artifacts:
+    paths:
+      - out
+  interruptible: true
+
+multipipeline/trigger-pipeline:
+  variables:
+    PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+  stage: jobs
+  needs:
+    - multipipeline/build-pipeline
+  interruptible: false
+  trigger:
+    strategy: depend
+    include:
+      - job: multipipeline/build-pipeline
+        artifact: out/pipeline.gitlab-ci.yml
+    forward:
+      yaml_variables: true
+      pipeline_variables: true
+
+integration/build-pipeline:
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - exec sh -c "gcip2 build-pipeline -f tests/pipelines/integration/ci.py"
+  stage: jobs
+  tags:
+    - static-k8s
+  artifacts:
+    paths:
+      - out
+  interruptible: true
+
+integration/trigger-pipeline:
+  variables:
+    PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+  stage: jobs
+  needs:
+    - integration/build-pipeline
+  interruptible: false
+  trigger:
+    strategy: depend
+    include:
+      - job: integration/build-pipeline
+        artifact: out/pipeline.gitlab-ci.yml
+    forward:
+      yaml_variables: true
+      pipeline_variables: true
+
+publish/build-pipeline:
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - exec sh -c "gcip2 build-pipeline -f tests/pipelines/publish/ci.py"
+  stage: jobs
+  tags:
+    - static-k8s
+  artifacts:
+    paths:
+      - out
+  interruptible: true
+
+publish/trigger-pipeline:
+  variables:
+    PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+  stage: jobs
+  needs:
+    - publish/build-pipeline
+  interruptible: false
+  trigger:
+    strategy: depend
+    include:
+      - job: publish/build-pipeline
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
