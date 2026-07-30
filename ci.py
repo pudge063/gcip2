@@ -41,7 +41,7 @@ workflow = Workflow(
 
 class GitlabCi(GitlabCiBuilderImpl):
     def _add_test_jobs(self: Self) -> Self:
-        for test_name in ["default", "checkstyle"]:
+        for test_name in ["checkstyle", "multipipeline"]:
             build_pipeline_job = (
                 self.job(BuildTriggerPipeline)
                 .apply()
