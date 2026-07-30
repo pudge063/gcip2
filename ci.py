@@ -1,6 +1,5 @@
 from typing import Self
 
-import gcip2
 from gcip2 import GitlabCiBuilderImpl
 from gcip2.pipeline_core import (
     Default,
