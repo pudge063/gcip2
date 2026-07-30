@@ -32,10 +32,9 @@ class PublishPackage(JobBuilderImpl):
             publish_cmd,
         ]
         self.model.rules = [
-            JobRule(if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'", when=JobWhen.MANUAL),
+            JobRule(if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'"),
             JobRule(when=JobWhen.ALWAYS),
         ]
-        self.with_when(JobWhen.MANUAL)
         return self
 
 

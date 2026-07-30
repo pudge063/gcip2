@@ -1,5 +1,9 @@
 ## Changelog
 
+### [30.07.26 = 0.0.7]
+- fixed publish job
+- fixed .gitignore in initialization
+
 ### [30.07.26 = 0.0.6]
 - added py.typed
 
