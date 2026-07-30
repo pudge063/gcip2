@@ -156,7 +156,7 @@ class Trigger(BaseModel):
 
 
 class Parallel(BaseModel):
-    matrix: dict[str, list[str]] = {}
+    matrix: list[dict[str, list[str]]] = []
 
 
 class Needs(BaseModel):
@@ -671,7 +671,7 @@ class JobBuilderImpl(Job):
 
     def build(self: Self) -> Job:
         self._apply_base()
-        self.apply()
+        # self.apply()
         return self.model.model_copy(deep=True)
 
     def with_name(self: Self, name: str) -> Self:

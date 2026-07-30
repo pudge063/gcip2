@@ -2,7 +2,7 @@ import typing
 
 import pydantic
 
-from ..pipeline_core import Default, JobBuilderImpl, Pipeline, Workflow
+from ..pipeline_core import Default, JobBuilderImpl, Pipeline, Stage, Workflow
 
 
 class GitlabCiBuilderImpl(Pipeline):
@@ -16,6 +16,8 @@ class GitlabCiBuilderImpl(Pipeline):
         return self
 
     def build(self: typing.Self) -> Pipeline:
+        if not self.model.stages:
+            self.model.stages = [Stage.JOBS]
         return self.model.model_copy(deep=True)
 
     @staticmethod
