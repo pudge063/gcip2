@@ -36,3 +36,5 @@ class Predefined(VarEnum, enum.Enum):
     CI_PIPELINE_SOURCE = enum.auto()
     CI_JOB_IMAGE = enum.auto()
     CI_COMMIT_TAG = enum.auto()
+    CI_PROJECT_ID = enum.auto()
+    CI_JOB_TOKEN = enum.auto()

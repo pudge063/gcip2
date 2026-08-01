@@ -5,7 +5,6 @@ from gcip2.pipeline_core import (
     Default,
     Image,
     JobBuilderImpl,
-    JobRule,
     JobWhen,
     Workflow,
     WorkflowAutoCancel,
@@ -17,6 +16,28 @@ from gcip2.pipeline_core import (
 from gcip2.pipeline_core.jobs.base import BaseLinux
 
 
+class CheckVersion(JobBuilderImpl):
+    _base = BaseLinux
+
+    def apply(self: Self) -> Self:
+        return self.with_name("check-version").with_script(
+            [
+                "poetry run python pipelines/publish/helpers/check_version.py",
+            ]
+        )
+
+
+class CreateVersionTag(JobBuilderImpl):
+    _base = BaseLinux
+
+    def apply(self: Self) -> Self:
+        return (
+            self.with_name("create-version")
+            .with_script("python pipelines/publish/helpers/create_version.py")
+            .with_needs(["check-version"])
+        )
+
+
 class PublishPackage(JobBuilderImpl):
     _base = BaseLinux
 
@@ -24,18 +45,17 @@ class PublishPackage(JobBuilderImpl):
         self.model.name = "publish-package"
 
         publish_cmd = "poetry publish"
-        publish_cmd += " --dry-run" if not Predefined.CI_COMMIT_TAG.getenv() else ""
+        publish_cmd += (
+            " --dry-run" if not Predefined.CI_COMMIT_BRANCH.getenv() == Predefined.CI_DEFAULT_BRANCH.getenv() else ""
+        )
 
         self.model.script = [
             "poetry build",
             "poetry config pypi-token.pypi ${PYPI_TOKEN}",
             publish_cmd,
         ]
-        self.model.rules = [
-            JobRule(if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'"),
-            JobRule(when=JobWhen.ALWAYS),
-        ]
-        return self
+
+        return self.with_when(JobWhen.MANUAL).with_needs(["create-version"])
 
 
 workflow = Workflow(
@@ -50,10 +70,6 @@ workflow = Workflow(
             when=WorkflowWhen.ALWAYS,
         ),
         WorkflowRule(
-            if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'",
-            when=WorkflowWhen.ALWAYS,
-        ),
-        WorkflowRule(
             if_="$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH",
             when=WorkflowWhen.ALWAYS,
         ),
@@ -65,7 +81,13 @@ workflow = Workflow(
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
 
-        self.model.jobs.append(self.job(PublishPackage).apply())
+        self.add_jobs(
+            (
+                self.job(CheckVersion).apply(),
+                self.job(CreateVersionTag).apply(),
+                self.job(PublishPackage).apply(),
+            )
+        )
 
         self.with_default(
             Default(

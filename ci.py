@@ -37,10 +37,9 @@ workflow = Workflow(
         WorkflowRule(
             if_='$CI_PIPELINE_SOURCE == "merge_request_event"',
             when=WorkflowWhen.ALWAYS,
-        ),
-        WorkflowRule(
-            if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'",
-            when=WorkflowWhen.ALWAYS,
+            auto_cancel=WorkflowAutoCancel(
+                on_new_commit=WorkflowAutoCancelOnNewCommit.INTERRUPTIBLE,
+            ),
         ),
         WorkflowRule(
             if_="$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH",
