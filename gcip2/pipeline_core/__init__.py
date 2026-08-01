@@ -57,6 +57,12 @@ class Stage(str, Enum):
     DEPLOY = "deploy"
 
 
+class ArtifactsWhen(str, Enum):
+    ON_SUCCESS = "on_success"
+    ON_FAILURE = "on_failure"
+    ALWAYS = "always"
+
+
 class WorkflowWhen(str, Enum):
     ALWAYS = "always"
     NEVER = "never"
@@ -221,7 +227,7 @@ class ArtifactsReports(BaseModel):
     dotenv: Optional[list[str]] = None
     "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsdotenv"
 
-    junit: Optional[list[str]] = None
+    junit: Optional[str | list[str]] = None
     "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsjunit"
 
     load_performance: Optional[list[str]] = None
@@ -246,12 +252,17 @@ class ArtifactsReports(BaseModel):
     "https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportsterraform"
 
 
+class ArtifactsAccess(str, Enum):
+    ALL = "all"
+    DEVELOPER = "developer"
+    MAINTAINER = "maintainer"
+    NONE = "none"
+
+
 class Artifacts(BaseModel):
     paths: Optional[list[str]] = None
     "A list of paths to files/folders that should be included in the artifact."
     "https://docs.gitlab.com/ci/yaml/#artifactspaths"
-
-    reports: Optional[ArtifactsReports] = None
 
     exclude: Optional[list[str]] = None
     "A list of paths to files/folders that should be excluded in the artifact."
@@ -260,6 +271,34 @@ class Artifacts(BaseModel):
     expose_as: Optional[str] = None
     "Can be used to expose job artifacts in the merge request UI. GitLab will add a link <expose_as> to the relevant merge request that points to the artifact."
     "https://docs.gitlab.com/ci/yaml/#artifactsexpose_as"
+
+    expire_in: Optional[str] = None
+    "Use expire_in to specify how long job artifacts are stored before they expire and are deleted."
+    "https://archives.docs.gitlab.com/17.11/ci/yaml/#artifactsexpire_in"
+
+    name: Optional[str] = None
+    "Use the artifacts:name keyword to define the name of the created artifacts archive. You can specify a unique name for every archive."
+    "https://archives.docs.gitlab.com/17.11/ci/yaml/#artifactsname"
+
+    public: Optional[bool] = None
+    "Use artifacts:public to determine whether the job artifacts should be publicly available."
+    "https://archives.docs.gitlab.com/17.11/ci/yaml/#artifactspublic"
+
+    access: Optional[ArtifactsAccess] = None
+    "Use artifacts:access to determine who can access the job artifacts from the GitLab UI or API."
+    "This option does not prevent you from forwarding artifacts to downstream pipelines."
+    "https://archives.docs.gitlab.com/17.11/ci/yaml/#artifactsaccess"
+
+    reports: Optional[ArtifactsReports] = None
+
+    untracked: Optional[bool] = None
+    "Use artifacts:untracked to add all Git untracked files as artifacts (along with the paths defined in artifacts:paths)."
+    "artifacts:untracked ignores configuration in the repository's .gitignore, so matching artifacts in .gitignore are included."
+    "https://archives.docs.gitlab.com/17.11/ci/yaml/#artifactsuntracked"
+
+    when: Optional[ArtifactsWhen] = None
+    "Use artifacts:when to upload artifacts on job failure or despite the failure."
+    "https://archives.docs.gitlab.com/17.11/ci/yaml/#artifactswhen"
 
 
 class JobVariables(BaseModel):
@@ -667,7 +706,8 @@ class JobBuilderImpl(Job):
 
         self.model = Job.model_validate(merged)
 
-    def apply(self: Self) -> Self: ...
+    def apply(self: Self) -> Self:
+        return self
 
     def build(self: Self) -> Job:
         self._apply_base()
@@ -676,6 +716,32 @@ class JobBuilderImpl(Job):
 
     def with_name(self: Self, name: str) -> Self:
         self.model.name = name
+        return self
+
+    def add_to_name(self: Self, suffix: str) -> Self:
+        if not self.model.name:
+            raise ValueError("Could not add suffix to job name because job name is not set.")
+        self.model.name += suffix
+        return self
+
+    def with_script(self: Self, script: str | list[str]) -> Self:
+        self.model.script = script
+        return self
+
+    def with_before_script(self: Self, script: str | list[str]) -> Self:
+        self.model.before_script = script
+        return self
+
+    def with_after_script(self: Self, script: str | list[str]) -> Self:
+        self.model.after_script = script
+        return self
+
+    def add_to_script(self: Self, script: str | list[str]) -> Self:
+        if isinstance(self.model.script, list):
+            if isinstance(script, str):
+                self.model.script.extend([script])
+            else:
+                self.model.script.extend(script)
         return self
 
     def with_image(self, image: str, entrypoint: list[str] = []) -> Self:
@@ -697,18 +763,37 @@ class JobBuilderImpl(Job):
     def with_artifacts(
         self,
         paths: Optional[list[str]] = None,
-        reports: Optional[ArtifactsReports] = None,
         exclude: Optional[list[str]] = None,
+        expire_in: Optional[str] = None,
         expose_as: Optional[str] = None,
+        name: Optional[str] = None,
+        public: Optional[bool] = None,
+        access: Optional[ArtifactsAccess] = None,
+        reports: Optional[ArtifactsReports] = None,
+        untracked: Optional[bool] = None,
+        when: Optional[ArtifactsWhen] = None,
     ) -> Self:
+        if public and access:
+            raise ValueError("Could not be set both parameters: public and access.")
+
         self.model.artifacts = Artifacts(
             paths=paths,
-            reports=reports,
             exclude=exclude,
             expose_as=expose_as,
+            expire_in=expire_in,
+            name=name,
+            public=public,
+            access=access,
+            reports=reports,
+            untracked=untracked,
+            when=when,
         )
         return self
 
     def with_needs(self, needs: list[Needs | str]) -> Self:
         self.model.needs = needs
+        return self
+
+    def with_dependencies(self, dependencies: list[str]) -> Self:
+        self.model.dependencies = dependencies
         return self

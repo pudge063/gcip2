@@ -1,8 +1,9 @@
-from enum import Enum
 from typing import Self
 
 from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
 from gcip2.pipeline_core import (
+    ArtifactsReports,
+    ArtifactsReportsCoverage,
     Default,
     Image,
     JobBuilderImpl,
@@ -16,20 +17,12 @@ from gcip2.pipeline_core import (
 from gcip2.pipeline_core.jobs.base import BaseLinux
 
 
-class Stages(str, Enum):
-    pre_commit = "pre-commit"
-
-
-class PreCommit(JobBuilderImpl):
+class RunUnitTests(JobBuilderImpl):
     _base = BaseLinux
 
     def apply(self: Self) -> Self:
-        self.model.name = "pre-commit"
-        self.model.script = [
-            "ls -la",
-            "pre-commit run -av",
-        ]
-        self.with_stage(Stages.pre_commit)
+        self.model.name = "unit-tests"
+        self.model.coverage = "/TOTAL.*?(\\d+%)$/"
         return self
 
 
@@ -59,9 +52,31 @@ workflow = Workflow(
 
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
-        self.model.stages = [Stages.pre_commit]
 
-        self.model.jobs.append(self.job(PreCommit).apply())
+        for module in ["job", "pipeline"]:
+            self.model.jobs.append(
+                self.job(RunUnitTests)
+                .apply()
+                .add_to_name(f":{module}")
+                .with_script(
+                    [
+                        (
+                            f"pytest -v tests/unit/test_{module}.py --junitxml=pytest.xml "
+                            "--cov=gcip2 --cov-report=term --cov-report=xml:coverage.xml"
+                        ),
+                    ]
+                )
+                .with_artifacts(
+                    paths=["coverage.xml", "pytest.xml"],
+                    reports=ArtifactsReports(
+                        coverage_report=ArtifactsReportsCoverage(
+                            coverage_format="cobertura",
+                            path="coverage.xml",
+                        ),
+                        junit=["pytest.xml"],
+                    ),
+                )
+            )
 
         self.with_default(
             Default(

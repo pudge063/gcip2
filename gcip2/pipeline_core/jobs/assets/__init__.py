@@ -17,5 +17,13 @@ class TextAsset:
         return cls(script=path.read_text(), path=path)
 
 
+class AfterScriptLinux(TextAsset):
+    relative_path = "after_script_linux.sh"
+
+
+class BeforeScriptLinux(TextAsset):
+    relative_path = "before_script_linux.sh"
+
+
 class ScriptLinux(TextAsset):
     relative_path = "script_linux.sh"
