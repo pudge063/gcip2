@@ -16,14 +16,20 @@ from gcip2.pipeline_core import (
 from gcip2.pipeline_core.jobs.base import BaseLinux
 
 
-class RunIntegrationTests(JobBuilderImpl):
+class Stages(str, Enum):
+    pre_commit = "pre-commit"
+
+
+class PreCommit(JobBuilderImpl):
     _base = BaseLinux
 
     def apply(self: Self) -> Self:
-        self.model.name = "integration tests"
+        self.model.name = "pre-commit"
         self.model.script = [
-            "pytest",
+            "ls -la",
+            "pre-commit run -av --color=always",
         ]
+        self.with_stage(Stages.pre_commit)
         return self
 
 
@@ -53,8 +59,9 @@ workflow = Workflow(
 
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
+        self.model.stages = [Stages.pre_commit]
 
-        self.model.jobs.append(self.job(RunIntegrationTests).apply())
+        self.model.jobs.append(self.job(PreCommit).apply())
 
         self.with_default(
             Default(

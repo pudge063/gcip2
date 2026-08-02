@@ -1,11 +1,11 @@
-from enum import Enum
 from typing import Self
 
-from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
+from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl, Predefined
 from gcip2.pipeline_core import (
     Default,
     Image,
     JobBuilderImpl,
+    JobWhen,
     Workflow,
     WorkflowAutoCancel,
     WorkflowAutoCancelOnJobFailure,
@@ -16,21 +16,46 @@ from gcip2.pipeline_core import (
 from gcip2.pipeline_core.jobs.base import BaseLinux
 
 
-class Stages(str, Enum):
-    pre_commit = "pre-commit"
-
-
-class PreCommit(JobBuilderImpl):
+class CheckVersion(JobBuilderImpl):
     _base = BaseLinux
 
     def apply(self: Self) -> Self:
-        self.model.name = "pre-commit"
+        return self.with_name("check-version").with_script(
+            [
+                "poetry run python pipelines/publish/helpers/check_version.py",
+            ]
+        )
+
+
+class CreateVersionTag(JobBuilderImpl):
+    _base = BaseLinux
+
+    def apply(self: Self) -> Self:
+        return (
+            self.with_name("create-version")
+            .with_script("python pipelines/publish/helpers/create_version.py")
+            .with_needs(["check-version"])
+        )
+
+
+class PublishPackage(JobBuilderImpl):
+    _base = BaseLinux
+
+    def apply(self: Self) -> Self:
+        self.model.name = "publish-package"
+
+        publish_cmd = "poetry publish"
+        publish_cmd += (
+            " --dry-run" if not Predefined.CI_COMMIT_BRANCH.getenv() == Predefined.CI_DEFAULT_BRANCH.getenv() else ""
+        )
+
         self.model.script = [
-            "ls -la",
-            "pre-commit run -av",
+            "poetry build",
+            "poetry config pypi-token.pypi ${PYPI_TOKEN}",
+            publish_cmd,
         ]
-        self.with_stage(Stages.pre_commit)
-        return self
+
+        return self.with_needs(["create-version"])
 
 
 workflow = Workflow(
@@ -45,10 +70,6 @@ workflow = Workflow(
             when=WorkflowWhen.ALWAYS,
         ),
         WorkflowRule(
-            if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'",
-            when=WorkflowWhen.ALWAYS,
-        ),
-        WorkflowRule(
             if_="$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH",
             when=WorkflowWhen.ALWAYS,
         ),
@@ -59,9 +80,14 @@ workflow = Workflow(
 
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
-        self.model.stages = [Stages.pre_commit]
 
-        self.model.jobs.append(self.job(PreCommit).apply())
+        self.add_jobs(
+            (
+                self.job(CheckVersion).apply(),
+                self.job(CreateVersionTag).apply(),
+                self.job(PublishPackage).apply(),
+            )
+        )
 
         self.with_default(
             Default(

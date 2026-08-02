@@ -1,8 +1,9 @@
+from collections.abc import Iterable
 from typing import Self
 
 import pydantic
 
-from ..pipeline_core import Default, JobBuilderImpl, Pipeline, Stage, Workflow
+from ..pipeline_core import Default, Job, JobBuilderImpl, Pipeline, Stage, Workflow
 
 
 class PipelineBuilderImpl(Pipeline):
@@ -23,6 +24,9 @@ class PipelineBuilderImpl(Pipeline):
     @staticmethod
     def job(job_class: type[JobBuilderImpl]) -> JobBuilderImpl:
         return job_class()
+
+    def add_jobs(self, jobs: Iterable[Job]):
+        self.model.jobs.extend(jobs)
 
     def with_workflow(self, workflow: Workflow = Workflow()):
         self.model.workflow = workflow

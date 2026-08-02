@@ -1,12 +1,12 @@
 from typing import Self
 
-from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl, Predefined
+from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
 from gcip2.pipeline_core import (
+    ArtifactsReports,
+    ArtifactsReportsCoverage,
     Default,
     Image,
     JobBuilderImpl,
-    JobRule,
-    JobWhen,
     Workflow,
     WorkflowAutoCancel,
     WorkflowAutoCancelOnJobFailure,
@@ -17,24 +17,12 @@ from gcip2.pipeline_core import (
 from gcip2.pipeline_core.jobs.base import BaseLinux
 
 
-class PublishPackage(JobBuilderImpl):
+class RunUnitTests(JobBuilderImpl):
     _base = BaseLinux
 
     def apply(self: Self) -> Self:
-        self.model.name = "publish-package"
-
-        publish_cmd = "poetry publish"
-        publish_cmd += " --dry-run" if not Predefined.CI_COMMIT_TAG.getenv() else ""
-
-        self.model.script = [
-            "poetry build",
-            "poetry config pypi-token.pypi ${PYPI_TOKEN}",
-            publish_cmd,
-        ]
-        self.model.rules = [
-            JobRule(if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'"),
-            JobRule(when=JobWhen.ALWAYS),
-        ]
+        self.model.name = "unit-tests"
+        self.model.coverage = "/TOTAL.*?(\\d+%)$/"
         return self
 
 
@@ -65,7 +53,30 @@ workflow = Workflow(
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
 
-        self.model.jobs.append(self.job(PublishPackage).apply())
+        for module in ["job", "pipeline"]:
+            self.model.jobs.append(
+                self.job(RunUnitTests)
+                .apply()
+                .add_to_name(f":{module}")
+                .with_script(
+                    [
+                        (
+                            f"pytest -v tests/unit/test_{module}.py --junitxml=pytest.xml "
+                            "--cov=gcip2 --cov-report=term --cov-report=xml:coverage.xml"
+                        ),
+                    ]
+                )
+                .with_artifacts(
+                    paths=["coverage.xml", "pytest.xml"],
+                    reports=ArtifactsReports(
+                        coverage_report=ArtifactsReportsCoverage(
+                            coverage_format="cobertura",
+                            path="coverage.xml",
+                        ),
+                        junit=["pytest.xml"],
+                    ),
+                )
+            )
 
         self.with_default(
             Default(
