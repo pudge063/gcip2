@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gcip2"
-version = "0.0.10"
+version = "0.0.11"
 description = "pivlab gcip2"
 authors = ["Arsenii Nikulin <a.nikulin@pivlab.space>", "PivLab Tech"]
 

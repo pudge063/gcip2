@@ -13,14 +13,18 @@ def create_version_tag(version: str):
     gitlab_url = Predefined.CI_API_V4_URL.must()
     project_id = Predefined.CI_PROJECT_ID.must()
     default_branch = Predefined.CI_DEFAULT_BRANCH.must()
-    return requests.post(
+    r = requests.post(
         url=f"{gitlab_url}/projects/{project_id}/repository/tags",
         data={
-            "tag_name": version,
+            "tag_name": "v" + version,
             "ref": default_branch,
         },
         headers={"PRIVATE-TOKEN": token},
     )
+
+    if not r.ok:
+        raise RuntimeError(f"failed tag creating: {r.json()}")
+    print("tag creating successful", flush=True)
 
 
 def get_tag_from_version_file(version_file: pathlib.Path) -> str:
