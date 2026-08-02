@@ -80,10 +80,10 @@ Detailed documentation is available in the `docs/` directory.
 
 | Document                                       | Description                                         |
 | ---------------------------------------------- | --------------------------------------------------- |
-| [docs/pipeline.md](docs/pipeline.md)           | Creating pipelines, jobs and workflow configuration |
-| [docs/builder.md](docs/builder.md)             | Pipeline builder, rendering and YAML generation     |
-| [docs/pipeline_core.md](docs/pipeline_core.md) | Reference for the typed GitLab CI models            |
-| [CHANGELOG.md](CHANGELOG.md)                   | Project changelog                                   |
+| [https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/builder.md](docs/pipeline.md)           | Creating pipelines, jobs and workflow configuration |
+| [https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/builder.md](docs/builder.md)             | Pipeline builder, rendering and YAML generation     |
+| [https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/pipeline_core.md](docs/pipeline_core.md) | Reference for the typed GitLab CI models            |
+| [https://gl.pivlab.space/rnd/gcip2/-/blob/master/CHANGELOG.md](CHANGELOG.md)                   | Project changelog                                   |
 
 ---
 
