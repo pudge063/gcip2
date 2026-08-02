@@ -3,7 +3,7 @@ import pathlib
 import typing
 
 import tomllib
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class VaultAuthMethod(str, enum.Enum):
@@ -25,7 +25,24 @@ class Secrets(BaseModel):
 
 
 class Extra(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     secrets: Secrets = Field(default_factory=Secrets)
+
+    def __getitem__(self, key: str) -> typing.Any:
+        if key == "secrets":
+            return self.secrets
+
+        if self.model_extra is None:
+            raise KeyError(key)
+
+        return self.model_extra[key]
+
+    def get(self, key: str, default: typing.Any = None) -> typing.Any:
+        if key == "secrets":
+            return self.secrets
+
+        return (self.model_extra or {}).get(key, default)
 
 
 class ProjectConfig(BaseModel):
