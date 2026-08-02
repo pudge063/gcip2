@@ -3,6 +3,8 @@ import pathlib
 
 from jinja2 import Environment, PackageLoader, select_autoescape
 
+from gcip2.logging import logger as LOGGER
+
 
 class TemplateNames(str, enum.Enum):
     @property
@@ -39,7 +41,7 @@ class TemplateGenerator:
         overwrite: bool = False,
     ):
         if file_path.exists() and not overwrite:
-            print(f"file: {file_path} already exists.")
+            LOGGER.warning(f"file: {file_path} already exists.")
             return
 
         file_content = self.render_template(file_template=file_template)

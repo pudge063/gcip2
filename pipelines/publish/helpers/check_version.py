@@ -5,6 +5,7 @@ import requests
 import tomllib
 
 from gcip2 import Predefined
+from gcip2.logging import logger as LOGGER
 from gcip2.project_config import ProjectConfig
 
 
@@ -25,7 +26,7 @@ def check_version_diff():
     repo.remotes.origin.fetch(default_branch)
 
     diff = repo.git.diff("--color=always", f"origin/{default_branch}", "HEAD", "--", "gcip2/VERSION")
-    print(diff)
+    LOGGER.warning(diff)
     if not diff:
         raise ValueError("diff in version not found.")
 
@@ -46,7 +47,7 @@ def get_tag_from_pyproject_file(pyproject_file: pathlib.Path) -> str:
 
 def main():
     if not Predefined.CI_PIPELINE_SOURCE.getenv() == "merge_request_event":
-        print("not merge request")
+        LOGGER.warning("not merge request")
         return
 
     version_file = pathlib.Path("gcip2/VERSION")
@@ -59,9 +60,9 @@ def main():
     pyproject_version = get_tag_from_pyproject_file(pyproject_file=pyproject_file)
     project_config_version = project_config.extra["version"]
 
-    print(f"version in VERSION file: {version}")
-    print(f"version in PYPROJECT file: {version}")
-    print(f"version in PROJECTCONFIG: {project_config_version}")
+    LOGGER.info(f"version in VERSION file: {version}")
+    LOGGER.info(f"version in PYPROJECT file: {version}")
+    LOGGER.info(f"version in PROJECTCONFIG: {project_config_version}")
 
     if not version == pyproject_version == project_config_version:
         raise ValueError(
@@ -74,7 +75,7 @@ def main():
     if ensure_tag_is_not_exists(tag=version):
         raise RuntimeError(f"tag for version {version} already exists")
 
-    print(f"tag for version {version} not found")
+    LOGGER.info(f"tag for version {version} not found")
 
 
 if __name__ == "__main__":

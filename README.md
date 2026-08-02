@@ -19,6 +19,28 @@ Instead of writing large YAML files, pipelines are defined in Python, validated 
 
 # Installation
 
+Create `poetry.toml` with venv configuration
+```
+[virtualenvs]
+create = true
+in-project = true
+
+```
+
+Create `pyproject.toml` with pyproject configuration
+```
+[project]
+name = "dev"
+version = "0.0.0"
+description = ""
+requires-python = ">=3.11,<4.0"
+
+[tool.poetry]
+package-mode = false
+
+```
+
+
 ```bash
 poetry add gcip2
 ```
@@ -150,4 +172,4 @@ Generated pipelines can be validated against the bundled GitLab JSON schema befo
 
 # License
 
-[LICENCE.md](LICENCE.md) 
+[https://gl.pivlab.space/rnd/gcip2/-/blob/master/LICENCE.md](LICENCE.md) 

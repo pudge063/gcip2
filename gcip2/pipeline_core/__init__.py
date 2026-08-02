@@ -685,6 +685,8 @@ class Pipeline(BaseModel):
 class JobBuilderImpl(Job):
     _base: ClassVar[type["JobBuilderImpl"] | None] = None
 
+    _task: ClassVar[str | None] = None
+
     _config = ProjectConfig()
 
     _secret_handler = SecretsHandler
@@ -713,12 +715,16 @@ class JobBuilderImpl(Job):
 
         self.model = Job.model_validate(merged)
 
+    def _apply_task(self):
+        if self._task and isinstance(self.model.script, list):
+            self.model.script.extend([f"gciptask run {self._task}"])
+
     def apply(self: Self) -> Self:
         return self
 
     def build(self: Self) -> Job:
         self._apply_base()
-        # self.apply()
+        self._apply_task()
         return self.model.model_copy(deep=True)
 
     def with_name(self: Self, name: str) -> Self:

@@ -1,5 +1,8 @@
 [extra]
-version = "0.0.12"
+version = "0.0.13"
+
+[extra.tasks]
+module = "_tasks"
 
 [extra.secrets.vault.vault-with-approle]
 url = "https://vault.pivlab.space"

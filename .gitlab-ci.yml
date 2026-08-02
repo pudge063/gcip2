@@ -127,6 +127,54 @@ initialization/trigger-pipeline:
       yaml_variables: true
       pipeline_variables: true
 
+tasks/build-pipeline:
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):before_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):after_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - exec sh -c "gcip2 build-pipeline -f pipelines/tasks/ci.py"
+  stage: jobs
+  tags:
+    - static-k8s
+  artifacts:
+    paths:
+      - out
+  interruptible: true
+
+tasks/trigger-pipeline:
+  variables:
+    PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+  stage: jobs
+  needs:
+    - tasks/build-pipeline
+  interruptible: false
+  trigger:
+    strategy: depend
+    include:
+      - job: tasks/build-pipeline
+        artifact: out/pipeline.gitlab-ci.yml
+    forward:
+      yaml_variables: true
+      pipeline_variables: true
+
 vault/build-pipeline:
   before_script:
     - |
@@ -342,7 +390,7 @@ unit-tests:job:
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - pytest -v tests/unit/test_job.py --junitxml=pytest.xml --cov=gcip2/pipeline_core
+    - pytest -v tests/unit/test_job.py --junitxml=pytest.xml --cov=gcip2.pipeline_core
       --cov-report=term --cov-report=xml:coverage.xml
   stage: unit-tests
   artifacts:
@@ -381,7 +429,46 @@ unit-tests:pipeline:
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - pytest -v tests/unit/test_pipeline.py --junitxml=pytest.xml --cov=gcip2/pipeline_core
+    - pytest -v tests/unit/test_pipeline.py --junitxml=pytest.xml --cov=gcip2.pipeline_core
+      --cov-report=term --cov-report=xml:coverage.xml
+  stage: unit-tests
+  artifacts:
+    paths:
+      - coverage.xml
+      - pytest.xml
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+      junit:
+        - pytest.xml
+  coverage: /TOTAL.*?(\d+%)$/
+  interruptible: true
+
+unit-tests:tasks:
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):before_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):after_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - pytest -v tests/unit/test_tasks.py --junitxml=pytest.xml --cov=gcip2.tasks_core
       --cov-report=term --cov-report=xml:coverage.xml
   stage: unit-tests
   artifacts:

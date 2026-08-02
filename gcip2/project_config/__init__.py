@@ -24,10 +24,16 @@ class Secrets(BaseModel):
     vault: dict[str, Vault] = Field(default_factory=dict)
 
 
+class Tasks(BaseModel):
+    module: str = "_tasks"
+
+
 class Extra(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     secrets: Secrets = Field(default_factory=Secrets)
+
+    tasks: Tasks = Field(default_factory=Tasks)
 
     def __getitem__(self, key: str) -> typing.Any:
         if key == "secrets":
