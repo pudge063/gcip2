@@ -31,7 +31,7 @@ class Extra(BaseModel):
 class ProjectConfig(BaseModel):
     @classmethod
     def from_file(cls, path: pathlib.Path = pathlib.Path("environment.toml")) -> "ProjectConfig":
-        data = tomllib.loads(path.read_text())
+        data = tomllib.loads(path.read_text()) if path.exists() else {}
         return cls.model_validate(data)
 
     extra: Extra = Field(default_factory=Extra)

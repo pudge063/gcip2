@@ -31,8 +31,9 @@ class Initialization(JobBuilderImpl):
     def apply(self: Self) -> Self:
         return (
             self.with_name("initialization")
-            .with_script(["mkdir -p out && cd out", "gcip2 init -f", "pre-commit run -a"])
+            .with_script(["gcip2 init -f", "gcip2 build-pipeline"])
             .with_stage(Stages.initialization)
+            .with_artifacts(paths=["out"])
         )
 
 
