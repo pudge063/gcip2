@@ -5,6 +5,7 @@ import requests
 import tomllib
 
 from gcip2 import Predefined
+from gcip2.project_config import ProjectConfig
 
 
 def ensure_tag_is_not_exists(tag: str) -> bool:
@@ -50,19 +51,24 @@ def main():
 
     version_file = pathlib.Path("gcip2/VERSION")
     pyproject_file = pathlib.Path("pyproject.toml")
+    project_config = ProjectConfig.from_file()
 
     check_version_diff()
 
     version = get_tag_from_version_file(version_file=version_file)
-
     pyproject_version = get_tag_from_pyproject_file(pyproject_file=pyproject_file)
+    project_config_version = project_config.extra["version"]
 
     print(f"version in VERSION file: {version}")
     print(f"version in PYPROJECT file: {version}")
+    print(f"version in PROJECTCONFIG: {project_config_version}")
 
-    if not version == pyproject_version:
+    if not version == pyproject_version == project_config_version:
         raise ValueError(
-            f"Versions diff between {version_file.name}: {version} and {pyproject_file.name}: {pyproject_version}"
+            "versions diff:\n"
+            f"{version_file.name}: {version}\n"
+            f"{pyproject_file.name}: {pyproject_version}\n"
+            f"environment.toml: {project_config_version}"
         )
 
     if ensure_tag_is_not_exists(tag=version):

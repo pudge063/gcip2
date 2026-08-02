@@ -1,5 +1,12 @@
 ## Changelog
 
+### [02.08.26 - 0.0.11]
+- added `create_tag` status checks
+- added check version in `environment.toml` - `extra.version` field
+- for `Extra` in `ProjectConfig` added methods `get` and `__getitem__`
+- for `Extra` added `model_config` with allowed `extra` fields
+
+
 ### [02.08.26 - 0.0.10]
 - added `initialization` test pipeline
 - init empty `ProjectConfig` model if not found `environment.toml` instead of failure

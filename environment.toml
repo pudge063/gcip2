@@ -1,5 +1,5 @@
 [extra]
-version = "0.0.10"
+version = "0.0.11"
 
 [extra.secrets.vault.vault-with-approle]
 url = "https://vault.pivlab.space"
