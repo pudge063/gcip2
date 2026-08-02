@@ -3,7 +3,8 @@ from typing import Self
 
 import pydantic
 
-from ..pipeline_core import Default, Job, JobBuilderImpl, Pipeline, Stage, Workflow
+from gcip2.pipeline_core import Default, Job, JobBuilderImpl, Pipeline, Stage, Workflow
+from gcip2.project_config import ProjectConfig
 
 
 class PipelineBuilderImpl(Pipeline):
@@ -12,6 +13,8 @@ class PipelineBuilderImpl(Pipeline):
         default_factory=Pipeline,
         init=False,
     )
+
+    _config = ProjectConfig()
 
     def apply(self: Self) -> Self:
         return self

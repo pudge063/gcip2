@@ -61,7 +61,7 @@ class RunUnitTests(JobBuilderImpl):
 
 class GitlabCi(GitlabCiBuilderImpl):
     def _add_test_jobs(self: Self) -> Self:
-        for test_name in ["checkstyle", "multipipeline", "integration", "publish"]:
+        for test_name in ["checkstyle", "vault", "multipipeline", "integration", "publish"]:
             build_pipeline_job = (
                 self.job(BuildTriggerPipeline)
                 .apply()
@@ -99,7 +99,7 @@ class GitlabCi(GitlabCiBuilderImpl):
                     [
                         (
                             f"pytest -v tests/unit/test_{module}.py --junitxml=pytest.xml "
-                            "--cov=gcip2 --cov-report=term --cov-report=xml:coverage.xml"
+                            "--cov=gcip2/pipeline_core --cov-report=term --cov-report=xml:coverage.xml"
                         ),
                     ]
                 )
