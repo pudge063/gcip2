@@ -5,6 +5,9 @@ from typing import Any, ClassVar, Optional, Self
 import jsonschema
 import pydantic
 
+from gcip2.project_config import ProjectConfig
+from gcip2.vault import SecretsHandler
+
 __all__ = (
     "Trigger",
     "Pipeline",
@@ -681,6 +684,10 @@ class Pipeline(BaseModel):
 
 class JobBuilderImpl(Job):
     _base: ClassVar[type["JobBuilderImpl"] | None] = None
+
+    _config = ProjectConfig()
+
+    _secret_handler = SecretsHandler
 
     model: Job = pydantic.Field(
         repr=False,

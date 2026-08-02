@@ -1,5 +1,11 @@
 ## Changelog
 
+### [02.08.26 - 0.0.9]
+- added SecretsHandler and Vault modules for secrets
+- added ProjectConfig with `extra` and `secrets` sections and models
+- added `secrets.vault` section with approle and jwks auth methods
+- removed API requests to Vault from jobs `create-version-tag` and `publish`
+
 ### [02.08.26 - 0.0.8]
 - added unit-tests with pipeline module coverage ~70%
 - added unit-tests with job module coverage ~ 65%

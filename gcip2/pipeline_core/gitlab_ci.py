@@ -2,7 +2,8 @@ import typing
 
 import pydantic
 
-from ..pipeline_core import Default, JobBuilderImpl, Pipeline, Stage, Workflow
+from gcip2.pipeline_core import Default, JobBuilderImpl, Pipeline, Stage, Workflow
+from gcip2.project_config import ProjectConfig
 
 
 class GitlabCiBuilderImpl(Pipeline):
@@ -11,6 +12,8 @@ class GitlabCiBuilderImpl(Pipeline):
         default_factory=Pipeline,
         init=False,
     )
+
+    _config = ProjectConfig()
 
     def apply(self: typing.Self) -> typing.Self:
         return self

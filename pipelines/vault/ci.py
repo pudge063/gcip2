@@ -1,6 +1,6 @@
 from typing import Self
 
-from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl, Predefined
+from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
 from gcip2.pipeline_core import (
     Default,
     Image,
@@ -15,44 +15,14 @@ from gcip2.pipeline_core import (
 from gcip2.pipeline_core.jobs.base import BaseLinux
 
 
-class CheckVersion(JobBuilderImpl):
+class TestSecretHandler(JobBuilderImpl):
     _base = BaseLinux
 
     def apply(self: Self) -> Self:
-        return self.with_name("check-version").with_script(
-            "poetry run python pipelines/publish/helpers/check_version.py"
-        )
-
-
-class CreateVersionTag(JobBuilderImpl):
-    _base = BaseLinux
-
-    def apply(self: Self) -> Self:
-        return (
-            self.with_name("create-version")
-            .with_script("python pipelines/publish/helpers/create_version.py")
-            .with_needs(["check-version"])
-        )
-
-
-class PublishPackage(JobBuilderImpl):
-    _base = BaseLinux
-
-    def apply(self: Self) -> Self:
-        self.model.name = "publish-package"
-
-        publish_cmd = "poetry publish"
-        publish_cmd += (
-            " --dry-run" if not Predefined.CI_COMMIT_BRANCH.getenv() == Predefined.CI_DEFAULT_BRANCH.getenv() else ""
-        )
-
-        self.model.script = [
-            "poetry build",
-            "poetry run python pipelines/publish/helpers/get_publish_token.py",
-            publish_cmd,
-        ]
-
-        return self.with_needs(["create-version"])
+        self.model.name = "vault-get-secret"
+        secret = self._secret_handler("vault-with-approle").fetch()
+        self.model.script = [f"echo {secret['test_username']}"]
+        return self
 
 
 workflow = Workflow(
@@ -78,13 +48,7 @@ workflow = Workflow(
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
 
-        self.add_jobs(
-            (
-                self.job(CheckVersion).apply(),
-                self.job(CreateVersionTag).apply(),
-                self.job(PublishPackage).apply(),
-            )
-        )
+        self.model.jobs.append(self.job(TestSecretHandler).apply())
 
         self.with_default(
             Default(

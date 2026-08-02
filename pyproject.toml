@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gcip2"
-version = "0.0.8"
+version = "0.0.9"
 description = "pivlab gcip2"
 authors = ["Arsenii Nikulin <a.nikulin@pivlab.space>", "PivLab Tech"]
 
@@ -21,6 +21,7 @@ pytest = "^9.1.1"
 pytest-regressions = "^2.11.0"
 pytest-cov = "^7.1.0"
 gitpython = "^3.1.57"
+hvac = "^2.4.0"
 
 [tool.poetry.group.dev.dependencies]
 requests = ">=2.34.2,<3.0.0"
