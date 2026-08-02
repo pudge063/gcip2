@@ -1,8 +1,9 @@
 [tool.poetry]
 name = "gcip2"
-version = "0.0.11"
+version = "0.0.12"
 description = "pivlab gcip2"
 authors = ["Arsenii Nikulin <a.nikulin@pivlab.space>", "PivLab Tech"]
+readme = "README.md"
 
 packages = [{ include = "gcip2" }]
 include = ["gcip2/py.typed"]
