@@ -1,5 +1,9 @@
 ## Changelog
 
+### [02.08.26 - 0.0.10]
+- added `initialization` test pipeline
+- init empty `ProjectConfig` model if not found `environment.toml` instead of failure
+
 ### [02.08.26 - 0.0.9]
 - added SecretsHandler and Vault modules for secrets
 - added ProjectConfig with `extra` and `secrets` sections and models

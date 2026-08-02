@@ -61,7 +61,14 @@ class RunUnitTests(JobBuilderImpl):
 
 class GitlabCi(GitlabCiBuilderImpl):
     def _add_test_jobs(self: Self) -> Self:
-        for test_name in ["checkstyle", "vault", "multipipeline", "integration", "publish"]:
+        for test_name in [
+            "checkstyle",
+            "initialization",
+            "vault",
+            "multipipeline",
+            "integration",
+            "publish",
+        ]:
             build_pipeline_job = (
                 self.job(BuildTriggerPipeline)
                 .apply()
