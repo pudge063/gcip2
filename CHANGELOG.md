@@ -1,6 +1,6 @@
 ## Changelog
 
-### [03.08.26 - 0.0.13]
+### [04.08.26 - 0.0.13]
 - added `Task`, `TaskBuilder` and `TaskBuilderImpl` entities for job task executing
 - added `InteractivePythonAction` and `InteractiveShlex` actions
 - added `Params` for `Tasks` -> `Actions.impl()`
@@ -14,6 +14,9 @@
 - added `JobBuilder`, `PipelineBuiler` and `GitlabCiBuilder` without `pydantic.Basemodel`
 - changed `model` initialization in `JobBuilderImpl`, `PipelineBuilderImpl`, `GitlabCiBuilderImpl`
 - added `docker-compose.yml` with base images and `with_compose_image` method for `JobBuilderImpl`
+- added diff on pipeline generation
+- fixed pipeline and gitlab-ci paths params
+- added `ruff` instead of `black`, `isort`, `mypy`
 
 ### [02.08.26 - 0.0.12]
 - added readme to package

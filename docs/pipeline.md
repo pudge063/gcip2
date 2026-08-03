@@ -61,9 +61,7 @@ class Pipeline(PipelineBuilderImpl):
     def apply(self):
         self.model.stages = [Stages.PRE_COMMIT]
 
-        self.model.jobs.append(
-            self.job(PreCommit).apply()
-        )
+        self.model.jobs.append(self.job(PreCommit).apply())
 
         self.with_default(
             Default(

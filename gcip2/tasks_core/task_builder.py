@@ -31,7 +31,7 @@ class TaskBulder:
 
 
 class TaskBuilderImpl(TaskBulder):
-    task_name: typing.ClassVar[str | Enum | None] = None
+    _basename: typing.ClassVar[str | Enum | None] = None
 
     def __init__(self):
         self.model = Task()
@@ -40,13 +40,13 @@ class TaskBuilderImpl(TaskBulder):
         return self
 
     def build(self) -> Task:
-        if not self.task_name:
+        if not self._basename:
             raise ValueError("task name not set.")
 
-        if isinstance(self.task_name, str):
-            self.model.name = self.task_name
+        if isinstance(self._basename, str):
+            self.model.name = self._basename
         else:
-            self.model.name = self.task_name.value
+            self.model.name = self._basename.value
 
         return self.model.model_copy(deep=True)
 

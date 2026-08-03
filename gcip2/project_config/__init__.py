@@ -1,25 +1,11 @@
-import enum
 import pathlib
+import tomllib
 import typing
 
-import tomllib
 from pydantic import BaseModel, ConfigDict, Field
 
 from gcip2.project_config.compose import Compose
-
-
-class VaultAuthMethod(str, enum.Enum):
-    APPROLE = "approle"
-    JWKS = "jwks"
-
-
-class Vault(BaseModel):
-    url: str
-    auth_method: VaultAuthMethod
-    app_role_id_env_var: typing.Optional[str] = None
-    app_role_secret_id_env_var: typing.Optional[str] = None
-    mount_point: typing.Optional[str] = None
-    path: typing.Optional[str] = None
+from gcip2.project_config.vault_config import Vault
 
 
 class Secrets(BaseModel):
@@ -55,7 +41,10 @@ class Extra(BaseModel):
 
 class ProjectConfig(BaseModel):
     @classmethod
-    def from_file(cls, path: pathlib.Path = pathlib.Path("environment.toml")) -> "ProjectConfig":
+    def from_file(
+        cls,
+        path: pathlib.Path = pathlib.Path("environment.toml"),
+    ) -> "ProjectConfig":
         data = tomllib.loads(path.read_text()) if path.exists() else {}
         return cls.model_validate(data)
 

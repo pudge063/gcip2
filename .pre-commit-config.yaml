@@ -7,15 +7,15 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      - id: isort
-        name: isort
-        entry: poetry run isort
-        description: Run isort
+      - id: ruff format
+        name: ruff format
+        entry: ruff format .
+        description: Run ruff format
         language: system
         types: [python]
-      - id: black
-        name: black
-        entry: poetry run black
-        description: Run black
+      - id: ruff check
+        name: ruff check
+        entry: ruff check --fix
+        description: Run ruff check
         language: system
         types: [python]

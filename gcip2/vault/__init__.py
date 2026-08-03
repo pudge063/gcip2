@@ -3,7 +3,8 @@ from os import getenv as os_getenv
 import hvac
 
 from gcip2.logging import logger as LOGGER
-from gcip2.project_config import ProjectConfig, VaultAuthMethod
+from gcip2.project_config import ProjectConfig
+from gcip2.project_config.vault_config import VaultAuthMethod
 
 
 class Vault:
@@ -15,7 +16,7 @@ class Vault:
         LOGGER.debug(f"initialized client for vault instance: {self.vault_config.url}")
         self.auth()
 
-    def auth(self):
+    def auth(self) -> None:
         if self.vault_config.auth_method == VaultAuthMethod.APPROLE:
             LOGGER.debug(f"authorization with approle {self.vault_config.app_role_id_env_var}")
             self.client.auth.approle.login(  # type: ignore[attr-defined]

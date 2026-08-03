@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import Self
 
-from gcip2 import BaseLinux, GitlabCiBuilderImpl
+from _tasks._consts import Tasks
+from gcip2 import BaseLinux, BaseTask, GitlabCiBuilderImpl
 from gcip2.pipeline_core import (
     ArtifactsReports,
     ArtifactsReportsCoverage,
@@ -59,6 +60,31 @@ class RunUnitTests(JobBuilderImpl):
         return self
 
 
+class CheckPackageVersion(JobBuilderImpl):
+    _base = BaseTask
+    _task = Tasks.check_package_version
+
+    def apply(self: Self) -> Self:
+        return self.with_name("check-version").with_stage(Stages.PUBLISH)
+
+
+class CreateVersionTag(JobBuilderImpl):
+    _base = BaseTask
+    _task = Tasks.create_version_tag
+
+    def apply(self: Self) -> Self:
+        return self.with_name("create-version").with_needs(["check-version"]).with_stage(Stages.PUBLISH)
+
+
+class PublishPackage(JobBuilderImpl):
+    _base = BaseTask
+    _task = Tasks.publish_package
+
+    def apply(self: Self) -> Self:
+        self.model.name = "publish-package"
+        return self.with_needs(["create-version"]).with_stage(Stages.PUBLISH)
+
+
 class GitlabCi(GitlabCiBuilderImpl):
     def _add_test_jobs(self: Self) -> Self:
         for test_name in [
@@ -68,7 +94,6 @@ class GitlabCi(GitlabCiBuilderImpl):
             "vault",
             "multipipeline",
             "integration",
-            "publish",
         ]:
             build_pipeline_job = (
                 self.job(BuildTriggerPipeline)
@@ -76,7 +101,9 @@ class GitlabCi(GitlabCiBuilderImpl):
                 .with_name(f"{test_name}/build-pipeline")
                 .with_tags(["static-k8s"])
             )
-            build_pipeline_job.model.script = [f'exec sh -c "gcip2 build-pipeline -f pipelines/{test_name}/ci.py"']
+            build_pipeline_job.model.script = [
+                f'exec sh -c "gcip2 build-pipeline -f pipelines/{test_name}/ci.py"',
+            ]
 
             trigger_pipeline_job = (
                 self.job(TriggerPipeline)
@@ -85,7 +112,10 @@ class GitlabCi(GitlabCiBuilderImpl):
                 .with_needs([build_pipeline_job.model.name])  # type: ignore
             )
             trigger_pipeline_job.model.trigger.include = [  # type: ignore
-                TriggerIncludeArtifact(job=build_pipeline_job.model.name, artifact="out/pipeline.gitlab-ci.yml")
+                TriggerIncludeArtifact(
+                    job=build_pipeline_job.model.name,
+                    artifact="out/pipeline.gitlab-ci.yml",
+                )
             ]
 
             if test_name == "publish":
@@ -139,7 +169,18 @@ class GitlabCi(GitlabCiBuilderImpl):
 
         self._add_unit_tests_jobs()
 
-        self.model.variables = {"PY_COLORS": GlobalVariables(value="1"), "FORCE_COLOR": GlobalVariables(value="1")}
+        self.add_jobs(
+            (
+                self.job(CheckPackageVersion).apply(),
+                self.job(CreateVersionTag).apply(),
+                self.job(PublishPackage).apply(),
+            )
+        )
+
+        self.model.variables = {
+            "PY_COLORS": GlobalVariables(value="1"),
+            "FORCE_COLOR": GlobalVariables(value="1"),
+        }
 
         self.with_workflow(workflow=workflow)
         self.with_default(

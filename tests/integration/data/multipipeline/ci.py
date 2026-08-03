@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Self
 
 from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl

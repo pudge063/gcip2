@@ -74,10 +74,7 @@ secrets = secrets_handler.fetch()
 The returned value is a dictionary:
 
 ```python
-{
-    "username": "admin",
-    "password": "secret"
-}
+{"username": "admin", "password": "secret"}
 ```
 
 Internally, `SecretsHandler` reads secrets from the configured:

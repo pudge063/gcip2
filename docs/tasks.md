@@ -41,23 +41,15 @@ Example:
 
 ```python
 class TestTask(TaskBuilderImpl):
-    task_name = "test-task"
+    _basename = "test-task"
 
     def apply(self):
-        return (
-            self
-            .with_actions(
-                (
-                    MyAction,
-                    AnotherAction,
-                )
+        return self.with_actions(
+            (
+                MyAction,
+                AnotherAction,
             )
-            .with_params(
-                (
-                    my_parameter(),
-                )
-            )
-        )
+        ).with_params((my_parameter(),))
 ```
 
 ## Task Name
@@ -68,7 +60,7 @@ The name can be defined as a string:
 
 ```python
 class MyTask(TaskBuilderImpl):
-    task_name = "my-task"
+    _basename = "my-task"
 ```
 
 or by using an enum:
@@ -82,7 +74,7 @@ class Tasks(Enum):
 
 
 class MyTask(TaskBuilderImpl):
-    task_name = Tasks.MY_TASK
+    _basename = Tasks.MY_TASK
 ```
 
 When an enum is used, its value is stored as the task name.
@@ -101,7 +93,6 @@ Used for Python-based operations.
 
 ```python
 class CheckVersion(InteractivePythonAction):
-
     def impl(self, *, version: str, **_):
         LOGGER.info(version)
 ```
@@ -112,7 +103,6 @@ Used for shell command execution.
 
 ```python
 class CheckCommand(InteractiveShlex):
-
     def impl(self, *, command: str, **_) -> list[str]:
         return [
             "echo",
@@ -182,18 +172,13 @@ def version():
 Parameters are attached to a task:
 
 ```python
-self.with_params(
-    (
-        version(),
-    )
-)
+self.with_params((version(),))
 ```
 
 The parameter value becomes available inside actions:
 
 ```python
 class PrintVersion(InteractivePythonAction):
-
     def impl(self, *, version: str, **_):
         print(version)
 ```
@@ -239,12 +224,7 @@ version = "1.2.3"
 Available in actions:
 
 ```python
-def impl(
-    self,
-    *,
-    extra__version: str,
-    **_
-):
+def impl(self, *, extra__version: str, **_):
     print(extra__version)
 ```
 
@@ -258,15 +238,9 @@ Example:
 
 ```python
 class TaskGenerator(TaskGeneratorImpl):
-
     def load_tasks(self):
 
-        yield (
-            self
-            .builder(TestTask)
-            .apply()
-            .build()
-        )
+        yield (self.builder(TestTask).apply().build())
 
 
 TASK_GENERATOR = TaskGenerator()
@@ -289,24 +263,11 @@ Task definition:
 
 ```python
 class TestVaultSecret(TaskBuilderImpl):
-
-    task_name = "test-vault-secret"
+    _basename = "test-vault-secret"
 
     def apply(self):
 
-        return (
-            self
-            .with_actions(
-                (
-                    CheckSecretAction,
-                )
-            )
-            .with_params(
-                (
-                    vault_section(),
-                )
-            )
-        )
+        return self.with_actions((CheckSecretAction,)).with_params((vault_section(),))
 ```
 
 ---
@@ -319,7 +280,6 @@ Example:
 
 ```python
 class TestSecretHandlerInTask(JobBuilderImpl):
-
     _task = "test-vault-secret"
 ```
 

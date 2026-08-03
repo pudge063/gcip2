@@ -66,6 +66,7 @@ checkstyle/build-pipeline:
 checkstyle/trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
     - checkstyle/build-pipeline
@@ -114,6 +115,7 @@ initialization/build-pipeline:
 initialization/trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
     - initialization/build-pipeline
@@ -162,6 +164,7 @@ tasks/build-pipeline:
 tasks/trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
     - tasks/build-pipeline
@@ -210,6 +213,7 @@ vault/build-pipeline:
 vault/trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
     - vault/build-pipeline
@@ -258,6 +262,7 @@ multipipeline/build-pipeline:
 multipipeline/trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
     - multipipeline/build-pipeline
@@ -306,6 +311,7 @@ integration/build-pipeline:
 integration/trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
     - integration/build-pipeline
@@ -314,54 +320,6 @@ integration/trigger-pipeline:
     strategy: depend
     include:
       - job: integration/build-pipeline
-        artifact: out/pipeline.gitlab-ci.yml
-    forward:
-      yaml_variables: true
-      pipeline_variables: true
-
-publish/build-pipeline:
-  before_script:
-    - |
-      #!/usr/bin/env sh
-      set -o errexit -o nounset -o xtrace
-      section="$(date +'%s'):before_script_setup"
-      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
-      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-  after_script:
-    - |
-      #!/usr/bin/env sh
-      set -o errexit -o nounset -o xtrace
-      section="$(date +'%s'):after_script_setup"
-      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
-      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - echo Do nothing.
-  script:
-    - exec sh -c "gcip2 build-pipeline -f pipelines/publish/ci.py"
-  stage: publish
-  tags:
-    - static-k8s
-  artifacts:
-    paths:
-      - out
-  interruptible: true
-
-publish/trigger-pipeline:
-  variables:
-    PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
-  stage: publish
-  needs:
-    - publish/build-pipeline
-  interruptible: false
-  trigger:
-    strategy: depend
-    include:
-      - job: publish/build-pipeline
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
@@ -482,4 +440,89 @@ unit-tests:tasks:
       junit:
         - pytest.xml
   coverage: /TOTAL.*?(\d+%)$/
+  interruptible: true
+
+check-version:
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):before_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):after_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - gciptask run check-package-version
+  stage: publish
+  interruptible: true
+
+create-version:
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):before_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):after_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - gciptask run create-version-tag
+  stage: publish
+  needs:
+    - check-version
+  interruptible: true
+
+publish-package:
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):before_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):after_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      # shellcheck disable=SC2086
+      poetry install
+      . ".venv/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - gciptask run publish-package
+  stage: publish
+  needs:
+    - create-version
   interruptible: true

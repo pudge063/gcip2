@@ -26,8 +26,7 @@ Pipeline definitions are regular Python modules. The builder dynamically imports
 Example:
 
 ```python
-class MyPipeline(PipelineBuilderImpl):
-    ...
+class MyPipeline(PipelineBuilderImpl): ...
 ```
 
 No manual registration is required.

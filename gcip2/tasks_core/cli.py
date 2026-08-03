@@ -62,9 +62,9 @@ def parse_task_params(
 
         try:
             value = next(args_iter)
-        except StopIteration:
+        except StopIteration as err:
             LOGGER.error(f"Missing value for --{key}")
-            raise click.ClickException(f"Missing value for --{key}")
+            raise click.ClickException(f"Missing value for --{key}") from err
 
         params[param.name] = param.type(value)
 

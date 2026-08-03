@@ -1,17 +1,19 @@
 import typing
 
 import pytest
-
-# from _test_tasks._tasks import DummyTask1, DummyTask2
-# from ._test_tasks import _tasks
 from click.testing import CliRunner
 
-from gcip2.tasks_core import InteractivePythonAction, InteractiveShlex, TaskBuilderImpl, cli
+from gcip2.tasks_core import (
+    InteractivePythonAction,
+    InteractiveShlex,
+    TaskBuilderImpl,
+    cli,
+)
 
 
 def test_taskbuilderimpl_name():
     class DummyTask(TaskBuilderImpl):
-        task_name = "test-task-name"
+        _basename = "test-task-name"
 
         def apply(self):
             return self
@@ -27,7 +29,6 @@ def test_taskbuilderimpl_without_name_FAILURE():
             pass
 
     class DummyTask(TaskBuilderImpl):
-
         def apply(self):
             return self.with_actions((DummyAction,))
 
@@ -41,7 +42,7 @@ def test_taskbuilderimpl_actions():
             pass
 
     class DummyTask(TaskBuilderImpl):
-        task_name = "test-task-3"
+        _basename = "test-task-3"
 
         def apply(self):
             return self.with_actions((DummyAction,))
@@ -54,10 +55,10 @@ def test_taskbuilderimpl_actions():
 def test_taskbuilder_exec_task():
     class DummyAction(InteractiveShlex):
         def impl(self, **kwargs: typing.Any):
-            return ["echo", "123"]
+            return [["echo", "123"]]
 
     class DummyTask(TaskBuilderImpl):
-        task_name = "test-task-4"
+        _basename = "test-task-4"
 
         def apply(self):
             return self.with_actions((DummyAction,))
@@ -77,7 +78,7 @@ def test_action_InteractivePythonAction_impl():
 
 def test_action_InteractiveShlex_impl():
     class DummyAction(InteractiveShlex):
-        def impl(self, **kwargs: typing.Any) -> list[str]:
+        def impl(self, **kwargs: typing.Any) -> list[list[str]]:
             raise NotImplementedError
 
     with pytest.raises(NotImplementedError):
@@ -86,8 +87,8 @@ def test_action_InteractiveShlex_impl():
 
 def test_action_InteractiveShlex_execute():
     class DummyAction(InteractiveShlex):
-        def impl(self, **kwargs: typing.Any) -> list[str]:
-            return ["echo", "123"]
+        def impl(self, **kwargs: typing.Any) -> list[list[str]]:
+            return [["echo", "123"]]
 
     DummyAction().execute()
 

@@ -17,8 +17,7 @@ class Compose:
 
     @classmethod
     def load(cls, path: Path = Path("docker-compose.yml")) -> "Compose":
-        with path.open("r", encoding="utf-8") as f:
-            data: dict[str, dict[str, typing.Any]] = yaml.safe_load(f) or {}
+        data: dict[str, dict[str, typing.Any]] = yaml.safe_load(path.read_text()) if path.exists() else {}
 
         services = {
             name: ComposeImage(image=service["image"])

@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 import json
 from enum import Enum
 from typing import Any, ClassVar, Optional, Self
@@ -6,7 +7,6 @@ import jsonschema
 import pydantic
 
 from gcip2.project_config import ProjectConfig
-from gcip2.project_config.compose import ComposeImage
 from gcip2.vault import SecretsHandler
 
 __all__ = (
@@ -395,7 +395,8 @@ class Rule(BaseModel):
     "https://docs.gitlab.com/ci/yaml/#rulesvariables"
 
 
-class IncludeRule(BaseModel): ...
+class IncludeRule(BaseModel):
+    pass
 
 
 class IncludeItem(BaseModel):
@@ -696,7 +697,7 @@ class JobBuilderImpl(JobBuilder):
     _base: ClassVar[type["JobBuilderImpl"] | None] = None
     _task: ClassVar[str | Enum | None] = None
 
-    _config = ProjectConfig()
+    _config = ProjectConfig.from_file()
     _secret_handler = SecretsHandler
 
     def __init__(self) -> None:
@@ -765,16 +766,22 @@ class JobBuilderImpl(JobBuilder):
                 self.model.script.extend(script)
         return self
 
-    def with_image(self, image: str, entrypoint: list[str] = []) -> Self:
-        self.model.image = Image(name=image, entrypoint=entrypoint)
+    def with_image(self, image: str, entrypoint: list[str] | None = None) -> Self:
+        self.model.image = Image(
+            name=image,
+            entrypoint=entrypoint or [],
+        )
         return self
 
-    def with_compose_image(self, image_name: str, entrypoint: list[str] = []) -> Self:
+    def with_compose_image(self, image_name: str, entrypoint: list[str] | None = None) -> Self:
         image_data = self._config.compose.images.get(image_name)
         if not image_data:
             raise ValueError(f"image_data not found in {self._config.compose.path.name}")
 
-        self.model.image = Image(name=image_data.image, entrypoint=entrypoint)
+        self.model.image = Image(
+            name=image_data.image,
+            entrypoint=entrypoint or [],
+        )
         return self
 
     def with_tags(self, tags: list[str]) -> Self:
@@ -825,4 +832,11 @@ class JobBuilderImpl(JobBuilder):
 
     def with_dependencies(self, dependencies: list[str]) -> Self:
         self.model.dependencies = dependencies
+        return self
+
+    def update_variables(self, variables: dict[str, str | JobVariables]) -> Self:
+        if self.model.variables:
+            self.model.variables.update(variables)
+        else:
+            self.model.variables = variables
         return self

@@ -1,7 +1,18 @@
 from collections.abc import Iterable
 from typing import Self
 
-from gcip2.pipeline_core import Default, Job, JobBuilderImpl, Pipeline, Stage, Workflow
+from gcip2.pipeline_core import (
+    Default,
+    Job,
+    JobBuilderImpl,
+    Pipeline,
+    Stage,
+    Workflow,
+    WorkflowAutoCancel,
+    WorkflowAutoCancelOnNewCommit,
+    WorkflowRule,
+    WorkflowWhen,
+)
 from gcip2.project_config import ProjectConfig
 
 
@@ -13,8 +24,20 @@ class PipelineBuilder:
 class PipelineBuilderImpl(PipelineBuilder):
     def __init__(self) -> None:
         self.model: Pipeline = Pipeline()
+        self.model.workflow = Workflow(
+            auto_cancel=WorkflowAutoCancel(on_new_commit=WorkflowAutoCancelOnNewCommit.NONE),
+            rules=[
+                WorkflowRule(
+                    if_='$CI_PIPELINE_SOURCE == "push" && $CI_OPEN_MERGE_REQUESTS',
+                    when=WorkflowWhen.NEVER,
+                ),
+                WorkflowRule(
+                    when=WorkflowWhen.ALWAYS,
+                ),
+            ],
+        )
 
-    _config = ProjectConfig()
+    _config = ProjectConfig.from_file()
 
     def apply(self: Self) -> Self:
         return self
@@ -31,10 +54,10 @@ class PipelineBuilderImpl(PipelineBuilder):
     def add_jobs(self, jobs: Iterable[Job | JobBuilderImpl]):
         self.model.jobs.extend(jobs)
 
-    def with_workflow(self, workflow: Workflow = Workflow()):
+    def with_workflow(self, workflow: Workflow):
         self.model.workflow = workflow
         return self
 
-    def with_default(self, default: Default = Default()):
+    def with_default(self, default: Default):
         self.model.default = default
         return self

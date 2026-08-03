@@ -1,6 +1,8 @@
+import shlex
 import subprocess
 import typing
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 
 from gcip2.logging import logger as LOGGER
 from gcip2.project_config import ProjectConfig
@@ -34,14 +36,12 @@ class InteractivePythonAction(ActionBuilderImpl):
 
 class InteractiveShlex(ActionBuilderImpl):
     @typing.override
-    def impl(self, **kwargs: typing.Any) -> list[str]:
+    def impl(self, **kwargs: typing.Any) -> Iterable[list[str]]:
         raise NotImplementedError
 
     @typing.override
     def execute(self, **kwargs: typing.Any) -> None:
         LOGGER.debug(f"running InteractiveShlex action: {self.__class__.__name__}")
-        subprocess.run(
-            self.impl(**kwargs),
-            check=True,
-            shell=False,
-        )
+        for cmd in self.impl(**kwargs):
+            LOGGER.debug("running: {}", shlex.join(cmd))
+            subprocess.run(cmd, check=True)

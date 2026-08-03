@@ -1,11 +1,16 @@
 from gcip2.tasks_core.task_builder import TaskBuilderImpl
 from gcip2.tasks_core.task_generator import TaskGeneratorImpl
 
-from ._actions import CheckPoetryVersion, CheckSecret, CheckShellCmd, GitSetupInsteadofAction
+from ._actions import (
+    CheckPoetryVersion,
+    CheckSecret,
+    CheckShellCmd,
+    GitSetupInsteadofAction,
+)
 
 
 class DummyTask1(TaskBuilderImpl):
-    task_name = "test-task-1"
+    _basename = "test-task-1"
 
     def apply(self):
         self.with_actions(
@@ -20,7 +25,7 @@ class DummyTask1(TaskBuilderImpl):
 
 
 class DummyTask2(TaskBuilderImpl):
-    task_name = "test-task-2"
+    _basename = "test-task-2"
 
     def apply(self):
         self.with_actions(

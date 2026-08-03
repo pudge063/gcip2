@@ -7,7 +7,7 @@ from gcip2.tasks_core.task_generator import TaskGeneratorImpl
 
 
 class TestBaseTask(TaskBuilderImpl):
-    task_name = Tasks.test_task
+    _basename = Tasks.test_task
 
     def apply(self):
         self.with_actions(
@@ -26,7 +26,7 @@ class TestBaseTask(TaskBuilderImpl):
 
 
 class TestVaultSecret(TaskBuilderImpl):
-    task_name = Tasks.test_vault_task
+    _basename = Tasks.test_vault_task
 
     def apply(self):
         return self.with_actions(
@@ -42,8 +42,35 @@ class TestVaultSecret(TaskBuilderImpl):
         )
 
 
+class CheckPackageVersion(TaskBuilderImpl):
+    _basename = Tasks.check_package_version
+
+    def apply(self):
+        return self.with_actions((_actions.CheckVersion,))
+
+
+class CreateVersionTag(TaskBuilderImpl):
+    _basename = Tasks.create_version_tag
+
+    def apply(self):
+        return self.with_actions((_actions.CreateVersionTag,)).with_params((_params.gitlab_token_section(),))
+
+
+class PublishPackage(TaskBuilderImpl):
+    _basename = Tasks.publish_package
+
+    def apply(self):
+        return self.with_actions((_actions.PublishPackage,)).with_params((_params.pypi_token_section(),))
+
+
 class TaskGenerator(TaskGeneratorImpl):
+    task_check_package_version = CheckPackageVersion
+    task_create_version_tag = CreateVersionTag
+    task_get_publish_token = PublishPackage
+
     def load_tasks(self) -> Iterator[Task]:
+        yield from super().load_tasks()
+
         yield (self.builder(TestBaseTask).apply().build())
         yield (self.builder(TestVaultSecret).apply().build())
 
