@@ -5,6 +5,8 @@ import typing
 import tomllib
 from pydantic import BaseModel, ConfigDict, Field
 
+from gcip2.project_config.compose import Compose
+
 
 class VaultAuthMethod(str, enum.Enum):
     APPROLE = "approle"
@@ -56,5 +58,7 @@ class ProjectConfig(BaseModel):
     def from_file(cls, path: pathlib.Path = pathlib.Path("environment.toml")) -> "ProjectConfig":
         data = tomllib.loads(path.read_text()) if path.exists() else {}
         return cls.model_validate(data)
+
+    compose: Compose = Compose.load()
 
     extra: Extra = Field(default_factory=Extra)

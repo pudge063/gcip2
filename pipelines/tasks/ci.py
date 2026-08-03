@@ -19,7 +19,7 @@ from gcip2.pipeline_core.jobs.base import BaseTask
 class TestTasks(JobBuilderImpl):
     _base = BaseTask
 
-    _task = _consts.Tasks.test_task.value
+    _task = _consts.Tasks.test_task
 
     def apply(self: Self) -> Self:
         return self.with_name("test-task-job")

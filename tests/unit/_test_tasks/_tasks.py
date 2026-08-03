@@ -1,5 +1,7 @@
-from _tasks import _actions
 from gcip2.tasks_core.task_builder import TaskBuilderImpl
+from gcip2.tasks_core.task_generator import TaskGeneratorImpl
+
+from ._actions import CheckPoetryVersion, CheckSecret, CheckShellCmd, GitSetupInsteadofAction
 
 
 class DummyTask1(TaskBuilderImpl):
@@ -8,10 +10,10 @@ class DummyTask1(TaskBuilderImpl):
     def apply(self):
         self.with_actions(
             (
-                _actions.GitSetupInsteadofAction,
-                _actions.CheckPoetryVersion,
-                _actions.CheckShellCmd,
-                _actions.CheckSecret,
+                GitSetupInsteadofAction,
+                CheckPoetryVersion,
+                CheckShellCmd,
+                CheckSecret,
             )
         )
         return self
@@ -23,8 +25,17 @@ class DummyTask2(TaskBuilderImpl):
     def apply(self):
         self.with_actions(
             (
-                _actions.CheckShellCmd,
-                _actions.CheckSecret,
+                CheckShellCmd,
+                CheckSecret,
             )
         )
         return self
+
+
+class TaskGenerator(TaskGeneratorImpl):
+    def load_tasks(self):
+        yield (self.builder(DummyTask1).apply().build())
+        yield (self.builder(DummyTask2).apply().build())
+
+
+TASK_GENERATOR = TaskGenerator()

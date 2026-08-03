@@ -6,6 +6,7 @@ import jsonschema
 import pydantic
 
 from gcip2.project_config import ProjectConfig
+from gcip2.project_config.compose import ComposeImage
 from gcip2.vault import SecretsHandler
 
 __all__ = (
@@ -165,7 +166,7 @@ class Trigger(BaseModel):
 
 
 class Parallel(BaseModel):
-    matrix: list[dict[str, list[str]]] = []
+    matrix: list[dict[str, list[str]]] = pydantic.Field(default_factory=lambda: [])
 
 
 class Needs(BaseModel):
@@ -185,7 +186,7 @@ class Needs(BaseModel):
 class Image(BaseModel):
     name: Optional[str] = None
 
-    entrypoint: list[str] = []
+    entrypoint: list[str] = pydantic.Field(default_factory=list)
 
 
 class ArtifactsReportsCoverage(BaseModel):
@@ -324,7 +325,7 @@ class GlobalVariables(JobVariables):
     "Variables with `description` are prefilled when running a pipeline manually."
     "https://docs.gitlab.com/ci/yaml/#variablesdescription"
 
-    options: Optional[list[str | bool | int | float]] = []
+    options: Optional[list[str | bool | int | float]] = pydantic.Field(default_factory=lambda: [])
     "A list of predefined values that users can select from in the **Run pipeline** page when running a pipeline manually."
     "https://docs.gitlab.com/ci/yaml/#variablesoptions"
 
@@ -336,7 +337,7 @@ class RuleVariables(JobVariables):
 
 
 class RuleChanges(BaseModel):
-    paths: list[str] = []
+    paths: list[str] = pydantic.Field(default_factory=list)
     "List of file paths."
 
     compare_to: Optional[str] = None
@@ -344,7 +345,7 @@ class RuleChanges(BaseModel):
 
 
 class RuleExists(BaseModel):
-    paths: list[str] = []
+    paths: list[str] = pydantic.Field(default_factory=list)
     "List of file paths."
 
     project: Optional[str] = None
@@ -416,7 +417,7 @@ class IncludeComponent(IncludeItem):
 
 
 class IdTokens(BaseModel):
-    aud: Optional[str | list[str]] = []
+    aud: Optional[str | list[str]] = pydantic.Field(default_factory=list)
 
 
 class Identity(str, Enum):
@@ -512,7 +513,7 @@ class JobTemplate(BaseModel):
 
     secrets: Optional[Any] = None
 
-    script: list[str] | str = []
+    script: list[str] | str = pydantic.Field(default_factory=list)
 
     run: Optional[Any] = None
     "Specifies a list of steps to execute in the job. The `run` keyword is an alternative to `script` and allows for more advanced job configuration."
@@ -532,7 +533,7 @@ class JobTemplate(BaseModel):
 
     except_: Optional[Any] = pydantic.Field(serialization_alias="except", validation_alias="except", default=None)
 
-    tags: list[str] = []
+    tags: list[str] = pydantic.Field(default_factory=list)
 
     allow_failure: Optional[list[bool | int | list[int]]] = None
 
@@ -557,7 +558,7 @@ class JobTemplate(BaseModel):
     "By default, all previous artifacts are passed."
     "Use an empty array to skip downloading artifacts."
 
-    artifacts: Artifacts = Artifacts()
+    artifacts: Artifacts = pydantic.Field(default_factory=Artifacts)
 
     environment: Optional[Any] = None
 
@@ -653,7 +654,11 @@ class Default(BaseModel):
 
 
 class Pipeline(BaseModel):
-    jobs: list[Job] = []
+    model_config = pydantic.ConfigDict(
+        arbitrary_types_allowed=True,
+    )
+
+    jobs: list["Job | JobBuilderImpl"] = pydantic.Field(default_factory=lambda: [])
 
     workflow: Optional[Workflow] = Workflow()
 
@@ -661,7 +666,7 @@ class Pipeline(BaseModel):
     "Groups jobs into stages. All jobs in one stage must complete before next stage is executed."
     "https://docs.gitlab.com/ci/yaml/#stages"
 
-    include: list[IncludeComponent] = []
+    include: list[IncludeComponent] = pydantic.Field(default_factory=lambda: [])
 
     default: Optional[Default] = None
 
@@ -682,20 +687,20 @@ class Pipeline(BaseModel):
             raise exc
 
 
-class JobBuilderImpl(Job):
-    _base: ClassVar[type["JobBuilderImpl"] | None] = None
+class JobBuilder:
+    def build(self) -> Job:
+        raise NotImplementedError
 
-    _task: ClassVar[str | None] = None
+
+class JobBuilderImpl(JobBuilder):
+    _base: ClassVar[type["JobBuilderImpl"] | None] = None
+    _task: ClassVar[str | Enum | None] = None
 
     _config = ProjectConfig()
-
     _secret_handler = SecretsHandler
 
-    model: Job = pydantic.Field(
-        repr=False,
-        default_factory=Job,
-        init=False,
-    )
+    def __init__(self) -> None:
+        self.model: Job = Job()
 
     def _apply_base(self) -> None:
         if self._base is None:
@@ -717,7 +722,10 @@ class JobBuilderImpl(Job):
 
     def _apply_task(self):
         if self._task and isinstance(self.model.script, list):
-            self.model.script.extend([f"gciptask run {self._task}"])
+            if isinstance(self._task, str):
+                self.model.script.extend([f"gciptask run {self._task}"])
+            else:
+                self.model.script.extend([f"gciptask run {self._task.value}"])
 
     def apply(self: Self) -> Self:
         return self
@@ -759,6 +767,14 @@ class JobBuilderImpl(Job):
 
     def with_image(self, image: str, entrypoint: list[str] = []) -> Self:
         self.model.image = Image(name=image, entrypoint=entrypoint)
+        return self
+
+    def with_compose_image(self, image_name: str, entrypoint: list[str] = []) -> Self:
+        image_data = self._config.compose.images.get(image_name)
+        if not image_data:
+            raise ValueError(f"image_data not found in {self._config.compose.path.name}")
+
+        self.model.image = Image(name=image_data.image, entrypoint=entrypoint)
         return self
 
     def with_tags(self, tags: list[str]) -> Self:

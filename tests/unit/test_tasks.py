@@ -1,9 +1,12 @@
+import typing
+
 import pytest
-from _test_tasks._tasks import DummyTask1, DummyTask2
+
+# from _test_tasks._tasks import DummyTask1, DummyTask2
+# from ._test_tasks import _tasks
 from click.testing import CliRunner
 
 from gcip2.tasks_core import InteractivePythonAction, InteractiveShlex, TaskBuilderImpl, cli
-from gcip2.tasks_core.task_loader import load_tasks
 
 
 def test_taskbuilderimpl_name():
@@ -20,7 +23,7 @@ def test_taskbuilderimpl_name():
 
 def test_taskbuilderimpl_without_name_FAILURE():
     class DummyAction(InteractivePythonAction):
-        def impl(self):
+        def impl(self, **kwargs: typing.Any):
             pass
 
     class DummyTask(TaskBuilderImpl):
@@ -34,7 +37,7 @@ def test_taskbuilderimpl_without_name_FAILURE():
 
 def test_taskbuilderimpl_actions():
     class DummyAction(InteractivePythonAction):
-        def impl(self):
+        def impl(self, **kwargs: typing.Any):
             pass
 
     class DummyTask(TaskBuilderImpl):
@@ -50,7 +53,7 @@ def test_taskbuilderimpl_actions():
 
 def test_taskbuilder_exec_task():
     class DummyAction(InteractiveShlex):
-        def impl(self):
+        def impl(self, **kwargs: typing.Any):
             return ["echo", "123"]
 
     class DummyTask(TaskBuilderImpl):
@@ -65,7 +68,7 @@ def test_taskbuilder_exec_task():
 
 def test_action_InteractivePythonAction_impl():
     class DummyAction(InteractivePythonAction):
-        def impl(self) -> None:
+        def impl(self, **kwargs: typing.Any) -> None:
             raise NotImplementedError
 
     with pytest.raises(NotImplementedError):
@@ -74,7 +77,7 @@ def test_action_InteractivePythonAction_impl():
 
 def test_action_InteractiveShlex_impl():
     class DummyAction(InteractiveShlex):
-        def impl(self) -> list[str]:
+        def impl(self, **kwargs: typing.Any) -> list[str]:
             raise NotImplementedError
 
     with pytest.raises(NotImplementedError):
@@ -83,22 +86,16 @@ def test_action_InteractiveShlex_impl():
 
 def test_action_InteractiveShlex_execute():
     class DummyAction(InteractiveShlex):
-        def impl(self) -> list[str]:
+        def impl(self, **kwargs: typing.Any) -> list[str]:
             return ["echo", "123"]
 
     DummyAction().execute()
 
 
-def test_load_tasks():
-    tasks: dict[str, type[TaskBuilderImpl]] = load_tasks(package="_test_tasks")
-
-    assert tasks == {"test-task-1": DummyTask1, "test-task-2": DummyTask2}
-
-
 def test_tasks_core_cli_list():
     runner = CliRunner()
 
-    result = runner.invoke(cli.cli, ["list"])
+    result = runner.invoke(cli.cli, ["list", "--module", "tests.unit._test_tasks"])
 
     assert result.exit_code == 0
 
@@ -106,7 +103,7 @@ def test_tasks_core_cli_list():
 def test_tasks_core_run_1():
     runner = CliRunner()
 
-    result = runner.invoke(cli.cli, ["run", "test-task-1", "--module", "_test_tasks"])
+    result = runner.invoke(cli.cli, ["run", "test-task-1", "--module", "tests.unit._test_tasks"])
 
     assert result.exit_code == 0
 

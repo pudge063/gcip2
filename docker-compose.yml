@@ -1,3 +1,5 @@
 services:
-  base:
+  base_linux:
+    image: rockylinux:9.3.20231119
+  base_python:
     image: pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie

@@ -24,9 +24,8 @@ class PreCommit(JobBuilderImpl):
     _base = BaseLinux
 
     def apply(self: Self) -> Self:
-        self.model.name = "pre-commit"
+        self.with_name("pre-commit")
         self.model.script = [
-            "ls -la",
             "pre-commit run -av --color=always",
         ]
         self.with_stage(Stages.pre_commit)
@@ -45,10 +44,6 @@ workflow = Workflow(
             when=WorkflowWhen.ALWAYS,
         ),
         WorkflowRule(
-            if_="$CI_COMMIT_TAG =~ '/^v\\d+\\.\\d+\\.\\d+$/'",
-            when=WorkflowWhen.ALWAYS,
-        ),
-        WorkflowRule(
             if_="$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH",
             when=WorkflowWhen.ALWAYS,
         ),
@@ -56,21 +51,21 @@ workflow = Workflow(
     ],
 )
 
+default = Default(
+    tags=["static-k8s"],
+    image=Image(
+        name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
+    ),
+)
+
 
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
         self.model.stages = [Stages.pre_commit]
 
-        self.model.jobs.append(self.job(PreCommit).apply())
+        self.add_jobs((self.job(PreCommit).apply(),))
 
-        self.with_default(
-            Default(
-                tags=["static-k8s"],
-                image=Image(
-                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
-                ),
-            )
-        )
+        self.with_default(default)
         self.with_workflow(workflow=workflow)
         return self
 
@@ -79,12 +74,5 @@ class GitlabCi(GitlabCiBuilderImpl):
     def apply(self: Self) -> Self:
         super(GitlabCi, self).apply()
         self.with_workflow(workflow=workflow)
-        self.with_default(
-            Default(
-                tags=["static-k8s"],
-                image=Image(
-                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
-                ),
-            )
-        )
+        self.with_default(default)
         return self

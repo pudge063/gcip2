@@ -1,19 +1,19 @@
 import typing
 
-import pydantic
-
 from gcip2.pipeline_core import Default, JobBuilderImpl, Pipeline, Stage, Workflow
 from gcip2.project_config import ProjectConfig
 
 
-class GitlabCiBuilderImpl(Pipeline):
-    model: Pipeline = pydantic.Field(
-        repr=False,
-        default_factory=Pipeline,
-        init=False,
-    )
+class GitlabCiBuilder:
+    def build(self) -> Pipeline:
+        raise NotImplementedError
 
+
+class GitlabCiBuilderImpl(GitlabCiBuilder):
     _config = ProjectConfig()
+
+    def __init__(self) -> None:
+        self.model: Pipeline = Pipeline()
 
     def apply(self: typing.Self) -> typing.Self:
         return self

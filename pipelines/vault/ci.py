@@ -1,5 +1,6 @@
 from typing import Self
 
+from _tasks._consts import Tasks
 from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
 from gcip2.pipeline_core import (
     Default,
@@ -12,17 +13,12 @@ from gcip2.pipeline_core import (
     WorkflowRule,
     WorkflowWhen,
 )
-from gcip2.pipeline_core.jobs.base import BaseLinux
+from gcip2.pipeline_core.jobs.base import BaseTask
 
 
-class TestSecretHandler(JobBuilderImpl):
-    _base = BaseLinux
-
-    def apply(self: Self) -> Self:
-        self.model.name = "vault-get-secret"
-        secret = self._secret_handler("vault-with-approle").fetch()
-        self.model.script = [f"echo {secret['test_username']}"]
-        return self
+class TestSecretHandlerInTask(JobBuilderImpl):
+    _base = BaseTask
+    _task = Tasks.test_vault_task
 
 
 workflow = Workflow(
@@ -44,20 +40,20 @@ workflow = Workflow(
     ],
 )
 
+default = Default(
+    tags=["static-k8s"],
+    image=Image(
+        name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
+    ),
+)
+
 
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
 
-        self.model.jobs.append(self.job(TestSecretHandler).apply())
+        self.add_jobs((self.job(TestSecretHandlerInTask).apply().with_name("test-vault-secret-job"),))
 
-        self.with_default(
-            Default(
-                tags=["static-k8s"],
-                image=Image(
-                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
-                ),
-            )
-        )
+        self.with_default(default)
         self.with_workflow(workflow=workflow)
         return self
 
@@ -66,12 +62,5 @@ class GitlabCi(GitlabCiBuilderImpl):
     def apply(self: Self) -> Self:
         super(GitlabCi, self).apply()
         self.with_workflow(workflow=workflow)
-        self.with_default(
-            Default(
-                tags=["static-k8s"],
-                image=Image(
-                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
-                ),
-            )
-        )
+        self.with_default(default)
         return self

@@ -15,33 +15,33 @@ class ActionBuilderImpl(ABC):
     _secret_handler = SecretsHandler
 
     @abstractmethod
-    def impl(self) -> ActionResult: ...
+    def impl(self, **kwargs: typing.Any) -> ActionResult: ...
 
     @abstractmethod
-    def execute(self): ...
+    def execute(self, **kwargs: typing.Any): ...
 
 
 class InteractivePythonAction(ActionBuilderImpl):
     @typing.override
-    def impl(self) -> None:
-        pass
+    def impl(self, **kwargs: typing.Any) -> None:
+        raise NotImplementedError
 
     @typing.override
-    def execute(self) -> None:
+    def execute(self, **kwargs: typing.Any) -> None:
         LOGGER.debug(f"running InteractivePythonAction action: {self.__class__.__name__}")
-        self.impl()
+        self.impl(**kwargs)
 
 
 class InteractiveShlex(ActionBuilderImpl):
     @typing.override
-    def impl(self) -> list[str]:
+    def impl(self, **kwargs: typing.Any) -> list[str]:
         raise NotImplementedError
 
     @typing.override
-    def execute(self) -> None:
+    def execute(self, **kwargs: typing.Any) -> None:
         LOGGER.debug(f"running InteractiveShlex action: {self.__class__.__name__}")
         subprocess.run(
-            self.impl(),
+            self.impl(**kwargs),
             check=True,
             shell=False,
         )

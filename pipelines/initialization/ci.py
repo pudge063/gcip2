@@ -34,6 +34,7 @@ class Initialization(JobBuilderImpl):
             .with_script(["gcip2 init -f", "gcip2 build-pipeline"])
             .with_stage(Stages.initialization)
             .with_artifacts(paths=["out"])
+            .with_compose_image("base_python")
         )
 
 
@@ -80,6 +81,13 @@ workflow = Workflow(
     ],
 )
 
+default = Default(
+    tags=["static-k8s"],
+    image=Image(
+        name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
+    ),
+)
+
 
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
@@ -92,14 +100,7 @@ class Pipeline(PipelineBuilderImpl):
             )
         )
 
-        self.with_default(
-            Default(
-                tags=["static-k8s"],
-                image=Image(
-                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
-                ),
-            )
-        )
+        self.with_default(default)
         self.with_workflow(workflow=workflow)
         return self
 
@@ -108,12 +109,5 @@ class GitlabCi(GitlabCiBuilderImpl):
     def apply(self: Self) -> Self:
         super(GitlabCi, self).apply()
         self.with_workflow(workflow=workflow)
-        self.with_default(
-            Default(
-                tags=["static-k8s"],
-                image=Image(
-                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
-                ),
-            )
-        )
+        self.with_default(default)
         return self

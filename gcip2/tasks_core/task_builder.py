@@ -1,46 +1,65 @@
 import typing
 from collections.abc import Iterable
+from enum import Enum
 
-from pydantic import BaseModel, Field
+import pydantic
 
-from gcip2.tasks_core.actions import ActionBuilderImpl
+from gcip2.tasks_core.models.actions import ActionBuilderImpl
+from gcip2.tasks_core.models.params import Param
 
 
-class TaskBuilder(BaseModel):
+class Task(pydantic.BaseModel):
     name: typing.Optional[str] = None
 
     actions: typing.Optional[list[type["ActionBuilderImpl"]]] = None
 
-    params: typing.Optional[list[typing.Any]] = None
+    params: dict[str, typing.Any] = {}
+
+    arguments: list[Param] = pydantic.Field(default_factory=lambda: [])
 
     def exec_task(self):
         if not self.actions:
             raise RuntimeError("not found actions to execute.")
         for action_cls in self.actions:
             action = action_cls()
-            action.execute()
+            action.execute(**self.params)
 
 
-class TaskBuilderImpl(TaskBuilder):
-    task_name: typing.ClassVar[str | None] = None
+class TaskBulder:
+    def build(self) -> Task:
+        raise NotImplementedError
 
-    model: TaskBuilder = Field(
-        repr=False,
-        default_factory=TaskBuilder,
-        init=False,
-    )
+
+class TaskBuilderImpl(TaskBulder):
+    task_name: typing.ClassVar[str | Enum | None] = None
+
+    def __init__(self):
+        self.model = Task()
 
     def apply(self):
         return self
 
-    def build(self) -> TaskBuilder:
+    def build(self) -> Task:
         if not self.task_name:
             raise ValueError("task name not set.")
 
-        if self.task_name:
+        if isinstance(self.task_name, str):
             self.model.name = self.task_name
+        else:
+            self.model.name = self.task_name.value
+
         return self.model.model_copy(deep=True)
 
-    def with_actions(self, actions: Iterable[type["ActionBuilderImpl"]]):
+    def with_actions(self, actions: Iterable[type[ActionBuilderImpl]]):
         self.model.actions = list(actions)
+        return self
+
+    def with_params(self: typing.Self, params: Iterable[Param]) -> typing.Self:
+        self.model.arguments = list(params)
+
+        params_dict = {}
+        for param in params:
+            params_dict[param.name] = param.default
+        self.model.params = params_dict
+
         return self

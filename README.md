@@ -102,10 +102,12 @@ Detailed documentation is available in the `docs/` directory.
 
 | Document                                       | Description                                         |
 | ---------------------------------------------- | --------------------------------------------------- |
-| [https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/builder.md](docs/pipeline.md)           | Creating pipelines, jobs and workflow configuration |
-| [https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/builder.md](docs/builder.md)             | Pipeline builder, rendering and YAML generation     |
-| [https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/pipeline_core.md](docs/pipeline_core.md) | Reference for the typed GitLab CI models            |
-| [https://gl.pivlab.space/rnd/gcip2/-/blob/master/CHANGELOG.md](CHANGELOG.md)                   | Project changelog                                   |
+| [docs/pipeline.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/builder.md)               | Creating pipelines, jobs and workflow configuration |
+| [docs/builder.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/builder.md)                | Pipeline builder, rendering and YAML generation     |
+| [docs/pipeline_core.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/pipeline_core.md)    | Reference for the typed GitLab CI models            |
+| [docs/secrets.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/secrets.md)                | SecretsHandler with Vault integration               |
+| [docs/project_config.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/project_config.md)  | ProjectConfig with global environment               |
+| [CHANGELOG.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/CHANGELOG.md)                      | Project changelog                                   |
 
 ---
 

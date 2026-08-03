@@ -1,18 +1,18 @@
 from collections.abc import Iterable
 from typing import Self
 
-import pydantic
-
 from gcip2.pipeline_core import Default, Job, JobBuilderImpl, Pipeline, Stage, Workflow
 from gcip2.project_config import ProjectConfig
 
 
-class PipelineBuilderImpl(Pipeline):
-    model: Pipeline = pydantic.Field(
-        repr=False,
-        default_factory=Pipeline,
-        init=False,
-    )
+class PipelineBuilder:
+    def build(self) -> Pipeline:
+        raise NotImplementedError
+
+
+class PipelineBuilderImpl(PipelineBuilder):
+    def __init__(self) -> None:
+        self.model: Pipeline = Pipeline()
 
     _config = ProjectConfig()
 
@@ -28,7 +28,7 @@ class PipelineBuilderImpl(Pipeline):
     def job(job_class: type[JobBuilderImpl]) -> JobBuilderImpl:
         return job_class()
 
-    def add_jobs(self, jobs: Iterable[Job]):
+    def add_jobs(self, jobs: Iterable[Job | JobBuilderImpl]):
         self.model.jobs.extend(jobs)
 
     def with_workflow(self, workflow: Workflow = Workflow()):

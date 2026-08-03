@@ -29,7 +29,22 @@ class BaseLinux(JobBuilderImpl):
         return self
 
 
-class BaseTask(JobBuilderImpl):
+class BasePython(JobBuilderImpl):
+    _base = Base
+    _scipt_linux: assets.ScriptLinux = assets.ScriptLinux.load()
+    _after_script_linux: assets.AfterScriptLinux = assets.AfterScriptLinux.load()
+    _before_script_linux: assets.BeforeScriptLinux = assets.BeforeScriptLinux.load()
+
+    def apply(self: Self) -> Self:
+        self.model.after_script = [
+            self._after_script_linux.script,
+            "echo Do nothing.",
+        ]
+        self.model.before_script = [self._before_script_linux.script]
+        return self.with_compose_image("base_python")
+
+
+class BaseTask(BasePython):
     _base = BaseLinux
     _scipt_linux: assets.ScriptLinux = assets.ScriptLinux.load()
     _after_script_linux: assets.AfterScriptLinux = assets.AfterScriptLinux.load()
