@@ -2,8 +2,6 @@ from typing import Self
 
 from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
 from gcip2.pipeline_core import (
-    Default,
-    Image,
     JobBuilderImpl,
     Workflow,
     WorkflowAutoCancel,
@@ -26,20 +24,9 @@ class RunIntegrationTests(JobBuilderImpl):
         return self
 
 
-default = Default(
-    tags=["static-k8s"],
-    image=Image(
-        name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
-    ),
-)
-
-
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
-
         self.model.jobs.append(self.job(RunIntegrationTests).apply())
-
-        self.with_default(default)
         return self
 
 
@@ -66,5 +53,4 @@ class GitlabCi(GitlabCiBuilderImpl):
                 ],
             )
         )
-        self.with_default(default)
         return self

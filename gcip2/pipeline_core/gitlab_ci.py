@@ -1,7 +1,7 @@
 import typing
 from collections.abc import Iterable
 
-from gcip2.pipeline_core import Default, Job, JobBuilderImpl, Pipeline, Stage, Workflow
+from gcip2.pipeline_core import Default, Image, Job, JobBuilderImpl, Pipeline, Stage, Workflow
 from gcip2.project_config import ProjectConfig
 
 
@@ -20,6 +20,18 @@ class GitlabCiBuilderImpl(GitlabCiBuilder):
         return self
 
     def build(self: typing.Self) -> Pipeline:
+        if not self.model.default:
+            self.model.default = Default()
+
+        if not self.model.default.image:
+            image_data = self._config.compose.images.get("base_python")
+            if not image_data:
+                raise ValueError(f"image_data not found in {self._config.compose.path.name}")
+            self.model.default.image = Image(name=image_data.image)
+
+        if not self.model.default.tags:
+            self.model.default.tags = ["static-k8s"]
+
         if not self.model.stages:
             self.model.stages = [Stage.JOBS]
         return self.model.model_copy(deep=True)

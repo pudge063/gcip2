@@ -19,14 +19,6 @@ Instead of writing large YAML files, pipelines are defined in Python, validated 
 
 # Installation
 
-Create `poetry.toml` with venv configuration
-```
-[virtualenvs]
-create = true
-in-project = true
-
-```
-
 Create `pyproject.toml` with pyproject configuration
 ```
 [project]
@@ -35,14 +27,11 @@ version = "0.0.0"
 description = ""
 requires-python = ">=3.11,<4.0"
 
-[tool.poetry]
-package-mode = false
-
 ```
 
 
 ```bash
-poetry add gcip2
+uv add gcip2
 ```
 
 ---
@@ -61,7 +50,6 @@ This generates a minimal project structure:
 .
 ├── ci.py
 ├── pyproject.toml
-├── poetry.toml
 ├── environment.toml
 └── .pre-commit-config.yaml
 ```

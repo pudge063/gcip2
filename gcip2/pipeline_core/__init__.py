@@ -591,7 +591,7 @@ class JobTemplate(BaseModel):
 
 
 class Job(JobTemplate):
-    name: Optional[str] = None
+    name: str = ""
 
 
 class WorkflowRule(Rule):

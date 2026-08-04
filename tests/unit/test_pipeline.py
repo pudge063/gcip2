@@ -1,5 +1,7 @@
 from gcip2 import PipelineBuilderImpl
 from gcip2.pipeline_core import (
+    Default,
+    Image,
     Pipeline,
     Stage,
     Workflow,
@@ -26,6 +28,10 @@ def test_default_pipeline():
                 when=WorkflowWhen.ALWAYS,
             ),
         ],
+    )
+    base_pipeline.default = Default(
+        image=Image(name="ghcr.io/astral-sh/uv:python3.12-bookworm"),
+        tags=["static-k8s"],
     )
 
     assert pipeline == base_pipeline

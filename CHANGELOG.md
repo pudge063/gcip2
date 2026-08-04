@@ -17,6 +17,7 @@
 - added diff on pipeline generation
 - fixed pipeline and gitlab-ci paths params
 - added `ruff` instead of `black`, `isort`, `mypy`
+- migrated from `poetry` to `uv`
 
 ### [02.08.26 - 0.0.12]
 - added readme to package

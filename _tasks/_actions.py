@@ -21,11 +21,11 @@ class GitSetupInsteadofAction(InteractivePythonAction):
         LOGGER.info(f"test_param: {test_param}")
 
 
-class CheckPoetryVersion(InteractivePythonAction):
+class CheckUvVersion(InteractivePythonAction):
     def impl(self, *, test_param: str, extra__version: str, **_):
         LOGGER.warning(f"extra_version: {extra__version}")
         LOGGER.info(f"test_param: {test_param}")
-        subprocess.run("poetry --version", shell=True)
+        subprocess.run("uv --version", shell=True)
 
 
 class CheckShellCmd(InteractiveShlex):
@@ -78,7 +78,7 @@ class CheckVersion(InteractivePythonAction):
             raise FileNotFoundError(f"version file: {pyproject_file} not found.")
         pyproject_data = tomllib.loads(pyproject_file.read_text())
 
-        return pyproject_data["tool"]["poetry"]["version"]
+        return pyproject_data["project"]["version"]
 
     def impl(self, **_: typing.Any) -> None:
         if not os.getenv("PARENT_PIPELINE_SOURCE") == "merge_request_event":
@@ -156,15 +156,13 @@ class PublishPackage(InteractiveShlex):
     def impl(self, **_: typing.Any) -> list[list[str]]:
         token = self._secret_handler("pypi-token").fetch()["token"]
 
-        os.environ["POETRY_PYPI_TOKEN_PYPI"] = token
+        os.environ["UV_PUBLISH_TOKEN"] = token
 
-        # subprocess.run([f"poetry config pypi-token.pypi {token}"], shell=True)
-
-        publish_cmds = ["poetry", "publish"]
+        publish_cmds = ["uv", "publish"]
         if not (
             Predefined.CI_COMMIT_BRANCH.getenv()
             and Predefined.CI_COMMIT_BRANCH.getenv() == Predefined.CI_DEFAULT_BRANCH.getenv()
         ):
             publish_cmds.append("--dry-run")
 
-        return [["poetry", "build"], publish_cmds]
+        return [["uv", "build"], publish_cmds]

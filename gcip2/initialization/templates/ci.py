@@ -80,7 +80,7 @@ workflow = Workflow(
 default = Default(
     tags=["static-k8s"],
     image=Image(
-        name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
+        name="ghcr.io/astral-sh/uv:python3.12-bookworm",
     ),
 )
 

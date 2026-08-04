@@ -124,7 +124,7 @@ stages:
 
 default:
   image:
-    name: pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie
+    name: ghcr.io/astral-sh/uv:python3.12-bookworm
   tags:
     - static-k8s
 
@@ -136,7 +136,7 @@ pre-commit:
       section="$(date +'%s'):setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
       # shellcheck disable=SC2086
-      poetry install
+      uv sync
       . ".venv/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
   after_script:
@@ -146,7 +146,7 @@ pre-commit:
       section="$(date +'%s'):setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
       # shellcheck disable=SC2086
-      poetry install
+      uv sync
       . ".venv/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.

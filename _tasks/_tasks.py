@@ -13,7 +13,7 @@ class TestBaseTask(TaskBuilderImpl):
         self.with_actions(
             (
                 _actions.GitSetupInsteadofAction,
-                _actions.CheckPoetryVersion,
+                _actions.CheckUvVersion,
                 _actions.CheckShellCmd,
             )
         ).with_params(

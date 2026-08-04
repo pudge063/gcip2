@@ -15,9 +15,9 @@ class GitSetupInsteadofAction(InteractivePythonAction):
         LOGGER.info("set up")
 
 
-class CheckPoetryVersion(InteractivePythonAction):
+class CheckUvVersion(InteractivePythonAction):
     def impl(self, **_: typing.Any):
-        subprocess.run("poetry --version", shell=True)
+        subprocess.run("uv --version", shell=True)
 
 
 class CheckShellCmd(InteractiveShlex):

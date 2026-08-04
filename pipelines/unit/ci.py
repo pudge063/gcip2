@@ -4,8 +4,6 @@ from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
 from gcip2.pipeline_core import (
     ArtifactsReports,
     ArtifactsReportsCoverage,
-    Default,
-    Image,
     JobBuilderImpl,
     Workflow,
     WorkflowAutoCancel,
@@ -77,15 +75,6 @@ class Pipeline(PipelineBuilderImpl):
                     ),
                 )
             )
-
-        self.with_default(
-            Default(
-                tags=["static-k8s"],
-                image=Image(
-                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
-                ),
-            )
-        )
         return self
 
 
@@ -110,14 +99,6 @@ class GitlabCi(GitlabCiBuilderImpl):
                     ),
                     WorkflowRule(when=WorkflowWhen.NEVER),
                 ],
-            )
-        )
-        self.with_default(
-            Default(
-                tags=["static-k8s"],
-                image=Image(
-                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
-                ),
             )
         )
         return self

@@ -8,8 +8,6 @@ workflow:
       when: always
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: always
-    - if: $CI_COMMIT_TAG =~ '/^v\d+\.\d+\.\d+$/'
-      when: always
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: always
     - when: never
@@ -19,7 +17,7 @@ stages:
 
 default:
   image:
-    name: pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie
+    name: ghcr.io/astral-sh/uv:python3.12-bookworm
   tags:
     - static-k8s
 
@@ -30,9 +28,12 @@ pre-commit:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):before_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
   after_script:
     - |
@@ -40,13 +41,15 @@ pre-commit:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):after_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - ls -la
     - pre-commit run -av
   stage: pre-commit
   interruptible: true
