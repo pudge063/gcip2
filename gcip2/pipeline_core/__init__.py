@@ -514,7 +514,7 @@ class JobTemplate(BaseModel):
 
     secrets: Optional[Any] = None
 
-    script: list[str] | str = pydantic.Field(default_factory=list)
+    script: Optional[list[str] | str] = None
 
     run: Optional[Any] = None
     "Specifies a list of steps to execute in the job. The `run` keyword is an alternative to `script` and allows for more advanced job configuration."
@@ -695,13 +695,14 @@ class JobBuilder:
 
 class JobBuilderImpl(JobBuilder):
     _base: ClassVar[type["JobBuilderImpl"] | None] = None
-    _task: ClassVar[str | Enum | None] = None
+    _name: ClassVar[str | Enum | None] = None
 
     _config = ProjectConfig.from_file()
     _secret_handler = SecretsHandler
 
     def __init__(self) -> None:
         self.model: Job = Job()
+        self._apply_name()
 
     def _apply_base(self) -> None:
         if self._base is None:
@@ -721,19 +722,15 @@ class JobBuilderImpl(JobBuilder):
 
         self.model = Job.model_validate(merged)
 
-    def _apply_task(self):
-        if self._task and isinstance(self.model.script, list):
-            if isinstance(self._task, str):
-                self.model.script.extend([f"gciptask run {self._task}"])
-            else:
-                self.model.script.extend([f"gciptask run {self._task.value}"])
+    def _apply_name(self) -> None:
+        if self._name:
+            self.model.name = self._name if isinstance(self._name, str) else self._name.value
 
     def apply(self: Self) -> Self:
         return self
 
     def build(self: Self) -> Job:
         self._apply_base()
-        self._apply_task()
         return self.model.model_copy(deep=True)
 
     def with_name(self: Self, name: str) -> Self:

@@ -13,25 +13,19 @@ from gcip2.tasks_core.models.actions import InteractivePythonAction, Interactive
 
 
 class GitSetupInsteadofAction(InteractivePythonAction):
-    def test_method(self):
-        LOGGER.warning("called test method")
-
-    def impl(self, *, test_param: str, **_):
-        self.test_method()
-        LOGGER.info(f"test_param: {test_param}")
+    def impl(self, *, flavor: str, **_):
+        LOGGER.info(f"flavor: {flavor}")
 
 
 class CheckUvVersion(InteractivePythonAction):
-    def impl(self, *, test_param: str, extra__version: str, **_):
+    def impl(self, *, extra__version: str, **_):
         LOGGER.warning(f"extra_version: {extra__version}")
-        LOGGER.info(f"test_param: {test_param}")
         subprocess.run("uv --version", shell=True)
 
 
-class CheckShellCmd(InteractiveShlex):
-    def impl(self, *, allow_failure: bool, **_) -> list[list[str]]:
-        LOGGER.warning(f"allow_failure: {allow_failure}")
-        return [["echo", self._config.extra["version"]]]
+class CheckInsecureParam(InteractiveShlex):
+    def impl(self, *, insecure: bool, **_) -> list[list[str]]:
+        return [["echo", "insecure", str(insecure)]]
 
 
 class TestVaultSecretAction(InteractivePythonAction):

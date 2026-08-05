@@ -36,28 +36,28 @@ class RunUnitTests(JobBuilderImpl):
 
 
 class CheckPackageVersion(JobBuilderImpl):
+    _name = Tasks.check_package_version
     _base = BaseTask
-    _task = Tasks.check_package_version
 
     def apply(self: Self) -> Self:
-        return self.with_name("check-version").with_stage(Stages.PUBLISH)
+        return self.with_stage(Stages.PUBLISH)
 
 
 class CreateVersionTag(JobBuilderImpl):
+    _name = Tasks.create_version_tag
     _base = BaseTask
-    _task = Tasks.create_version_tag
 
     def apply(self: Self) -> Self:
-        return self.with_name("create-version").with_needs(["check-version"]).with_stage(Stages.PUBLISH)
+        return self.with_needs([Tasks.check_package_version.value]).with_stage(Stages.PUBLISH)
 
 
 class PublishPackage(JobBuilderImpl):
+    _name = Tasks.publish_package
     _base = BaseTask
-    _task = Tasks.publish_package
 
     def apply(self: Self) -> Self:
         self.model.name = "publish-package"
-        return self.with_needs(["create-version"]).with_stage(Stages.PUBLISH)
+        return self.with_needs([Tasks.create_version_tag.value]).with_stage(Stages.PUBLISH)
 
 
 class GitlabCi(GitlabCiBuilderImpl):

@@ -4,6 +4,13 @@ version = "0.0.13"
 [extra.tasks]
 module = "_tasks"
 
+[extra.targets.test-1]
+param1 = "1"
+
+[extra.targets.test-2]
+param1 = "2"
+
+
 [extra.secrets.vault.vault-with-approle]
 url = "https://vault.pivlab.space"
 auth_method = "approle"

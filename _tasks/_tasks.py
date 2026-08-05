@@ -14,12 +14,7 @@ class TestBaseTask(TaskBuilderImpl):
             (
                 _actions.GitSetupInsteadofAction,
                 _actions.CheckUvVersion,
-                _actions.CheckShellCmd,
-            )
-        ).with_params(
-            (
-                _params.test_param(),
-                _params.test_bool_param(),
+                _actions.CheckInsecureParam,
             )
         )
         return self
@@ -29,16 +24,8 @@ class TestVaultSecret(TaskBuilderImpl):
     _basename = Tasks.test_vault_task
 
     def apply(self):
-        return self.with_actions(
-            (
-                _actions.GitSetupInsteadofAction,
-                _actions.TestVaultSecretAction,
-            )
-        ).with_params(
-            (
-                _params.vault_section(default="vault-with-approle"),
-                _params.test_param(),
-            )
+        return self.with_actions((_actions.TestVaultSecretAction,)).with_params(
+            (_params.vault_section(default="vault-with-approle"),)
         )
 
 
@@ -71,7 +58,22 @@ class TaskGenerator(TaskGeneratorImpl):
     def load_tasks(self) -> Iterator[Task]:
         yield from super().load_tasks()
 
-        yield (self.builder(TestBaseTask).apply().build())
+        targets = self._config.extra.get("targets", [])
+
+        for target in targets:
+            yield (
+                self.builder(TestBaseTask)
+                .apply()
+                .with_name(target)
+                .with_params(
+                    (
+                        _params.flavor(),
+                        _params.insecure(),
+                    )
+                )
+                .build()
+            )
+
         yield (self.builder(TestVaultSecret).apply().build())
 
 

@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 
+from gcip2 import ProjectConfig
 from gcip2.tasks_core.task_builder import Task, TaskBuilderImpl
 
 
@@ -9,6 +10,9 @@ class TaskGenerator:
 
 
 class TaskGeneratorImpl(TaskGenerator):
+    def __init__(self):
+        self._config = ProjectConfig.from_file()
+
     def _auto_load_tasks(self) -> Iterator[Task]:
         for name, cls in vars(type(self)).items():
             if name.startswith("task_") and isinstance(cls, type) and issubclass(cls, TaskBuilderImpl):

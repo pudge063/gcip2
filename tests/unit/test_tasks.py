@@ -20,7 +20,7 @@ def test_taskbuilderimpl_name():
 
     task = DummyTask().apply().build()
 
-    assert task.name == "test-task-name"
+    assert task.basename == "test-task-name"
 
 
 def test_taskbuilderimpl_without_name_FAILURE():

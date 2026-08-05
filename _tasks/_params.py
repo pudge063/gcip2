@@ -1,22 +1,22 @@
 from gcip2 import tasks_core
 
 
-def test_param() -> tasks_core.Param:
+def flavor() -> tasks_core.Param:
     return tasks_core.Param(
-        name="test_param",
-        long="test-param",
-        default="test-default",
+        name="flavor",
+        long="flavor",
+        default="release",
         type=str,
     )
 
 
-def test_bool_param() -> tasks_core.Param:
+def insecure() -> tasks_core.Param:
     return tasks_core.Param(
-        name="allow_failure",
-        long="allow-failure",
+        name="insecure",
+        long="insecure",
         default=False,
         type=bool,
-        inverse="disallow-failure",
+        inverse="secure",
     )
 
 

@@ -23,52 +23,15 @@ def load_task_registry(module: str) -> dict[str, Task]:
 
     generator: TaskGenerator = module_obj.TASK_GENERATOR
 
-    return {task.name: task for task in generator.load_tasks() if task.name}
+    registry: dict[str, Task] = {}
 
+    for task in generator.load_tasks():
+        if not task.basename:
+            raise ValueError("Task basename is not set.")
+        taskname = task.basename if not task.name else ":".join([task.basename, task.name])
+        registry[taskname] = task
 
-def parse_task_params(
-    task: Task,
-    args: list[str],
-) -> dict[str, object]:
-
-    config = ProjectConfig.from_file()
-
-    params = dict(task.params)
-
-    if config.extra.model_extra:
-        for key, val in config.extra.model_extra.items():
-            params[f"extra__{key}"] = val
-
-    args_iter = iter(args)
-
-    for arg in args_iter:
-        if not arg.startswith("--"):
-            continue
-
-        key = arg.removeprefix("--")
-
-        param = next(
-            (p for p in task.arguments if p.long == key),
-            None,
-        )
-
-        if param is None:
-            LOGGER.error(f"Unknown parameter: --{key}")
-            raise click.ClickException(f"Unknown parameter: --{key}")
-
-        if param.type is bool:
-            params[param.name] = True
-            continue
-
-        try:
-            value = next(args_iter)
-        except StopIteration as err:
-            LOGGER.error(f"Missing value for --{key}")
-            raise click.ClickException(f"Missing value for --{key}") from err
-
-        params[param.name] = param.type(value)
-
-    return params
+    return registry
 
 
 TASK_REGISTRY: dict[str, Task] = load_task_registry(config.extra.tasks.module)
@@ -98,12 +61,10 @@ def run(ctx: click.Context, task_name: str, module: str | None):
     if task is None:
         raise click.ClickException(f"Unknown task: {task_name}")
     task = task.model_copy(deep=True)
-    task.params = parse_task_params(
-        task,
-        ctx.args,
-    )
 
-    LOGGER.debug(f"running task: {task.name}")
+    task.parse_task_params(args=ctx.args)
+
+    LOGGER.debug(f"running task: {task.basename}")
 
     task.exec_task()
 

@@ -1,13 +1,9 @@
 [project]
 name = "dev"
 version = "0.0.0"
-description = ""
-authors = [{ name = "Arsenii Nikulin", email = "studentq.work@yandex.ru" }]
-license = { text = "PivLab Tech" }
-readme = "README.md"
 requires-python = ">=3.11,<4.0"
 
-dependencies = ["gcip2>=0.0.13", "pre-commit>=4.6.1"]
+dependencies = ["gcip2>=0.0.13"]
 
 [build-system]
 requires = ["hatchling"]

@@ -18,7 +18,7 @@ from gcip2.pipeline_core.jobs.base import BaseTask
 
 class TestSecretHandlerInTask(JobBuilderImpl):
     _base = BaseTask
-    _task = Tasks.test_vault_task
+    _name = Tasks.test_vault_task
 
 
 default = Default(
@@ -32,7 +32,7 @@ default = Default(
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
 
-        self.add_jobs((self.job(TestSecretHandlerInTask).apply().with_name("test-vault-secret-job"),))
+        self.add_jobs((self.job(TestSecretHandlerInTask).apply(),))
 
         self.with_default(default)
         return self
