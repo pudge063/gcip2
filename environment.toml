@@ -1,6 +1,6 @@
 [extra]
 version = "0.1.0"
-test_repo = "git@gl.pivlab.space:sandbox/gcip2-test-pipeline.git"
+test_repo = "ssh://git@gl.pivlab.space/sandbox/gcip2-test-pipeline.git"
 
 [extra.tasks]
 module = "_tasks"

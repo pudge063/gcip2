@@ -34,28 +34,10 @@ class ShowPackageVersion(JobBuilderImpl):
     _base = BaseTask
     _task = Tasks.show_package_version
 
-    def apply(self):
-        # self.model.script = [
-        #     "rm -rf _tasks",
-        #     "gcip2 init",
-        #     "gciptask list",
-        #     "gciptask run show-package-version",
-        # ]
-        return self
-
 
 class CheckPythonVersion(JobBuilderImpl):
     _base = BaseTask
     _task = Tasks.check_python_version
-
-    def apply(self):
-        # self.model.script = [
-        #     "rm -rf _tasks/",
-        #     "gcip2 init",
-        #     "gciptask list",
-        #     "gciptask run check-python-version",
-        # ]
-        return self
 
 
 workflow = Workflow(
@@ -70,7 +52,11 @@ workflow = Workflow(
             when=WorkflowWhen.ALWAYS,
         ),
         WorkflowRule(
-            if_="$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH",
+            if_='$CI_PIPELINE_SOURCE == "web"',
+            when=WorkflowWhen.ALWAYS,
+        ),
+        WorkflowRule(
+            if_='$CI_PIPELINE_SOURCE == "api"',
             when=WorkflowWhen.ALWAYS,
         ),
         WorkflowRule(when=WorkflowWhen.NEVER),

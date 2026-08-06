@@ -19,11 +19,22 @@ class SetupSsh(InteractivePythonAction):
 
         ssh_dir = pathlib.Path("/root/.ssh")
         ssh_dir.mkdir(exist_ok=True)
-        ssh_dir.chmod(600)
+        ssh_dir.chmod(0o600)
 
-        private_key_file = ssh_dir / "id_ed25519"
+        private_key_file = ssh_dir / "id_ci"
         private_key_file.write_text(ssh_private_key)
-        private_key_file.chmod(600)
+        private_key_file.chmod(0o600)
+
+        ssh_config_file = ssh_dir / "config"
+        ssh_config_file.write_text(
+            """Host gl.pivlab.space
+    IdentityFile /root/.ssh/id_ci
+    IdentitiesOnly yes
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+""".strip()
+        )
+        ssh_config_file.chmod(0o644)
 
         LOGGER.info(f"flavor: {flavor}")
 
@@ -56,17 +67,24 @@ class InitializePipeline(InteractiveShlex):
     def impl(self, **_: typing.Any) -> list[list[str]]:
         tmp_dir = "tmp_out"
         test_repo = self._config.extra.get("test_repo", "")
+        branch = "master"
+        remote = "origin"
         if not test_repo:
             raise ValueError("test_repo url not set")
         return [
             ["mkdir", "-p", tmp_dir],
             ["cd", tmp_dir],
-            ["gcip2 init"],
+            ["gcip2", "init"],
+            ["git", "config", "--global", "init.defaultBranch", branch],
             ["git", "init"],
-            ["git", "remote", "add", "origin", test_repo],
-            ["git", "add", "-a"],
+            ["git", "config", "--global", "user.email", "ci@pivlab.space"],
+            ["git", "config", "--global", "user.name", "CI"],
+            ["git", "remote", "add", remote, test_repo],
+            ["pre-commit", "run", "-av"],
+            ["ls", "-la"],
+            ["git", "add", "--a"],
             ["git", "commit", "-m", "ci"],
-            ["git", "push", "-f", "origin", "master"],
+            ["git", "push", "-f", remote, branch],
         ]
 
 

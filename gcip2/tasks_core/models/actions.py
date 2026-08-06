@@ -42,6 +42,10 @@ class InteractiveShlex(ActionBuilderImpl):
     @typing.override
     def execute(self, **kwargs: typing.Any) -> None:
         LOGGER.debug(f"running InteractiveShlex action: {self.__class__.__name__}")
-        for cmd in self.impl(**kwargs):
-            LOGGER.debug("running: {}", shlex.join(cmd))
-            subprocess.run(cmd, check=True)
+
+        commands = [shlex.join(cmd) for cmd in self.impl(**kwargs)]
+
+        script = " && ".join(commands)
+
+        LOGGER.debug("running: {}", script)
+        subprocess.run(script, shell=True, check=True)
