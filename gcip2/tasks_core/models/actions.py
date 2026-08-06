@@ -47,5 +47,5 @@ class InteractiveShlex(ActionBuilderImpl):
 
         script = " && ".join(commands)
 
-        LOGGER.debug("running: {}", script)
+        LOGGER.info("running: {}", script)
         subprocess.run(script, shell=True, check=True)

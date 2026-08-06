@@ -3,10 +3,13 @@ import pathlib
 import subprocess
 import tomllib
 import typing
+from time import sleep
 
 import git
 import requests
 
+from _tasks._consts import PipelineStatus
+from _tasks._helpers import GitlabApi
 from gcip2 import Predefined
 from gcip2.logging import logger as LOGGER
 from gcip2.tasks_core.models.actions import InteractivePythonAction, InteractiveShlex
@@ -18,7 +21,7 @@ class SetupSsh(InteractivePythonAction):
             LOGGER.warning("not CI")
             return
 
-        secret = self._secret_handler("gl-pivlab-ssh").fetch()
+        secret = self._secret_handler("gl-pivlab-maintainer").fetch()
         ssh_private_key = secret["ssh_private_key"]
 
         ssh_dir = pathlib.Path("/root/.ssh")
@@ -30,14 +33,14 @@ class SetupSsh(InteractivePythonAction):
         private_key_file.chmod(0o600)
 
         ssh_config_file = ssh_dir / "config"
-        ssh_config_file.write_text(
-            """Host gl.pivlab.space
-    IdentityFile /root/.ssh/id_ci
-    IdentitiesOnly yes
-    StrictHostKeyChecking no
-    UserKnownHostsFile /dev/null
-""".strip()
-        )
+        ssh_config_data = [
+            "Host gl.pivlab.space",
+            "    IdentityFile /root/.ssh/id_ci",
+            "    IdentitiesOnly yes",
+            "    StrictHostKeyChecking no",
+            "    UserKnownHostsFile /dev/null",
+        ]
+        ssh_config_file.write_text("\n".join(ssh_config_data))
         ssh_config_file.chmod(0o644)
 
         LOGGER.info(f"flavor: {flavor}")
@@ -53,7 +56,8 @@ class SetupGitInsteadOf(InteractiveShlex):
 
 
 class CheckUvVersion(InteractivePythonAction):
-    def impl(self, *, extra__version: str, **_):
+    def impl(self, *, ci: bool, extra__version: str, **_):
+        LOGGER.warning(f"ci: {ci}")
         LOGGER.warning(f"extra_version: {extra__version}")
         subprocess.run("uv --version", shell=True)
 
@@ -76,7 +80,7 @@ class TestVaultSecretAction(InteractivePythonAction):
         LOGGER.info(f"secret password: {password}")
 
 
-class InitializePipeline(InteractiveShlex):
+class UpdateTestProject(InteractiveShlex):
     def impl(self, **_: typing.Any) -> list[list[str]]:
         cmds: list[list[str]] = []
 
@@ -98,7 +102,7 @@ class InitializePipeline(InteractiveShlex):
                 ["cd", tmp_dir],
                 ["gcip2", "init"],
                 ["git", "init"],
-                ["git", "remote", "add", remote, test_repo],
+                ["git", "remote", "add", remote, f"ssh://git@gl.pivlab.space/{test_repo}.git"],
                 ["gcip2", "build-gitlab-ci"],
                 ["sed", "-i", sed_string, "pyproject.toml"],
                 ["ls", "-la"],
@@ -119,7 +123,25 @@ class InitializePipeline(InteractiveShlex):
 
 class RunInitializationPipeline(InteractivePythonAction):
     def impl(self, **_: typing.Any):
-        pass
+        token = self._secret_handler("gl-pivlab-maintainer").fetch()["token"]
+        project_url = self._config.extra.get("test_repo", "").replace("/", "%2F")
+
+        gl = GitlabApi(gitlab_token=token)
+        pipeline_id = gl.trigger_pipeline(project_url=project_url, ref="master")
+
+        sleep(2)
+
+        while True:
+            pipeline_status = gl.fetch_pipeline_status(project_url=project_url, pipeline_id=str(pipeline_id))
+
+            if pipeline_status == PipelineStatus.success.value:
+                LOGGER.success("pipeline completed successfull")
+                break
+            elif pipeline_status == PipelineStatus.failed.value:
+                LOGGER.error("pipeline failed")
+                raise RuntimeError("triggered pipeline failed")
+
+            sleep(10)
 
 
 class CheckVersion(InteractivePythonAction):
@@ -155,17 +177,20 @@ class CheckVersion(InteractivePythonAction):
 
         return pyproject_data["project"]["version"]
 
-    def impl(self, **_: typing.Any) -> None:
-        if not os.getenv("PARENT_PIPELINE_SOURCE") == "merge_request_event":
-            LOGGER.warning("not merge request")
+    def impl(self, *, ci: bool, **_: typing.Any) -> None:
+        if not ci:
+            LOGGER.warning(f"skipping {type(self)}, not in CI")
             return
+
+        if not Predefined.CI_MERGE_REQUEST_ID.getenv(""):
+            LOGGER.warning(f"skipping {type(self)}, not in merge request")
 
         version_file = pathlib.Path("gcip2/VERSION")
         pyproject_file = pathlib.Path("pyproject.toml")
 
         self.check_version_diff()
 
-        version = self.get_tag_from_version_file(version_file=version_file)
+        version = self.get_tag_from_version_file(version_file=version_file).strip()
         pyproject_version = self.get_tag_from_pyproject_file(pyproject_file=pyproject_file)
         project_config_version = self._config.extra["version"]
 
@@ -188,47 +213,36 @@ class CheckVersion(InteractivePythonAction):
 
 
 class CreateVersionTag(InteractivePythonAction):
-    def create_version_tag(self, version: str, gitlab_token_section: str):
-        token = self._secret_handler(gitlab_token_section).fetch()["token"]
-
-        gitlab_url = Predefined.CI_API_V4_URL.must()
-        project_id = Predefined.CI_PROJECT_ID.must()
-        default_branch = Predefined.CI_DEFAULT_BRANCH.must()
-        r = requests.post(
-            url=f"{gitlab_url}/projects/{project_id}/repository/tags",
-            data={
-                "tag_name": "v" + version,
-                "ref": default_branch,
-            },
-            headers={"PRIVATE-TOKEN": token},
-        )
-
-        if not r.ok:
-            raise RuntimeError(f"failed tag creating: {r.json()}")
-        LOGGER.info("tag creating successful")
-
     def get_tag_from_version_file(self, version_file: pathlib.Path) -> str:
         if not version_file.exists():
             raise FileNotFoundError(f"version file: {version_file} not found.")
         return version_file.read_text()
 
-    def impl(self, *, gitlab_token_section: str, **_: typing.Any) -> None:
+    def impl(self, *, ci: bool, gitlab_token_section: str, **_: typing.Any) -> None:
+        if not ci:
+            LOGGER.warning(f"skipping {type(self)}, not in CI")
+            return
+
         version_file = pathlib.Path("gcip2/VERSION")
 
         version = self.get_tag_from_version_file(version_file=version_file)
 
         LOGGER.info(f"creating tag for release: {version}")
+
         if Predefined.CI_DEFAULT_BRANCH.must() == Predefined.CI_COMMIT_BRANCH.getenv():
-            self.create_version_tag(
-                version=version,
-                gitlab_token_section=gitlab_token_section,
-            )
+            token = self._secret_handler(gitlab_token_section).fetch()["token"]
+            gl = GitlabApi(gitlab_token=token)
+            gl.create_release_tag(version=version)
         else:
             LOGGER.warning("DRY-RUN: not release branch")
 
 
 class PublishPackage(InteractiveShlex):
-    def impl(self, **_: typing.Any) -> list[list[str]]:
+    def impl(self, *, ci: bool, **_: typing.Any) -> list[list[str]]:
+        if not ci:
+            LOGGER.warning(f"skipping {type(self)}, not in CI")
+            return [["echo", "DRY-RUN"]]
+
         token = self._secret_handler("pypi-token").fetch()["token"]
 
         os.environ["UV_PUBLISH_TOKEN"] = token

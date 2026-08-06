@@ -20,18 +20,35 @@ class Stages(str, Enum):
 
 
 class Initialization(JobBuilderImpl):
-    _name = Tasks.run_initialization_pipeline
+    _name = Tasks.initialize_project_pipeline
     _base = BaseTask
 
     def apply(self: Self) -> Self:
         return self.with_stage(Stages.initialization).with_compose_image("base_python")
 
 
+class RunInitializedPipeline(JobBuilderImpl):
+    _name = Tasks.run_initialized_pipeline
+    _base = BaseTask
+
+    def apply(self: Self) -> Self:
+        return (
+            self.with_stage(Stages.initialization)
+            .with_compose_image("base_python")
+            .with_needs([Tasks.initialize_project_pipeline.value])
+        )
+
+
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
         self.model.stages = [Stages.initialization]
 
-        self.add_jobs((self.job(Initialization).apply(),))
+        self.add_jobs(
+            (
+                self.job(Initialization).apply(),
+                self.job(RunInitializedPipeline).apply(),
+            )
+        )
 
         return self
 

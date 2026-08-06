@@ -1,3 +1,4 @@
+import os
 import typing
 from collections.abc import Iterable
 from enum import Enum
@@ -6,7 +7,7 @@ import pydantic
 
 from gcip2 import ProjectConfig
 from gcip2.tasks_core.models.actions import ActionBuilderImpl
-from gcip2.tasks_core.models.params import Param
+from gcip2.tasks_core.models.params import Param, Params
 
 
 class Task(pydantic.BaseModel):
@@ -16,16 +17,16 @@ class Task(pydantic.BaseModel):
 
     actions: typing.Optional[list[type["ActionBuilderImpl"]]] = None
 
-    params: dict[str, typing.Any] = {}
+    parsed_params: dict[str, typing.Any] = {}
 
-    arguments: list[Param] = pydantic.Field(default_factory=lambda: [])
+    params: list[Param] = pydantic.Field(default_factory=lambda: [])
 
     def parse_task_params(self, args: list[str]):
         _config = ProjectConfig.from_file()
 
         if _config.extra.model_extra:
             for key, val in _config.extra.model_extra.items():
-                self.params[f"extra__{key}"] = val
+                self.parsed_params[f"extra__{key}"] = val
 
         args_iter = iter(args)
 
@@ -36,7 +37,7 @@ class Task(pydantic.BaseModel):
             key = arg.removeprefix("--")
 
             param = next(
-                (p for p in self.arguments if key in [p.long, p.inverse]),
+                (p for p in self.params if key in [p.long, p.inverse]),
                 None,
             )
 
@@ -44,7 +45,7 @@ class Task(pydantic.BaseModel):
                 raise ValueError(f"Unknown parameter: --{key}")
 
             if param.type is bool:
-                self.params[param.name] = True if key == param.long else False
+                self.parsed_params[param.name] = True if key == param.long else False
                 continue
 
             try:
@@ -52,14 +53,14 @@ class Task(pydantic.BaseModel):
             except StopIteration as err:
                 raise StopIteration from err
 
-            self.params[param.name] = param.type(value)
+            self.parsed_params[param.name] = param.type(value)
 
     def exec_task(self):
         if not self.actions:
             raise RuntimeError("not found actions to execute.")
         for action_cls in self.actions:
             action = action_cls()
-            action.execute(**self.params)
+            action.execute(**self.parsed_params)
 
 
 class TaskBulder:
@@ -69,6 +70,8 @@ class TaskBulder:
 
 class TaskBuilderImpl(TaskBulder):
     _basename: typing.ClassVar[str | Enum | None] = None
+
+    _params: Params = Params()
 
     def __init__(self):
         self.model = Task()
@@ -92,17 +95,17 @@ class TaskBuilderImpl(TaskBulder):
         return self
 
     def with_params(self: typing.Self, params: Iterable[Param]) -> typing.Self:
-        self.model.arguments = list(params)
+        self.model.params = list(params)
 
         params_dict = {}
         for param in params:
-            params_dict[param.name] = param.default
-        self.model.params = params_dict
+            params_dict[param.name] = os.getenv(param.env_var, param.default) if param.env_var else param.default
+        self.model.parsed_params = params_dict
 
         return self
 
     def replace_param(self, param_name: str, param: str, default: str):
-        self.model.params[param_name] = param or default
+        self.model.parsed_params[param_name] = param or default
 
     def with_name(self, name: str):
         self.model.name = name

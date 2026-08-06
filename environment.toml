@@ -1,6 +1,6 @@
 [extra]
 version = "0.1.0"
-test_repo = "ssh://git@gl.pivlab.space/sandbox/gcip2-test-pipeline.git"
+test_repo = "rnd/gcip2-tests/initialization-test"
 
 [extra.tasks]
 module = "_tasks"
@@ -42,7 +42,7 @@ app_role_secret_id_env_var = "APP_ROLE_SECRET_ID"
 mount_point = "rnd"
 path = "infra/accounts/gitlab/ci"
 
-[extra.secrets.vault.gl-pivlab-ssh]
+[extra.secrets.vault.gl-pivlab-maintainer]
 url = "https://vault.pivlab.space"
 auth_method = "approle"
 app_role_id_env_var = "APP_ROLE_ID"
