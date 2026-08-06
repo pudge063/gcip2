@@ -1,5 +1,6 @@
 [extra]
-version = "0.0.13"
+version = "0.1.0"
+test_repo = "git@gl.pivlab.space:sandbox/gcip2-test-pipeline.git"
 
 [extra.tasks]
 module = "_tasks"
@@ -34,6 +35,14 @@ mount_point = "rnd"
 path = "infra/pypi"
 
 [extra.secrets.vault.gitlab-token]
+url = "https://vault.pivlab.space"
+auth_method = "approle"
+app_role_id_env_var = "APP_ROLE_ID"
+app_role_secret_id_env_var = "APP_ROLE_SECRET_ID"
+mount_point = "rnd"
+path = "infra/accounts/gitlab/ci"
+
+[extra.secrets.vault.gl-pivlab-ssh]
 url = "https://vault.pivlab.space"
 auth_method = "approle"
 app_role_id_env_var = "APP_ROLE_ID"

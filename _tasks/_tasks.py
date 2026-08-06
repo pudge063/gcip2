@@ -12,7 +12,7 @@ class TestBaseTask(TaskBuilderImpl):
     def apply(self):
         self.with_actions(
             (
-                _actions.GitSetupInsteadofAction,
+                _actions.SetupSsh,
                 _actions.CheckUvVersion,
                 _actions.CheckInsecureParam,
             )
@@ -27,6 +27,19 @@ class TestVaultSecret(TaskBuilderImpl):
         return self.with_actions((_actions.TestVaultSecretAction,)).with_params(
             (_params.vault_section(default="vault-with-approle"),)
         )
+
+
+class RunInitializationPipeline(TaskBuilderImpl):
+    _basename = Tasks.run_initialization_pipeline
+
+    def apply(self):
+        return self.with_actions(
+            (
+                _actions.SetupSsh,
+                _actions.InitializePipeline,
+                _actions.RunInitializationPipeline,
+            )
+        ).with_params((_params.flavor(),))
 
 
 class CheckPackageVersion(TaskBuilderImpl):
@@ -54,6 +67,7 @@ class TaskGenerator(TaskGeneratorImpl):
     task_check_package_version = CheckPackageVersion
     task_create_version_tag = CreateVersionTag
     task_get_publish_token = PublishPackage
+    task_run_initialization_pipeline = RunInitializationPipeline
 
     def load_tasks(self) -> Iterator[Task]:
         yield from super().load_tasks()

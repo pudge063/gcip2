@@ -1,6 +1,6 @@
 ## Changelog
 
-### [04.08.26 - 0.0.13]
+### [04.08.26 - 0.1.0]
 - added `Task`, `TaskBuilder` and `TaskBuilderImpl` entities for job task executing
 - added `InteractivePythonAction` and `InteractiveShlex` actions
 - added `Params` for `Tasks` -> `Actions.impl()`

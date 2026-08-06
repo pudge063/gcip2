@@ -7,15 +7,13 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      - id: ruff format
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.1
+    hooks:
+      - id: ruff-format
         name: ruff format
-        entry: ruff format .
-        description: Run ruff format
-        language: system
-        types: [python]
-      - id: ruff check
+
+      - id: ruff
         name: ruff check
-        entry: ruff check --fix
-        description: Run ruff check
-        language: system
-        types: [python]
+        args:
+          - --fix

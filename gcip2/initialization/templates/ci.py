@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import Self
 
-from _tasks._consts import Tasks
+from tasks._consts import Tasks
+
 from gcip2 import BaseLinux, BaseTask, GitlabCiBuilderImpl, PipelineBuilderImpl
 from gcip2.pipeline_core import (
     Default,
@@ -25,7 +26,7 @@ class PreCommit(JobBuilderImpl):
 
     def apply(self: Self) -> Self:
         self.with_name(JobName.pre_commit.value)
-        self.model.script = ["pre-commit run -av"]
+        self.model.script = ["pre-commit run -av", "cat environment.toml", "ls -la"]
         return self
 
 
@@ -34,12 +35,12 @@ class ShowPackageVersion(JobBuilderImpl):
     _task = Tasks.show_package_version
 
     def apply(self):
-        self.model.script = [
-            "rm -rf _tasks",
-            "gcip2 init",
-            "gciptask list",
-            "gciptask run show-package-version",
-        ]
+        # self.model.script = [
+        #     "rm -rf _tasks",
+        #     "gcip2 init",
+        #     "gciptask list",
+        #     "gciptask run show-package-version",
+        # ]
         return self
 
 
@@ -48,12 +49,12 @@ class CheckPythonVersion(JobBuilderImpl):
     _task = Tasks.check_python_version
 
     def apply(self):
-        self.model.script = [
-            "rm -rf _tasks/",
-            "gcip2 init",
-            "gciptask list",
-            "gciptask run check-python-version",
-        ]
+        # self.model.script = [
+        #     "rm -rf _tasks/",
+        #     "gcip2 init",
+        #     "gciptask list",
+        #     "gciptask run check-python-version",
+        # ]
         return self
 
 

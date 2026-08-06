@@ -12,8 +12,19 @@ from gcip2.logging import logger as LOGGER
 from gcip2.tasks_core.models.actions import InteractivePythonAction, InteractiveShlex
 
 
-class GitSetupInsteadofAction(InteractivePythonAction):
+class SetupSsh(InteractivePythonAction):
     def impl(self, *, flavor: str, **_):
+        secret = self._secret_handler("gl-pivlab-ssh").fetch()
+        ssh_private_key = secret["ssh_private_key"]
+
+        ssh_dir = pathlib.Path("/root/.ssh")
+        ssh_dir.mkdir(exist_ok=True)
+        ssh_dir.chmod(600)
+
+        private_key_file = ssh_dir / "id_ed25519"
+        private_key_file.write_text(ssh_private_key)
+        private_key_file.chmod(600)
+
         LOGGER.info(f"flavor: {flavor}")
 
 
@@ -39,6 +50,29 @@ class TestVaultSecretAction(InteractivePythonAction):
         username, password = secret["test_username"], secret["test_password"]
         LOGGER.info(f"secret username: {username}")
         LOGGER.info(f"secret password: {password}")
+
+
+class InitializePipeline(InteractiveShlex):
+    def impl(self, **_: typing.Any) -> list[list[str]]:
+        tmp_dir = "tmp_out"
+        test_repo = self._config.extra.get("test_repo", "")
+        if not test_repo:
+            raise ValueError("test_repo url not set")
+        return [
+            ["mkdir", "-p", tmp_dir],
+            ["cd", tmp_dir],
+            ["gcip2 init"],
+            ["git", "init"],
+            ["git", "remote", "add", "origin", test_repo],
+            ["git", "add", "-a"],
+            ["git", "commit", "-m", "ci"],
+            ["git", "push", "-f", "origin", "master"],
+        ]
+
+
+class RunInitializationPipeline(InteractivePythonAction):
+    def impl(self, **_: typing.Any):
+        pass
 
 
 class CheckVersion(InteractivePythonAction):
