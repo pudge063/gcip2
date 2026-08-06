@@ -14,6 +14,10 @@ from gcip2.tasks_core.models.actions import InteractivePythonAction, Interactive
 
 class SetupSsh(InteractivePythonAction):
     def impl(self, *, flavor: str, **_):
+        if not Predefined.CI_API_V4_URL.getenv(""):
+            LOGGER.warning("not CI")
+            return
+
         secret = self._secret_handler("gl-pivlab-ssh").fetch()
         ssh_private_key = secret["ssh_private_key"]
 
@@ -37,6 +41,15 @@ class SetupSsh(InteractivePythonAction):
         ssh_config_file.chmod(0o644)
 
         LOGGER.info(f"flavor: {flavor}")
+
+
+class SetupGitInsteadOf(InteractiveShlex):
+    def impl(self, **_: typing.Any) -> list[list[str]]:
+        return [
+            ["git", "config", "--global", "user.email", "ci@pivlab.space"],
+            ["git", "config", "--global", "user.name", "CI"],
+            ["git", "config", "--global", "init.defaultBranch", "master"],
+        ]
 
 
 class CheckUvVersion(InteractivePythonAction):
@@ -65,27 +78,43 @@ class TestVaultSecretAction(InteractivePythonAction):
 
 class InitializePipeline(InteractiveShlex):
     def impl(self, **_: typing.Any) -> list[list[str]]:
+        cmds: list[list[str]] = []
+
         tmp_dir = "tmp_out"
         test_repo = self._config.extra.get("test_repo", "")
-        branch = "master"
-        remote = "origin"
+
         if not test_repo:
             raise ValueError("test_repo url not set")
-        return [
-            ["mkdir", "-p", tmp_dir],
-            ["cd", tmp_dir],
-            ["gcip2", "init"],
-            ["git", "config", "--global", "init.defaultBranch", branch],
-            ["git", "init"],
-            ["git", "config", "--global", "user.email", "ci@pivlab.space"],
-            ["git", "config", "--global", "user.name", "CI"],
-            ["git", "remote", "add", remote, test_repo],
-            ["pre-commit", "run", "-av"],
-            ["ls", "-la"],
-            ["git", "add", "--a"],
-            ["git", "commit", "-m", "ci"],
-            ["git", "push", "-f", remote, branch],
-        ]
+
+        sed_string = (
+            f"s|gcip2>=0.0.1|gcip2 @ git+https://gl.pivlab.space/rnd/gcip2.git@{Predefined.CI_COMMIT_SHA.getenv('')}|"
+        )
+
+        branch, remote = "master", "origin"
+
+        cmds.extend(
+            [
+                ["mkdir", "-p", tmp_dir],
+                ["cd", tmp_dir],
+                ["gcip2", "init"],
+                ["git", "init"],
+                ["git", "remote", "add", remote, test_repo],
+                ["gcip2", "build-gitlab-ci"],
+                ["sed", "-i", sed_string, "pyproject.toml"],
+                ["ls", "-la"],
+            ]
+        )
+
+        if Predefined.CI_API_V4_URL.getenv(""):
+            cmds.extend(
+                [
+                    ["git", "add", "--a"],
+                    ["git", "commit", "-m", "ci"],
+                    ["git", "push", "-f", remote, branch],
+                ]
+            )
+
+        return cmds
 
 
 class RunInitializationPipeline(InteractivePythonAction):

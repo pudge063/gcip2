@@ -36,6 +36,7 @@ class RunInitializationPipeline(TaskBuilderImpl):
         return self.with_actions(
             (
                 _actions.SetupSsh,
+                _actions.SetupGitInsteadOf,
                 _actions.InitializePipeline,
                 _actions.RunInitializationPipeline,
             )

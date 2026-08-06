@@ -1,8 +1,6 @@
 from enum import Enum
 from typing import Self
 
-from tasks._consts import Tasks
-
 from gcip2 import BaseLinux, BaseTask, GitlabCiBuilderImpl, PipelineBuilderImpl
 from gcip2.pipeline_core import (
     Default,
@@ -15,6 +13,8 @@ from gcip2.pipeline_core import (
     WorkflowRule,
     WorkflowWhen,
 )
+
+from tasks._consts import Tasks
 
 
 class JobName(str, Enum):

@@ -1,9 +1,10 @@
 from collections.abc import Iterator
 
-from _tasks import _actions, _params
-from _tasks._consts import Tasks
 from gcip2.tasks_core.task_builder import Task, TaskBuilderImpl
 from gcip2.tasks_core.task_generator import TaskGeneratorImpl
+
+from tasks import _actions, _params
+from tasks._consts import Tasks
 
 
 class ShowPackageVersion(TaskBuilderImpl):

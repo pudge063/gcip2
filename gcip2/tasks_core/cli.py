@@ -1,4 +1,6 @@
 import builtins
+import pathlib
+import sys
 from functools import lru_cache
 
 import click
@@ -19,7 +21,13 @@ config = ProjectConfig.from_file()
 
 @lru_cache
 def load_task_registry(module: str) -> dict[str, Task]:
-    module_obj = __import__(module, fromlist=["TASK_GENERATOR"])
+    module_path = str(pathlib.Path(module).parent)
+
+    sys.path.insert(0, module_path)
+    try:
+        module_obj = __import__(module, fromlist=["TASK_GENERATOR"])
+    finally:
+        sys.path.remove(module_path)
 
     generator: TaskGenerator = module_obj.TASK_GENERATOR
 

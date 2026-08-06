@@ -1,6 +1,7 @@
 import importlib.util
 import os
 import pathlib
+import sys
 from difflib import unified_diff
 from enum import Enum
 from typing import Any, Optional, Self, TypeVar
@@ -89,8 +90,14 @@ class PipelineBuilder:
             "user_pipeline",
             path,
         )
+
         module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        path_str = str(path.parent)
+        sys.path.insert(0, path_str)
+        try:
+            spec.loader.exec_module(module)
+        finally:
+            sys.path.remove(path_str)
 
         for obj in module.__dict__.values():
             if isinstance(obj, type) and issubclass(obj, obj_type) and obj is not obj_type:
