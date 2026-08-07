@@ -52,13 +52,16 @@ class GitlabApi:
     def create_release_tag(self, version: str):
         project_id = Predefined.CI_PROJECT_ID.must()
         default_branch = Predefined.CI_DEFAULT_BRANCH.must()
-        self._send_gitlab_request(
+        r = self._send_gitlab_request(
             url_suffix=f"projects/{project_id}/repository/tags",
+            method="POST",
             json={
                 "tag_name": "v" + version,
                 "ref": default_branch,
             },
         )
+
+        LOGGER.debug(f"status code: {r.status_code}")
 
         LOGGER.info(f"tag for version: {version} creating successful")
 

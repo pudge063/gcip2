@@ -1,5 +1,10 @@
 ## Changelog
 
+### [08.08.26 - 0.1.1]
+- changed base image replaced to local artifactory
+- enabled pipeline timestamps provided by `FF_TIMESTAMPS`
+- added debug for tag creation
+
 ### [04.08.26 - 0.1.0]
 - added `Task`, `TaskBuilder` and `TaskBuilderImpl` entities for job task executing
 - added `InteractivePythonAction` and `InteractiveShlex` actions
