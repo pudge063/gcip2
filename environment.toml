@@ -1,5 +1,5 @@
 [extra]
-version = "0.1.0"
+version = "0.1.1"
 test_repo = "rnd/gcip2-tests/initialization-test"
 
 [extra.tasks]
@@ -19,6 +19,7 @@ app_role_id_env_var = "APP_ROLE_ID"
 app_role_secret_id_env_var = "APP_ROLE_SECRET_ID"
 mount_point = "rnd"
 path = "infra/test"
+env_vars = [{ value = "", field = "" }]
 
 [extra.secrets.vault.vault-with-jwks]
 url = "https://vault.pivlab.space"

@@ -217,7 +217,7 @@ class CreateVersionTag(InteractivePythonAction):
     def get_tag_from_version_file(self, version_file: pathlib.Path) -> str:
         if not version_file.exists():
             raise FileNotFoundError(f"version file: {version_file} not found.")
-        return version_file.read_text()
+        return version_file.read_text().strip()
 
     def impl(self, *, ci: bool, gitlab_token_section: str, **_: typing.Any) -> None:
         if not ci:

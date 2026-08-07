@@ -13,13 +13,13 @@ stages:
 
 default:
   image:
-    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+    name: af.pivlab.space/astral-sh/uv:python3.12
   tags:
     - static-k8s
 
 test-task:test-1:
   image:
-    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+    name: af.pivlab.space/astral-sh/uv:python3.12
   before_script:
     - |
       #!/usr/bin/env sh
@@ -69,7 +69,7 @@ test-task:test-1:
 
 test-task:test-1 --insecure:
   image:
-    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+    name: af.pivlab.space/astral-sh/uv:python3.12
   before_script:
     - |
       #!/usr/bin/env sh
@@ -119,7 +119,7 @@ test-task:test-1 --insecure:
 
 test-task:test-1 --secure:
   image:
-    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+    name: af.pivlab.space/astral-sh/uv:python3.12
   before_script:
     - |
       #!/usr/bin/env sh
@@ -169,7 +169,7 @@ test-task:test-1 --secure:
 
 test-task:test-2:
   image:
-    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+    name: af.pivlab.space/astral-sh/uv:python3.12
   before_script:
     - |
       #!/usr/bin/env sh
@@ -219,7 +219,7 @@ test-task:test-2:
 
 test-task:test-2 --insecure:
   image:
-    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+    name: af.pivlab.space/astral-sh/uv:python3.12
   before_script:
     - |
       #!/usr/bin/env sh
@@ -269,7 +269,7 @@ test-task:test-2 --insecure:
 
 test-task:test-2 --secure:
   image:
-    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+    name: af.pivlab.space/astral-sh/uv:python3.12
   before_script:
     - |
       #!/usr/bin/env sh

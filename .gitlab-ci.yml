@@ -21,7 +21,7 @@ stages:
 
 default:
   image:
-    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+    name: af.pivlab.space/astral-sh/uv:python3.12
   tags:
     - static-k8s
 
@@ -30,6 +30,8 @@ variables:
     value: '1'
   FORCE_COLOR:
     value: '1'
+  FF_TIMESTAMPS:
+    value: 'true'
 
 checkstyle/build-pipeline:
   before_script:
@@ -516,7 +518,7 @@ unit-tests:tasks:
 
 check-package-version:
   image:
-    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+    name: af.pivlab.space/astral-sh/uv:python3.12
   before_script:
     - |
       #!/usr/bin/env sh
@@ -566,7 +568,7 @@ check-package-version:
 
 create-version-tag:
   image:
-    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+    name: af.pivlab.space/astral-sh/uv:python3.12
   before_script:
     - |
       #!/usr/bin/env sh
@@ -618,7 +620,7 @@ create-version-tag:
 
 publish-package:
   image:
-    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+    name: af.pivlab.space/astral-sh/uv:python3.12
   before_script:
     - |
       #!/usr/bin/env sh

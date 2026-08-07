@@ -1,4 +1,4 @@
-from gcip2 import PipelineBuilderImpl
+from gcip2 import PipelineBuilderImpl, ProjectConfig
 from gcip2.pipeline_core import (
     Default,
     Image,
@@ -13,6 +13,8 @@ from gcip2.pipeline_core import (
 
 
 def test_default_pipeline():
+    config = ProjectConfig.from_file()
+
     pipeline: Pipeline = PipelineBuilderImpl().apply().build()
 
     base_pipeline = Pipeline()
@@ -30,7 +32,7 @@ def test_default_pipeline():
         ],
     )
     base_pipeline.default = Default(
-        image=Image(name="ghcr.io/astral-sh/uv:python3.12-bookworm"),
+        image=Image(name=config.compose.images.get("base_python").image),
         tags=["static-k8s"],
     )
 

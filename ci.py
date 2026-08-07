@@ -155,7 +155,7 @@ class GitlabCi(GitlabCiBuilderImpl):
         self.model.variables = {
             "PY_COLORS": GlobalVariables(value="1"),
             "FORCE_COLOR": GlobalVariables(value="1"),
-            # "FF_TIMESTAMPS": GlobalVariables(value="true"),
+            "FF_TIMESTAMPS": GlobalVariables(value="true"),
         }
 
         self.with_workflow(
