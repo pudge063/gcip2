@@ -19,8 +19,19 @@ Instead of writing large YAML files, pipelines are defined in Python, validated 
 
 # Installation
 
+Create `pyproject.toml` with pyproject configuration
+```
+[project]
+name = "dev"
+version = "0.0.0"
+description = ""
+requires-python = ">=3.11,<4.0"
+
+```
+
+
 ```bash
-poetry add gcip2
+uv add gcip2
 ```
 
 ---
@@ -39,7 +50,6 @@ This generates a minimal project structure:
 .
 ├── ci.py
 ├── pyproject.toml
-├── poetry.toml
 ├── environment.toml
 └── .pre-commit-config.yaml
 ```
@@ -80,10 +90,12 @@ Detailed documentation is available in the `docs/` directory.
 
 | Document                                       | Description                                         |
 | ---------------------------------------------- | --------------------------------------------------- |
-| [docs/pipeline.md](docs/pipeline.md)           | Creating pipelines, jobs and workflow configuration |
-| [docs/builder.md](docs/builder.md)             | Pipeline builder, rendering and YAML generation     |
-| [docs/pipeline_core.md](docs/pipeline_core.md) | Reference for the typed GitLab CI models            |
-| [CHANGELOG.md](CHANGELOG.md)                   | Project changelog                                   |
+| [docs/pipeline.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/builder.md)               | Creating pipelines, jobs and workflow configuration |
+| [docs/builder.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/builder.md)                | Pipeline builder, rendering and YAML generation     |
+| [docs/pipeline_core.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/pipeline_core.md)    | Reference for the typed GitLab CI models            |
+| [docs/secrets.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/secrets.md)                | SecretsHandler with Vault integration               |
+| [docs/project_config.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/project_config.md)  | ProjectConfig with global environment               |
+| [CHANGELOG.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/CHANGELOG.md)                      | Project changelog                                   |
 
 ---
 
@@ -150,4 +162,4 @@ Generated pipelines can be validated against the bundled GitLab JSON schema befo
 
 # License
 
-[LICENCE.md](LICENCE.md) 
+[https://gl.pivlab.space/rnd/gcip2/-/blob/master/LICENCE.md](LICENCE.md) 

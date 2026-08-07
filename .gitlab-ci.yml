@@ -21,7 +21,7 @@ stages:
 
 default:
   image:
-    name: pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie
+    name: ghcr.io/astral-sh/uv:python3.12-bookworm
   tags:
     - static-k8s
 
@@ -38,9 +38,13 @@ checkstyle/build-pipeline:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):before_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
   after_script:
     - |
@@ -48,9 +52,13 @@ checkstyle/build-pipeline:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):after_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
@@ -66,6 +74,7 @@ checkstyle/build-pipeline:
 checkstyle/trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
     - checkstyle/build-pipeline
@@ -86,9 +95,13 @@ initialization/build-pipeline:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):before_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
   after_script:
     - |
@@ -96,9 +109,13 @@ initialization/build-pipeline:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):after_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
@@ -114,6 +131,7 @@ initialization/build-pipeline:
 initialization/trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
     - initialization/build-pipeline
@@ -127,16 +145,20 @@ initialization/trigger-pipeline:
       yaml_variables: true
       pipeline_variables: true
 
-vault/build-pipeline:
+tasks/build-pipeline:
   before_script:
     - |
       #!/usr/bin/env sh
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):before_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
   after_script:
     - |
@@ -144,9 +166,70 @@ vault/build-pipeline:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):after_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - exec sh -c "gcip2 build-pipeline -f pipelines/tasks/ci.py"
+  stage: jobs
+  tags:
+    - static-k8s
+  artifacts:
+    paths:
+      - out
+  interruptible: true
+
+tasks/trigger-pipeline:
+  variables:
+    PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
+  stage: jobs
+  needs:
+    - tasks/build-pipeline
+  interruptible: false
+  trigger:
+    strategy: depend
+    include:
+      - job: tasks/build-pipeline
+        artifact: out/pipeline.gitlab-ci.yml
+    forward:
+      yaml_variables: true
+      pipeline_variables: true
+
+vault/build-pipeline:
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):before_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):after_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
@@ -162,6 +245,7 @@ vault/build-pipeline:
 vault/trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
     - vault/build-pipeline
@@ -182,9 +266,13 @@ multipipeline/build-pipeline:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):before_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
   after_script:
     - |
@@ -192,9 +280,13 @@ multipipeline/build-pipeline:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):after_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
@@ -210,6 +302,7 @@ multipipeline/build-pipeline:
 multipipeline/trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
     - multipipeline/build-pipeline
@@ -230,9 +323,13 @@ integration/build-pipeline:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):before_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
   after_script:
     - |
@@ -240,9 +337,13 @@ integration/build-pipeline:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):after_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
@@ -258,6 +359,7 @@ integration/build-pipeline:
 integration/trigger-pipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
     - integration/build-pipeline
@@ -271,54 +373,6 @@ integration/trigger-pipeline:
       yaml_variables: true
       pipeline_variables: true
 
-publish/build-pipeline:
-  before_script:
-    - |
-      #!/usr/bin/env sh
-      set -o errexit -o nounset -o xtrace
-      section="$(date +'%s'):before_script_setup"
-      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
-      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-  after_script:
-    - |
-      #!/usr/bin/env sh
-      set -o errexit -o nounset -o xtrace
-      section="$(date +'%s'):after_script_setup"
-      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
-      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - echo Do nothing.
-  script:
-    - exec sh -c "gcip2 build-pipeline -f pipelines/publish/ci.py"
-  stage: publish
-  tags:
-    - static-k8s
-  artifacts:
-    paths:
-      - out
-  interruptible: true
-
-publish/trigger-pipeline:
-  variables:
-    PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
-  stage: publish
-  needs:
-    - publish/build-pipeline
-  interruptible: false
-  trigger:
-    strategy: depend
-    include:
-      - job: publish/build-pipeline
-        artifact: out/pipeline.gitlab-ci.yml
-    forward:
-      yaml_variables: true
-      pipeline_variables: true
-
 unit-tests:job:
   before_script:
     - |
@@ -326,9 +380,13 @@ unit-tests:job:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):before_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
   after_script:
     - |
@@ -336,13 +394,17 @@ unit-tests:job:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):after_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - pytest -v tests/unit/test_job.py --junitxml=pytest.xml --cov=gcip2/pipeline_core
+    - pytest -v tests/unit/test_job.py --junitxml=pytest.xml --cov=gcip2.pipeline_core
       --cov-report=term --cov-report=xml:coverage.xml
   stage: unit-tests
   artifacts:
@@ -365,9 +427,13 @@ unit-tests:pipeline:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):before_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
   after_script:
     - |
@@ -375,13 +441,17 @@ unit-tests:pipeline:
       set -o errexit -o nounset -o xtrace
       section="$(date +'%s'):after_script_setup"
       printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      # shellcheck disable=SC2086
-      poetry install
-      . ".venv/bin/activate"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - pytest -v tests/unit/test_pipeline.py --junitxml=pytest.xml --cov=gcip2/pipeline_core
+    - pytest -v tests/unit/test_pipeline.py --junitxml=pytest.xml --cov=gcip2.pipeline_core
       --cov-report=term --cov-report=xml:coverage.xml
   stage: unit-tests
   artifacts:
@@ -395,4 +465,205 @@ unit-tests:pipeline:
       junit:
         - pytest.xml
   coverage: /TOTAL.*?(\d+%)$/
+  interruptible: true
+
+unit-tests:tasks:
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):before_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):after_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - pytest -v tests/unit/test_tasks.py --junitxml=pytest.xml --cov=gcip2.tasks_core
+      --cov-report=term --cov-report=xml:coverage.xml
+  stage: unit-tests
+  artifacts:
+    paths:
+      - coverage.xml
+      - pytest.xml
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+      junit:
+        - pytest.xml
+  coverage: /TOTAL.*?(\d+%)$/
+  interruptible: true
+
+check-package-version:
+  image:
+    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):before_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):after_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - gciptask run ${CI_JOB_NAME}
+  stage: publish
+  interruptible: true
+
+create-version-tag:
+  image:
+    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):before_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):after_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - gciptask run ${CI_JOB_NAME}
+  stage: publish
+  needs:
+    - check-package-version
+  interruptible: true
+
+publish-package:
+  image:
+    name: ghcr.io/astral-sh/uv:python3.12-bookworm
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):before_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):after_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - gciptask run ${CI_JOB_NAME}
+  stage: publish
+  needs:
+    - create-version-tag
   interruptible: true

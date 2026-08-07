@@ -1,5 +1,24 @@
 ## Changelog
 
+### [04.08.26 - 0.1.0]
+- added `Task`, `TaskBuilder` and `TaskBuilderImpl` entities for job task executing
+- added `InteractivePythonAction` and `InteractiveShlex` actions
+- added `Params` for `Tasks` -> `Actions.impl()`
+- added `ProjectConfig` to actions that provide tools like SecretsHandler or Extra values
+- added `BaseTask` job template
+- added tasks testing pipeline
+- added `tasks_core` package with CLI for running tasks
+- added `loguru` for logging instead of `builtins.print`
+- added `extra.tasks` to `ProjectConfig` with `module` field - path to `_tasks` dir in project
+- added `extra.extra_model` convert to `extra__` actions arguments
+- added `JobBuilder`, `PipelineBuiler` and `GitlabCiBuilder` without `pydantic.Basemodel`
+- changed `model` initialization in `JobBuilderImpl`, `PipelineBuilderImpl`, `GitlabCiBuilderImpl`
+- added `docker-compose.yml` with base images and `with_compose_image` method for `JobBuilderImpl`
+- added diff on pipeline generation
+- fixed pipeline and gitlab-ci paths params
+- added `ruff` instead of `black`, `isort`, `mypy`
+- migrated from `poetry` to `uv`
+
 ### [02.08.26 - 0.0.12]
 - added readme to package
 

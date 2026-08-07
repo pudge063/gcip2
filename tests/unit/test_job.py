@@ -61,6 +61,22 @@ def test_job_dependencies():
     assert job.dependencies == [main_job_name]
 
 
+def test_job_with_image():
+    image = "python"
+    job = pipeline_core.JobBuilderImpl().apply().with_image(image).build()
+
+    assert job.image.name == image
+
+
+def test_job_with_compose_image():
+    pipeline_core.JobBuilderImpl().apply().with_compose_image("base_python").build()
+
+
+def test_job_with_compose_image_FAILURE():
+    with pytest.raises(ValueError):
+        pipeline_core.JobBuilderImpl().apply().with_compose_image("python").build()
+
+
 def test_BaseLinux_before_script():
     job_BaseLinux = BaseLinux().apply()
 

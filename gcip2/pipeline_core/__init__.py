@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 import json
 from enum import Enum
 from typing import Any, ClassVar, Optional, Self
@@ -165,7 +166,7 @@ class Trigger(BaseModel):
 
 
 class Parallel(BaseModel):
-    matrix: list[dict[str, list[str]]] = []
+    matrix: list[dict[str, list[str]]] = pydantic.Field(default_factory=lambda: [])
 
 
 class Needs(BaseModel):
@@ -185,7 +186,7 @@ class Needs(BaseModel):
 class Image(BaseModel):
     name: Optional[str] = None
 
-    entrypoint: list[str] = []
+    entrypoint: list[str] = pydantic.Field(default_factory=list)
 
 
 class ArtifactsReportsCoverage(BaseModel):
@@ -324,7 +325,7 @@ class GlobalVariables(JobVariables):
     "Variables with `description` are prefilled when running a pipeline manually."
     "https://docs.gitlab.com/ci/yaml/#variablesdescription"
 
-    options: Optional[list[str | bool | int | float]] = []
+    options: Optional[list[str | bool | int | float]] = pydantic.Field(default_factory=lambda: [])
     "A list of predefined values that users can select from in the **Run pipeline** page when running a pipeline manually."
     "https://docs.gitlab.com/ci/yaml/#variablesoptions"
 
@@ -336,7 +337,7 @@ class RuleVariables(JobVariables):
 
 
 class RuleChanges(BaseModel):
-    paths: list[str] = []
+    paths: list[str] = pydantic.Field(default_factory=list)
     "List of file paths."
 
     compare_to: Optional[str] = None
@@ -344,7 +345,7 @@ class RuleChanges(BaseModel):
 
 
 class RuleExists(BaseModel):
-    paths: list[str] = []
+    paths: list[str] = pydantic.Field(default_factory=list)
     "List of file paths."
 
     project: Optional[str] = None
@@ -394,7 +395,8 @@ class Rule(BaseModel):
     "https://docs.gitlab.com/ci/yaml/#rulesvariables"
 
 
-class IncludeRule(BaseModel): ...
+class IncludeRule(BaseModel):
+    pass
 
 
 class IncludeItem(BaseModel):
@@ -416,7 +418,7 @@ class IncludeComponent(IncludeItem):
 
 
 class IdTokens(BaseModel):
-    aud: Optional[str | list[str]] = []
+    aud: Optional[str | list[str]] = pydantic.Field(default_factory=list)
 
 
 class Identity(str, Enum):
@@ -512,7 +514,7 @@ class JobTemplate(BaseModel):
 
     secrets: Optional[Any] = None
 
-    script: list[str] | str = []
+    script: Optional[list[str] | str] = None
 
     run: Optional[Any] = None
     "Specifies a list of steps to execute in the job. The `run` keyword is an alternative to `script` and allows for more advanced job configuration."
@@ -532,7 +534,7 @@ class JobTemplate(BaseModel):
 
     except_: Optional[Any] = pydantic.Field(serialization_alias="except", validation_alias="except", default=None)
 
-    tags: list[str] = []
+    tags: list[str] = pydantic.Field(default_factory=list)
 
     allow_failure: Optional[list[bool | int | list[int]]] = None
 
@@ -557,7 +559,7 @@ class JobTemplate(BaseModel):
     "By default, all previous artifacts are passed."
     "Use an empty array to skip downloading artifacts."
 
-    artifacts: Artifacts = Artifacts()
+    artifacts: Artifacts = pydantic.Field(default_factory=Artifacts)
 
     environment: Optional[Any] = None
 
@@ -589,7 +591,7 @@ class JobTemplate(BaseModel):
 
 
 class Job(JobTemplate):
-    name: Optional[str] = None
+    name: str = ""
 
 
 class WorkflowRule(Rule):
@@ -653,7 +655,11 @@ class Default(BaseModel):
 
 
 class Pipeline(BaseModel):
-    jobs: list[Job] = []
+    model_config = pydantic.ConfigDict(
+        arbitrary_types_allowed=True,
+    )
+
+    jobs: list["Job | JobBuilderImpl"] = pydantic.Field(default_factory=lambda: [])
 
     workflow: Optional[Workflow] = Workflow()
 
@@ -661,7 +667,7 @@ class Pipeline(BaseModel):
     "Groups jobs into stages. All jobs in one stage must complete before next stage is executed."
     "https://docs.gitlab.com/ci/yaml/#stages"
 
-    include: list[IncludeComponent] = []
+    include: list[IncludeComponent] = pydantic.Field(default_factory=lambda: [])
 
     default: Optional[Default] = None
 
@@ -682,18 +688,21 @@ class Pipeline(BaseModel):
             raise exc
 
 
-class JobBuilderImpl(Job):
+class JobBuilder:
+    def build(self) -> Job:
+        raise NotImplementedError
+
+
+class JobBuilderImpl(JobBuilder):
     _base: ClassVar[type["JobBuilderImpl"] | None] = None
+    _name: ClassVar[str | Enum | None] = None
 
-    _config = ProjectConfig()
-
+    _config = ProjectConfig.from_file()
     _secret_handler = SecretsHandler
 
-    model: Job = pydantic.Field(
-        repr=False,
-        default_factory=Job,
-        init=False,
-    )
+    def __init__(self) -> None:
+        self.model: Job = Job()
+        self._apply_name()
 
     def _apply_base(self) -> None:
         if self._base is None:
@@ -713,12 +722,15 @@ class JobBuilderImpl(Job):
 
         self.model = Job.model_validate(merged)
 
+    def _apply_name(self) -> None:
+        if self._name:
+            self.model.name = self._name if isinstance(self._name, str) else self._name.value
+
     def apply(self: Self) -> Self:
         return self
 
     def build(self: Self) -> Job:
         self._apply_base()
-        # self.apply()
         return self.model.model_copy(deep=True)
 
     def with_name(self: Self, name: str) -> Self:
@@ -751,8 +763,22 @@ class JobBuilderImpl(Job):
                 self.model.script.extend(script)
         return self
 
-    def with_image(self, image: str, entrypoint: list[str] = []) -> Self:
-        self.model.image = Image(name=image, entrypoint=entrypoint)
+    def with_image(self, image: str, entrypoint: list[str] | None = None) -> Self:
+        self.model.image = Image(
+            name=image,
+            entrypoint=entrypoint or [],
+        )
+        return self
+
+    def with_compose_image(self, image_name: str, entrypoint: list[str] | None = None) -> Self:
+        image_data = self._config.compose.images.get(image_name)
+        if not image_data:
+            raise ValueError(f"image_data not found in {self._config.compose.path.name}")
+
+        self.model.image = Image(
+            name=image_data.image,
+            entrypoint=entrypoint or [],
+        )
         return self
 
     def with_tags(self, tags: list[str]) -> Self:
@@ -803,4 +829,11 @@ class JobBuilderImpl(Job):
 
     def with_dependencies(self, dependencies: list[str]) -> Self:
         self.model.dependencies = dependencies
+        return self
+
+    def update_variables(self, variables: dict[str, str | JobVariables]) -> Self:
+        if self.model.variables:
+            self.model.variables.update(variables)
+        else:
+            self.model.variables = variables
         return self

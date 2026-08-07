@@ -1,0 +1,5 @@
+[extra]
+version = "0.1.0"
+
+[extra.tasks]
+module = "tasks"

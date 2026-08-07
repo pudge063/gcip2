@@ -1,5 +1,16 @@
 [extra]
-version = "0.0.12"
+version = "0.1.0"
+test_repo = "rnd/gcip2-tests/initialization-test"
+
+[extra.tasks]
+module = "_tasks"
+
+[extra.targets.test-1]
+param1 = "1"
+
+[extra.targets.test-2]
+param1 = "2"
+
 
 [extra.secrets.vault.vault-with-approle]
 url = "https://vault.pivlab.space"
@@ -24,6 +35,14 @@ mount_point = "rnd"
 path = "infra/pypi"
 
 [extra.secrets.vault.gitlab-token]
+url = "https://vault.pivlab.space"
+auth_method = "approle"
+app_role_id_env_var = "APP_ROLE_ID"
+app_role_secret_id_env_var = "APP_ROLE_SECRET_ID"
+mount_point = "rnd"
+path = "infra/accounts/gitlab/ci"
+
+[extra.secrets.vault.gl-pivlab-maintainer]
 url = "https://vault.pivlab.space"
 auth_method = "approle"
 app_role_id_env_var = "APP_ROLE_ID"

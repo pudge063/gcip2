@@ -1,12 +1,15 @@
 import importlib.util
 import os
 import pathlib
+import sys
+from difflib import unified_diff
 from enum import Enum
 from typing import Any, Optional, Self, TypeVar
 
 import yaml
 from typing_extensions import override
 
+from gcip2.logging import logger as LOGGER
 from gcip2.pipeline_core.gitlab_ci import GitlabCiBuilderImpl
 from gcip2.pipeline_core.pipeline import PipelineBuilderImpl
 
@@ -62,6 +65,21 @@ class TriggerPipelineDefaults(str, Enum):
 class PipelineBuilder:
     yaml_dumper = CustomDumper
 
+    @staticmethod
+    def show_file_diff(path: pathlib.Path, data: str):
+        old_data = path.read_text() if path.exists() else ""
+
+        diff = unified_diff(
+            old_data.splitlines(),
+            data.splitlines(),
+            fromfile="old",
+            tofile="new",
+            lineterm="",
+        )
+
+        output = [f"generation pipeline: {path}"] + [s for s in diff]
+        LOGGER.warning("\n".join(output))
+
     def load_pipeline(
         self: Self,
         path: Any,
@@ -72,8 +90,14 @@ class PipelineBuilder:
             "user_pipeline",
             path,
         )
+
         module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        path_str = str(path.parent)
+        sys.path.insert(0, path_str)
+        try:
+            spec.loader.exec_module(module)
+        finally:
+            sys.path.remove(path_str)
 
         for obj in module.__dict__.values():
             if isinstance(obj, type) and issubclass(obj, obj_type) and obj is not obj_type:
@@ -112,13 +136,16 @@ class PipelineBuilder:
         )
 
         path = path or pathlib.Path(os.getcwd()) / TriggerPipelineDefaults.out_file.value
+
+        self.show_file_diff(path=path, data=data)
+
         with open(path, "w") as f:
             f.write(data)
 
     def build_gitlab_ci(
         self: Self,
-        ci_file_path: str,
-        out_gitlab_ci: Any,
+        ci_file_path: pathlib.Path,
+        out_gitlab_ci: pathlib.Path,
     ) -> None:
         _build_trigger_pipeline = trigger.BuildTriggerPipeline()
         _trigger_pipeline = trigger.TriggerPipeline()
@@ -133,7 +160,10 @@ class PipelineBuilder:
         )
 
         if not pipeline_obj.jobs:
-            pipeline_obj.jobs = [_build_trigger_pipeline.apply(), _trigger_pipeline.apply()]
+            pipeline_obj.jobs = [
+                _build_trigger_pipeline.apply(),
+                _trigger_pipeline.apply(),
+            ]
 
         if pipeline_obj.workflow and pipeline_obj.workflow.rules and downstream_rule not in pipeline_obj.workflow.rules:
             pipeline_obj.workflow.rules = [downstream_rule] + pipeline_obj.workflow.rules
@@ -148,8 +178,8 @@ class PipelineBuilder:
 
     def build_pipeline(
         self: Self,
-        ci_file_path: str,
-        out_pipeline_path: str,
+        ci_file_path: pathlib.Path,
+        out_pipeline_path: pathlib.Path,
     ) -> None:
         pipeline_entry: PipelineBuilderImpl = self.load_pipeline(ci_file_path, obj_type=PipelineBuilderImpl)
 
@@ -165,5 +195,5 @@ class PipelineBuilder:
 
         self.build_pipeline_file(
             pipeline=pipeline_obj,
-            path=pathlib.Path(out_pipeline_path),
+            path=out_pipeline_path,
         )

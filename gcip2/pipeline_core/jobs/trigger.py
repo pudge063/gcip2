@@ -27,7 +27,10 @@ class TriggerPipeline(pipeline_core.JobBuilderImpl):
 
     def apply(self: Self) -> Self:
         self.with_name(TriggerPipelineDefaults.trigger_pipeline.value)
-        self.model.variables = {"PARENT_PIPELINE_ID": "${CI_PIPELINE_ID}"}
+        self.model.variables = {
+            "PARENT_PIPELINE_ID": "${CI_PIPELINE_ID}",
+            "PARENT_PIPELINE_SOURCE": "${CI_PIPELINE_SOURCE}",
+        }
         self.model.needs = [
             pipeline_core.Needs(
                 job=TriggerPipelineDefaults.build_pipeline,

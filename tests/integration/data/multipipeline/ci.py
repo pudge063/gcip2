@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Self
 
 from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
@@ -50,20 +49,20 @@ workflow = Workflow(
     ],
 )
 
+default = Default(
+    tags=["static-k8s"],
+    image=Image(
+        name="ghcr.io/astral-sh/uv:python3.12-bookworm",
+    ),
+)
+
 
 class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
 
         self.model.jobs.append(self.job(MatrixJob).apply())
 
-        self.with_default(
-            Default(
-                tags=["static-k8s"],
-                image=Image(
-                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
-                ),
-            )
-        )
+        self.with_default(default)
         self.with_workflow(workflow=workflow)
         return self
 
@@ -72,12 +71,5 @@ class GitlabCi(GitlabCiBuilderImpl):
     def apply(self: Self) -> Self:
         super(GitlabCi, self).apply()
         self.with_workflow(workflow=workflow)
-        self.with_default(
-            Default(
-                tags=["static-k8s"],
-                image=Image(
-                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
-                ),
-            )
-        )
+        self.with_default(default)
         return self

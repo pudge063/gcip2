@@ -13,14 +13,14 @@ BUILD_PIPELINE_OPTIONS: dict[str, typing.Any] = {
     "ci-file": click.option(
         "--ci-file",
         "-f",
-        help="file with source code for pipeline",
+        help="File with source code for pipeline. Default: `ci.py`",
         type=str,
         default="ci.py",
     ),
     "out-pipeline": click.option(
         "--out-pipeline",
         "-o",
-        help="output file with child downstream pipeline",
+        help="Output file with child downstream pipeline. Default: `out/pipeline.gitlab-ci.yml`",
         type=str,
         default="out/pipeline.gitlab-ci.yml",
     ),
@@ -30,14 +30,14 @@ BUILD_GITLAB_CI_OPTIONS: dict[str, typing.Any] = {
     "ci-file": click.option(
         "--ci-file",
         "-f",
-        help="file with source code for pipeline",
+        help="File with source code for pipeline. Default: `ci.py`",
         type=str,
         default="ci.py",
     ),
     "out-gitlab-ci": click.option(
         "--out-gitlab-ci",
         "-o",
-        help="output file with parent trigger pipeline",
+        help="Output file with parent trigger pipeline. Default: `.gitlab-ci.yml`",
         type=str,
         default=".gitlab-ci.yml",
     ),
@@ -49,8 +49,13 @@ INIT_OPTIONS: dict[str, typing.Any] = {
         "-f",
         is_flag=True,
         default=False,
-        help="force overwrite base project structure",
-    )
+        help="Force overwrite base project structure. Default `False`",
+    ),
+    "with-tasks": click.option(
+        "--with-tasks/--no-tasks",
+        default=True,
+        help="Initialization with tasks. Default `True`.",
+    ),
 }
 
 
@@ -90,8 +95,8 @@ def build_gitlab_ci(
     ci_file: str,
 ):
     BUILDER.build_gitlab_ci(
-        out_gitlab_ci=out_gitlab_ci,
-        ci_file_path=ci_file,
+        out_gitlab_ci=pathlib.Path(out_gitlab_ci),
+        ci_file_path=pathlib.Path(ci_file),
     )
 
 
@@ -104,7 +109,10 @@ def build_pipeline(
     ci_file: str,
     out_pipeline: str,
 ):
-    BUILDER.build_pipeline(ci_file_path=ci_file, out_pipeline_path=out_pipeline)
+    BUILDER.build_pipeline(
+        ci_file_path=pathlib.Path(ci_file),
+        out_pipeline_path=pathlib.Path(out_pipeline),
+    )
 
 
 @cli.command(
@@ -112,8 +120,8 @@ def build_pipeline(
     help="init base project structure",
 )
 @init_options
-def init(force: bool):
-    TemplateGenerator().generate_base_structure(overwrite=force)
+def init(force: bool, with_tasks: bool):
+    TemplateGenerator().generate_project_structure()
 
 
 if __name__ == "__main__":

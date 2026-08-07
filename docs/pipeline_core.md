@@ -39,13 +39,7 @@ This module provides **strongly-typed Python models** for describing GitLab CI/C
 `JobBuilderImpl` provides a fluent API for constructing reusable jobs:
 
 ```python
-job = (
-    BuildJob()
-    .with_name("build")
-    .with_stage("build")
-    .with_image("python:3.12")
-    .build()
-)
+job = BuildJob().with_name("build").with_stage("build").with_image("python:3.12").build()
 ```
 
 Builders support inheritance through the `_base` class attribute, allowing common job configuration to be shared across multiple builders.

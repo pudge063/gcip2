@@ -1,46 +1,79 @@
-[tool.poetry]
+[project]
 name = "gcip2"
-version = "0.0.12"
-description = "pivlab gcip2"
-authors = ["Arsenii Nikulin <a.nikulin@pivlab.space>", "PivLab Tech"]
+version = "0.1.0"
+description = "framework for dynamic pipeline generation from python code"
 readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Arsenii Nikulin", email = "a.nikulin@pivlab.space" },
+    { name = "PivLab Tech" },
+]
+requires-python = ">=3.11,<4.0"
 
-packages = [{ include = "gcip2" }]
+dependencies = [
+    "argparse>=1.4.0,<2.0.0",
+    "click>=8.4.1,<9.0.0",
+    "gitpython>=3.1.57,<4.0.0",
+    "hvac>=2.4.0,<3.0.0",
+    "jinja2>=3.1.6,<4.0.0",
+    "jsonschema>=4.26.0,<5.0.0",
+    "loguru>=0.7.3,<1.0.0",
+    "pre-commit>=4.6.0,<5.0.0",
+    "pydantic>=2.13.4,<3.0.0",
+    "pyyaml>=6.0.3,<7.0.0",
+    "pytest>=9.1.1,<10.0.0",
+    "pytest-cov>=7.1.0,<8.0.0",
+    "pytest-regressions>=2.11.0,<3.0.0",
+    "ruff>=0.16.1,<0.17.0",
+]
+
+[dependency-groups]
+dev = [
+    "requests>=2.34.2,<3.0.0",
+    "types-hvac>=2.4.0.20260731",
+    "types-jsonschema>=4.26.0.20260518",
+    "types-pyyaml>=6.0.12.20260724",
+]
+
+[project.scripts]
+gcip2 = "gcip2.cli:cli"
+gciptask = "gcip2.tasks_core.cli:cli"
+
+[tool.hatch.build.targets.wheel]
+packages = ["gcip2"]
+
+[tool.hatch.build]
 include = ["gcip2/py.typed"]
 
-[tool.poetry.dependencies]
-python = ">=3.11,<4.0"
-pydantic = "^2.13.4"
-jsonschema = "^4.26.0"
-pyyaml = "^6.0.3"
-click = "^8.4.1"
-pre-commit = "^4.6.0"
-black = "^26.5.1"
-isort = "^8.0.1"
-jinja2 = "^3.1.6"
-pytest = "^9.1.1"
-pytest-regressions = "^2.11.0"
-pytest-cov = "^7.1.0"
-gitpython = "^3.1.57"
-hvac = "^2.4.0"
-
-[tool.poetry.group.dev.dependencies]
-requests = ">=2.34.2,<3.0.0"
-
-[tool.poetry.scripts]
-gcip2 = "gcip2.cli:cli"
-
-[tool.isort]
-py_version = 310
-profile = "black"
-line_length = 120
-group_by_package = true
-skip_gitignore = true
-
-[tool.black]
+[tool.ruff]
+target-version = "py311"
 line-length = 120
-target-version = ['py311']
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "*venv*",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"

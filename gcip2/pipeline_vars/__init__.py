@@ -39,3 +39,5 @@ class Predefined(VarEnum, enum.Enum):
     CI_PROJECT_ID = enum.auto()
     CI_JOB_TOKEN = enum.auto()
     CI_JOB_JWT = enum.auto()
+    CI_COMMIT_SHA = enum.auto()
+    CI_MERGE_REQUEST_ID = enum.auto()

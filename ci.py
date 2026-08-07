@@ -1,13 +1,12 @@
 from enum import Enum
 from typing import Self
 
-from gcip2 import BaseLinux, GitlabCiBuilderImpl
+from _tasks._consts import Tasks
+from gcip2 import BaseLinux, BaseTask, GitlabCiBuilderImpl
 from gcip2.pipeline_core import (
     ArtifactsReports,
     ArtifactsReportsCoverage,
-    Default,
     GlobalVariables,
-    Image,
     JobBuilderImpl,
     Stage,
     TriggerIncludeArtifact,
@@ -27,29 +26,6 @@ class Stages(str, Enum):
     PUBLISH = "publish"
 
 
-workflow = Workflow(
-    name="default",
-    auto_cancel=WorkflowAutoCancel(
-        on_job_failure=WorkflowAutoCancelOnJobFailure.NONE,
-        on_new_commit=WorkflowAutoCancelOnNewCommit.NONE,
-    ),
-    rules=[
-        WorkflowRule(
-            if_='$CI_PIPELINE_SOURCE == "merge_request_event"',
-            when=WorkflowWhen.ALWAYS,
-            auto_cancel=WorkflowAutoCancel(
-                on_new_commit=WorkflowAutoCancelOnNewCommit.INTERRUPTIBLE,
-            ),
-        ),
-        WorkflowRule(
-            if_="$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH",
-            when=WorkflowWhen.ALWAYS,
-        ),
-        WorkflowRule(when=WorkflowWhen.NEVER),
-    ],
-)
-
-
 class RunUnitTests(JobBuilderImpl):
     _base = BaseLinux
 
@@ -59,15 +35,40 @@ class RunUnitTests(JobBuilderImpl):
         return self
 
 
+class CheckPackageVersion(JobBuilderImpl):
+    _name = Tasks.check_package_version
+    _base = BaseTask
+
+    def apply(self: Self) -> Self:
+        return self.with_stage(Stages.PUBLISH)
+
+
+class CreateVersionTag(JobBuilderImpl):
+    _name = Tasks.create_version_tag
+    _base = BaseTask
+
+    def apply(self: Self) -> Self:
+        return self.with_needs([Tasks.check_package_version.value]).with_stage(Stages.PUBLISH)
+
+
+class PublishPackage(JobBuilderImpl):
+    _name = Tasks.publish_package
+    _base = BaseTask
+
+    def apply(self: Self) -> Self:
+        self.model.name = "publish-package"
+        return self.with_needs([Tasks.create_version_tag.value]).with_stage(Stages.PUBLISH)
+
+
 class GitlabCi(GitlabCiBuilderImpl):
     def _add_test_jobs(self: Self) -> Self:
         for test_name in [
             "checkstyle",
             "initialization",
+            "tasks",
             "vault",
             "multipipeline",
             "integration",
-            "publish",
         ]:
             build_pipeline_job = (
                 self.job(BuildTriggerPipeline)
@@ -75,16 +76,21 @@ class GitlabCi(GitlabCiBuilderImpl):
                 .with_name(f"{test_name}/build-pipeline")
                 .with_tags(["static-k8s"])
             )
-            build_pipeline_job.model.script = [f'exec sh -c "gcip2 build-pipeline -f pipelines/{test_name}/ci.py"']
+            build_pipeline_job.model.script = [
+                f'exec sh -c "gcip2 build-pipeline -f pipelines/{test_name}/ci.py"',
+            ]
 
             trigger_pipeline_job = (
                 self.job(TriggerPipeline)
                 .apply()
                 .with_name(f"{test_name}/trigger-pipeline")
-                .with_needs([build_pipeline_job.model.name])  # type: ignore
+                .with_needs([build_pipeline_job.model.name])
             )
             trigger_pipeline_job.model.trigger.include = [  # type: ignore
-                TriggerIncludeArtifact(job=build_pipeline_job.model.name, artifact="out/pipeline.gitlab-ci.yml")
+                TriggerIncludeArtifact(
+                    job=build_pipeline_job.model.name,
+                    artifact="out/pipeline.gitlab-ci.yml",
+                )
             ]
 
             if test_name == "publish":
@@ -96,7 +102,12 @@ class GitlabCi(GitlabCiBuilderImpl):
         return self
 
     def _add_unit_tests_jobs(self: Self) -> Self:
-        for module in ["job", "pipeline"]:
+        for module in ["job", "pipeline", "tasks"]:
+            coverage_module = {
+                "job": "gcip2.pipeline_core",
+                "pipeline": "gcip2.pipeline_core",
+                "tasks": "gcip2.tasks_core",
+            }.get(module, "gcip2")
             self.model.jobs.append(
                 self.job(RunUnitTests)
                 .apply()
@@ -106,7 +117,7 @@ class GitlabCi(GitlabCiBuilderImpl):
                     [
                         (
                             f"pytest -v tests/unit/test_{module}.py --junitxml=pytest.xml "
-                            "--cov=gcip2/pipeline_core --cov-report=term --cov-report=xml:coverage.xml"
+                            f"--cov={coverage_module} --cov-report=term --cov-report=xml:coverage.xml"
                         ),
                     ]
                 )
@@ -133,15 +144,41 @@ class GitlabCi(GitlabCiBuilderImpl):
 
         self._add_unit_tests_jobs()
 
-        self.model.variables = {"PY_COLORS": GlobalVariables(value="1"), "FORCE_COLOR": GlobalVariables(value="1")}
+        self.add_jobs(
+            (
+                self.job(CheckPackageVersion).apply(),
+                self.job(CreateVersionTag).apply(),
+                self.job(PublishPackage).apply(),
+            )
+        )
 
-        self.with_workflow(workflow=workflow)
-        self.with_default(
-            Default(
-                tags=["static-k8s"],
-                image=Image(
-                    name="pfeiffermax/python-poetry:1.17.0-poetry2.2.1-python3.12.12-trixie",
+        self.model.variables = {
+            "PY_COLORS": GlobalVariables(value="1"),
+            "FORCE_COLOR": GlobalVariables(value="1"),
+            # "FF_TIMESTAMPS": GlobalVariables(value="true"),
+        }
+
+        self.with_workflow(
+            workflow=Workflow(
+                name="default",
+                auto_cancel=WorkflowAutoCancel(
+                    on_job_failure=WorkflowAutoCancelOnJobFailure.NONE,
+                    on_new_commit=WorkflowAutoCancelOnNewCommit.NONE,
                 ),
+                rules=[
+                    WorkflowRule(
+                        if_='$CI_PIPELINE_SOURCE == "merge_request_event"',
+                        when=WorkflowWhen.ALWAYS,
+                        auto_cancel=WorkflowAutoCancel(
+                            on_new_commit=WorkflowAutoCancelOnNewCommit.INTERRUPTIBLE,
+                        ),
+                    ),
+                    WorkflowRule(
+                        if_="$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH",
+                        when=WorkflowWhen.ALWAYS,
+                    ),
+                    WorkflowRule(when=WorkflowWhen.NEVER),
+                ],
             )
         )
         return self
