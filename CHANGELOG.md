@@ -1,5 +1,8 @@
 ## Changelog
 
+### [08.08.26 - 0.1.2]
+- added PyPi proxy for python packages
+
 ### [08.08.26 - 0.1.1]
 - changed base image replaced to local artifactory
 - enabled pipeline timestamps provided by `FF_TIMESTAMPS`
