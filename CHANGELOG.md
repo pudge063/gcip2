@@ -1,5 +1,8 @@
 ## Changelog
 
+### [08.08.26 - 0.1.3]
+- fixed builder for package
+
 ### [08.08.26 - 0.1.2]
 - added PyPi proxy for python packages
 
