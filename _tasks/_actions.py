@@ -12,7 +12,7 @@ from _tasks._consts import PipelineStatus
 from _tasks._helpers import GitlabApi
 from gcip2 import Predefined
 from gcip2.logging import logger as LOGGER
-from gcip2.tasks_core.models.actions import InteractivePythonAction, InteractiveShlex
+from gcip2.tasks_core import InteractivePythonAction, InteractiveShlex
 
 
 class SetupSsh(InteractivePythonAction):

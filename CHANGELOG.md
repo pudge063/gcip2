@@ -1,5 +1,8 @@
 ## Changelog
 
+### [08.08.26 - 0.1.4]
+- fixed package `tasks_core` - added `__init__.py`
+
 ### [08.08.26 - 0.1.3]
 - fixed builder for package
 
