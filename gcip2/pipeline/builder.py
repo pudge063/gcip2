@@ -7,55 +7,14 @@ from enum import Enum
 from typing import Any, Optional, Self, TypeVar
 
 import yaml
-from typing_extensions import override
 
 from gcip2.logging import logger as LOGGER
-from gcip2.pipeline_core.gitlab_ci import GitlabCiBuilderImpl
-from gcip2.pipeline_core.pipeline import PipelineBuilderImpl
-
-from .pipeline_core import JobBuilderImpl, Pipeline, Stage, WorkflowRule, WorkflowWhen
-from .pipeline_core.jobs import trigger
+from gcip2.pipeline.dumper import CustomDumper
+from gcip2.pipeline.jobs import trigger
+from gcip2.pipeline.pipeline import GitlabCiBuilderImpl, PipelineBuilderImpl
+from gcip2.pipeline_core import JobBuilderImpl, Pipeline, Stage, WorkflowRule, WorkflowWhen
 
 T = TypeVar("T", PipelineBuilderImpl, GitlabCiBuilderImpl)
-
-
-class CustomDumper(yaml.SafeDumper):
-    @staticmethod
-    def str_presenter(
-        dumper: yaml.representer.BaseRepresenter,
-        data: str,
-    ) -> yaml.ScalarNode:
-        if "\n" in data:
-            return dumper.represent_scalar(  # type: ignore
-                "tag:yaml.org,2002:str",
-                data,
-                style="|",
-            )
-
-        return dumper.represent_scalar(  # type: ignore
-            "tag:yaml.org,2002:str",
-            data,
-        )
-
-    yaml_representers = {
-        **yaml.SafeDumper.yaml_representers,
-        str: str_presenter,
-    }
-
-    @override
-    def increase_indent(
-        self: Self,
-        flow: bool = False,
-        indentless: bool = False,
-    ):
-        return super().increase_indent(flow, False)
-
-    @override
-    def write_line_break(self, data: Optional[str] = None):
-        super().write_line_break(data)
-
-        if len(self.indents) == 1:
-            super().write_line_break()
 
 
 class TriggerPipelineDefaults(str, Enum):
@@ -77,8 +36,10 @@ class PipelineBuilder:
             lineterm="",
         )
 
-        output = [f"generation pipeline: {path}"] + [s for s in diff]
-        LOGGER.warning("\n".join(output))
+        diff_data = [s for s in diff]
+        diff_string = "\n".join([f"pipeline: {path}"] + diff_data)
+
+        LOGGER.warning(diff_string) if diff_data else LOGGER.info(f"pipeline: {path} has no changes")
 
     def load_pipeline(
         self: Self,
@@ -139,8 +100,7 @@ class PipelineBuilder:
 
         self.show_file_diff(path=path, data=data)
 
-        with open(path, "w") as f:
-            f.write(data)
+        path.write_text(data)
 
     def build_gitlab_ci(
         self: Self,

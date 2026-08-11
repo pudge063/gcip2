@@ -1,72 +1,48 @@
-from enum import Enum
 from typing import Self
 
-from gcip2 import BaseLinux, BaseTask, GitlabCiBuilderImpl, PipelineBuilderImpl
-from gcip2.pipeline_core import (
-    Default,
-    Image,
-    JobBuilderImpl,
-    Workflow,
-    WorkflowAutoCancel,
-    WorkflowAutoCancelOnJobFailure,
-    WorkflowAutoCancelOnNewCommit,
-    WorkflowRule,
-    WorkflowWhen,
-)
+from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl, pipeline_core
+from gcip2.pipeline.jobs import base
 
 from tasks._consts import Tasks
 
 
-class JobName(str, Enum):
-    pre_commit = "pre-commit"
-
-
-class PreCommit(JobBuilderImpl):
-    _base = BaseLinux
-
-    def apply(self: Self) -> Self:
-        self.with_name(JobName.pre_commit.value)
-        self.model.script = ["pre-commit run -av", "cat environment.toml", "ls -la"]
-        return self
-
-
-class ShowPackageVersion(JobBuilderImpl):
-    _base = BaseTask
+class ShowPackageVersion(pipeline_core.JobBuilderImpl):
+    _base = base.BaseTask
     _task = Tasks.show_package_version
 
 
-class CheckPythonVersion(JobBuilderImpl):
-    _base = BaseTask
+class CheckPythonVersion(pipeline_core.JobBuilderImpl):
+    _base = base.BaseTask
     _task = Tasks.check_python_version
 
 
-workflow = Workflow(
+workflow = pipeline_core.Workflow(
     name="default",
-    auto_cancel=WorkflowAutoCancel(
-        on_job_failure=WorkflowAutoCancelOnJobFailure.NONE,
-        on_new_commit=WorkflowAutoCancelOnNewCommit.NONE,
+    auto_cancel=pipeline_core.WorkflowAutoCancel(
+        on_job_failure=pipeline_core.WorkflowAutoCancelOnJobFailure.NONE,
+        on_new_commit=pipeline_core.WorkflowAutoCancelOnNewCommit.NONE,
     ),
     rules=[
-        WorkflowRule(
+        pipeline_core.WorkflowRule(
             if_='$CI_PIPELINE_SOURCE == "merge_request_event"',
-            when=WorkflowWhen.ALWAYS,
+            when=pipeline_core.WorkflowWhen.ALWAYS,
         ),
-        WorkflowRule(
+        pipeline_core.WorkflowRule(
             if_='$CI_PIPELINE_SOURCE == "web"',
-            when=WorkflowWhen.ALWAYS,
+            when=pipeline_core.WorkflowWhen.ALWAYS,
         ),
-        WorkflowRule(
+        pipeline_core.WorkflowRule(
             if_='$CI_PIPELINE_SOURCE == "api"',
-            when=WorkflowWhen.ALWAYS,
+            when=pipeline_core.WorkflowWhen.ALWAYS,
         ),
-        WorkflowRule(when=WorkflowWhen.NEVER),
+        pipeline_core.WorkflowRule(when=pipeline_core.WorkflowWhen.NEVER),
     ],
 )
 
 
-default = Default(
+default = pipeline_core.Default(
     tags=["static-k8s"],
-    image=Image(
+    image=pipeline_core.Image(
         name="ghcr.io/astral-sh/uv:python3.12-bookworm",
     ),
 )
@@ -76,7 +52,7 @@ class Pipeline(PipelineBuilderImpl):
     def apply(self: Self) -> Self:
         self.add_jobs(
             (
-                self.job(PreCommit).apply(),
+                self.job(base.PreCommit).apply(),
                 self.job(ShowPackageVersion).apply().with_name("show-package-version"),
                 self.job(CheckPythonVersion).apply().with_name("check-python-version"),
             )

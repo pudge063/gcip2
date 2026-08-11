@@ -10,7 +10,7 @@ import requests
 
 from _tasks._consts import PipelineStatus
 from _tasks._helpers import GitlabApi
-from gcip2 import Predefined
+from gcip2 import Predefined, PredefinedMergeRequest
 from gcip2.logging import logger as LOGGER
 from gcip2.tasks_core import InteractivePythonAction, InteractiveShlex
 
@@ -100,10 +100,10 @@ class UpdateTestProject(InteractiveShlex):
             [
                 ["mkdir", "-p", tmp_dir],
                 ["cd", tmp_dir],
-                ["gcip2", "init"],
+                ["dothat", "run", "init"],
                 ["git", "init"],
                 ["git", "remote", "add", remote, f"ssh://git@gl.pivlab.space/{test_repo}.git"],
-                ["gcip2", "build-gitlab-ci"],
+                ["dothat", "run", "build-gitlab-ci"],
                 ["sed", "-i", sed_string, "pyproject.toml"],
                 ["ls", "-la"],
             ]
@@ -182,7 +182,7 @@ class CheckVersion(InteractivePythonAction):
             LOGGER.warning(f"skipping {type(self)}, not in CI")
             return
 
-        if not Predefined.CI_MERGE_REQUEST_ID.getenv(""):
+        if not PredefinedMergeRequest.CI_MERGE_REQUEST_ID.getenv(""):
             LOGGER.warning(f"skipping {type(self)}, not in merge request")
             return
 
@@ -239,20 +239,18 @@ class CreateVersionTag(InteractivePythonAction):
 
 
 class PublishPackage(InteractiveShlex):
-    def impl(self, *, ci: bool, **_: typing.Any) -> list[list[str]]:
+    def impl(self, *, ci: bool, pypi_token_section: str, **_: typing.Any) -> list[list[str]]:
         if not ci:
             LOGGER.warning(f"skipping {type(self)}, not in CI")
             return [["echo", "DRY-RUN"]]
 
-        token = self._secret_handler("pypi-token").fetch()["token"]
+        publish_cmds = ["uv", "publish"]
+        if not Predefined.CI_DEFAULT_BRANCH.must() == Predefined.CI_COMMIT_BRANCH.getenv():
+            publish_cmds.append("--dry-run")
+            token = "test-token-value"
+        else:
+            token = self._secret_handler(pypi_token_section).fetch()["token"]
 
         os.environ["UV_PUBLISH_TOKEN"] = token
-
-        publish_cmds = ["uv", "publish"]
-        if not (
-            Predefined.CI_COMMIT_BRANCH.getenv()
-            and Predefined.CI_COMMIT_BRANCH.getenv() == Predefined.CI_DEFAULT_BRANCH.getenv()
-        ):
-            publish_cmds.append("--dry-run")
 
         return [["uv", "build"], publish_cmds]

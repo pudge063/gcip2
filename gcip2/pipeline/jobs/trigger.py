@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Self
 
 from gcip2 import pipeline_core
-from gcip2.pipeline_core.jobs.base import Base, BaseLinux
+from gcip2.pipeline.jobs.base import Base, BaseLinux
 
 
 class TriggerPipelineDefaults(str, Enum):
@@ -18,7 +18,7 @@ class BuildTriggerPipeline(pipeline_core.JobBuilderImpl):
     def apply(self: Self) -> Self:
         self.with_name(TriggerPipelineDefaults.build_pipeline.value)
         self.model.artifacts = pipeline_core.Artifacts(paths=[TriggerPipelineDefaults.out_dir])
-        self.model.script = ['exec sh -c "gcip2 build-pipeline"']
+        self.model.script = ['exec sh -c "dothat run ${CI_JOB_NAME}"']
         return self
 
 

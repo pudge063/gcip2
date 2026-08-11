@@ -3,6 +3,8 @@ from typing import Self
 
 from _tasks._consts import Tasks
 from gcip2 import BaseLinux, BaseTask, GitlabCiBuilderImpl
+from gcip2.pipeline.jobs import base
+from gcip2.pipeline.jobs.trigger import BuildTriggerPipeline, TriggerPipeline
 from gcip2.pipeline_core import (
     ArtifactsReports,
     ArtifactsReportsCoverage,
@@ -17,10 +19,10 @@ from gcip2.pipeline_core import (
     WorkflowRule,
     WorkflowWhen,
 )
-from gcip2.pipeline_core.jobs.trigger import BuildTriggerPipeline, TriggerPipeline
 
 
 class Stages(str, Enum):
+    PRE_COMMIT = "pre-commit"
     JOBS = Stage.JOBS.value
     UNIT_TESTS = "unit-tests"
     PUBLISH = "publish"
@@ -56,29 +58,18 @@ class PublishPackage(JobBuilderImpl):
     _base = BaseTask
 
     def apply(self: Self) -> Self:
-        self.model.name = "publish-package"
         return self.with_needs([Tasks.create_version_tag.value]).with_stage(Stages.PUBLISH)
 
 
 class GitlabCi(GitlabCiBuilderImpl):
     def _add_test_jobs(self: Self) -> Self:
-        for test_name in [
-            "checkstyle",
-            "initialization",
-            "tasks",
-            "vault",
-            "multipipeline",
-            "integration",
-        ]:
+        for test_name in self._config.extra.get("pipelines", []):
             build_pipeline_job = (
                 self.job(BuildTriggerPipeline)
                 .apply()
-                .with_name(f"{test_name}/build-pipeline")
                 .with_tags(["static-k8s"])
+                .add_to_name(f" -f pipelines/{test_name}/ci.py")
             )
-            build_pipeline_job.model.script = [
-                f'exec sh -c "gcip2 build-pipeline -f pipelines/{test_name}/ci.py"',
-            ]
 
             trigger_pipeline_job = (
                 self.job(TriggerPipeline)
@@ -93,21 +84,13 @@ class GitlabCi(GitlabCiBuilderImpl):
                 )
             ]
 
-            if test_name == "publish":
-                build_pipeline_job.with_stage(Stages.PUBLISH)
-                trigger_pipeline_job.with_stage(Stages.PUBLISH)
-
             self.model.jobs.extend([build_pipeline_job, trigger_pipeline_job])
 
         return self
 
     def _add_unit_tests_jobs(self: Self) -> Self:
-        for module in ["job", "pipeline", "tasks"]:
-            coverage_module = {
-                "job": "gcip2.pipeline_core",
-                "pipeline": "gcip2.pipeline_core",
-                "tasks": "gcip2.tasks_core",
-            }.get(module, "gcip2")
+        for module in self._config.extra.get("tests", {}).get("unit-tests", []):
+            coverage_module = self._config.extra.get("tests", {}).get("coverage-module", {}).get(module, "gcip2")
             self.model.jobs.append(
                 self.job(RunUnitTests)
                 .apply()
@@ -140,6 +123,8 @@ class GitlabCi(GitlabCiBuilderImpl):
 
         self.model.stages = list(Stages)
 
+        self.add_jobs((self.job(base.PreCommit).apply().with_stage(Stages.PRE_COMMIT.value),))
+
         self._add_test_jobs()
 
         self._add_unit_tests_jobs()
@@ -156,6 +141,8 @@ class GitlabCi(GitlabCiBuilderImpl):
             "PY_COLORS": GlobalVariables(value="1"),
             "FORCE_COLOR": GlobalVariables(value="1"),
             "FF_TIMESTAMPS": GlobalVariables(value="true"),
+            # "FF_USE_LEGACY_KUBERNETES_EXECUTION_STRATEGY": GlobalVariables(value="true"),
+            # "FF_USE_DYNAMIC_TRACE_FORCE_SEND_INTERVAL": GlobalVariables(value="true"),
         }
 
         self.with_workflow(

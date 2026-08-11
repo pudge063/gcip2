@@ -2,34 +2,25 @@ from enum import Enum
 from typing import Self
 
 from _tasks._consts import Tasks
-from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
-from gcip2.pipeline_core import (
-    JobBuilderImpl,
-    Workflow,
-    WorkflowAutoCancel,
-    WorkflowAutoCancelOnJobFailure,
-    WorkflowAutoCancelOnNewCommit,
-    WorkflowRule,
-    WorkflowWhen,
-)
-from gcip2.pipeline_core.jobs.base import BaseTask
+from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl, pipeline_core
+from gcip2.pipeline.jobs import base
 
 
 class Stages(str, Enum):
     initialization = "initialization"
 
 
-class Initialization(JobBuilderImpl):
+class Initialization(pipeline_core.JobBuilderImpl):
     _name = Tasks.initialize_project_pipeline
-    _base = BaseTask
+    _base = base.BaseTask
 
     def apply(self: Self) -> Self:
         return self.with_stage(Stages.initialization).with_compose_image("base_python")
 
 
-class RunInitializedPipeline(JobBuilderImpl):
+class RunInitializedPipeline(pipeline_core.JobBuilderImpl):
     _name = Tasks.run_initialized_pipeline
-    _base = BaseTask
+    _base = base.BaseTask
 
     def apply(self: Self) -> Self:
         return (
@@ -57,22 +48,22 @@ class GitlabCi(GitlabCiBuilderImpl):
     def apply(self: Self) -> Self:
         super(GitlabCi, self).apply()
         self.with_workflow(
-            workflow=Workflow(
+            workflow=pipeline_core.Workflow(
                 name="default",
-                auto_cancel=WorkflowAutoCancel(
-                    on_job_failure=WorkflowAutoCancelOnJobFailure.NONE,
-                    on_new_commit=WorkflowAutoCancelOnNewCommit.NONE,
+                auto_cancel=pipeline_core.WorkflowAutoCancel(
+                    on_job_failure=pipeline_core.WorkflowAutoCancelOnJobFailure.NONE,
+                    on_new_commit=pipeline_core.WorkflowAutoCancelOnNewCommit.NONE,
                 ),
                 rules=[
-                    WorkflowRule(
+                    pipeline_core.WorkflowRule(
                         if_='$PARENT_PIPELINE_SOURCE == "merge_request_event"',
-                        when=WorkflowWhen.ALWAYS,
+                        when=pipeline_core.WorkflowWhen.ALWAYS,
                     ),
-                    WorkflowRule(
+                    pipeline_core.WorkflowRule(
                         if_="$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH",
-                        when=WorkflowWhen.ALWAYS,
+                        when=pipeline_core.WorkflowWhen.ALWAYS,
                     ),
-                    WorkflowRule(when=WorkflowWhen.NEVER),
+                    pipeline_core.WorkflowRule(when=pipeline_core.WorkflowWhen.NEVER),
                 ],
             )
         )

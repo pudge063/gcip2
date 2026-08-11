@@ -10,11 +10,12 @@ class TestBaseTask(TaskBuilderImpl):
     _basename = Tasks.test_task
 
     def apply(self):
+        self.model.doc = "test task"
         self.with_actions(
             (
-                # _actions.SetupSsh,
+                _actions.SetupSsh,
                 _actions.CheckUvVersion,
-                # _actions.CheckInsecureParam,
+                _actions.CheckInsecureParam,
             )
         )
         return self
