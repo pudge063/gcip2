@@ -1,25 +1,37 @@
-import typing
 from collections.abc import Iterable
+from typing import Self
 
-from gcip2.pipeline_core import Default, Image, Job, JobBuilderImpl, Pipeline, Stage, Workflow
+from gcip2.pipeline_core import (
+    Default,
+    Image,
+    Job,
+    JobBuilderImpl,
+    Pipeline,
+    Stage,
+    Workflow,
+    WorkflowAutoCancel,
+    WorkflowAutoCancelOnNewCommit,
+    WorkflowRule,
+    WorkflowWhen,
+)
 from gcip2.project_config import ProjectConfig
 
 
-class GitlabCiBuilder:
+class _PipelineBuilder:
     def build(self) -> Pipeline:
         raise NotImplementedError
 
 
-class GitlabCiBuilderImpl(GitlabCiBuilder):
-    _config = ProjectConfig.from_file()
-
+class _BasePipelineBuilder(_PipelineBuilder):
     def __init__(self) -> None:
         self.model: Pipeline = Pipeline()
 
-    def apply(self: typing.Self) -> typing.Self:
+    _config = ProjectConfig.from_file()
+
+    def apply(self: Self) -> Self:
         return self
 
-    def build(self: typing.Self) -> Pipeline:
+    def build(self: Self) -> Pipeline:
         if not self.model.default:
             self.model.default = Default()
 
@@ -34,6 +46,7 @@ class GitlabCiBuilderImpl(GitlabCiBuilder):
 
         if not self.model.stages:
             self.model.stages = [Stage.JOBS]
+
         return self.model.model_copy(deep=True)
 
     @staticmethod
@@ -50,3 +63,24 @@ class GitlabCiBuilderImpl(GitlabCiBuilder):
     def with_default(self, default: Default):
         self.model.default = default
         return self
+
+
+class PipelineBuilderImpl(_BasePipelineBuilder):
+    def __init__(self) -> None:
+        self.model: Pipeline = Pipeline()
+        self.model.workflow = Workflow(
+            auto_cancel=WorkflowAutoCancel(on_new_commit=WorkflowAutoCancelOnNewCommit.NONE),
+            rules=[
+                WorkflowRule(
+                    if_='$CI_PIPELINE_SOURCE == "push" && $CI_OPEN_MERGE_REQUESTS',
+                    when=WorkflowWhen.NEVER,
+                ),
+                WorkflowRule(
+                    when=WorkflowWhen.ALWAYS,
+                ),
+            ],
+        )
+
+
+class GitlabCiBuilderImpl(_BasePipelineBuilder):
+    pass

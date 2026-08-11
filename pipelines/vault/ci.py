@@ -2,6 +2,7 @@ from typing import Self
 
 from _tasks._consts import Tasks
 from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
+from gcip2.pipeline.jobs.base import BaseTask
 from gcip2.pipeline_core import (
     Default,
     Image,
@@ -13,7 +14,6 @@ from gcip2.pipeline_core import (
     WorkflowRule,
     WorkflowWhen,
 )
-from gcip2.pipeline_core.jobs.base import BaseTask
 
 
 class TestSecretHandlerInTask(JobBuilderImpl):

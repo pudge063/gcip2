@@ -10,11 +10,9 @@ import yaml
 from typing_extensions import override
 
 from gcip2.logging import logger as LOGGER
-from gcip2.pipeline_core.gitlab_ci import GitlabCiBuilderImpl
-from gcip2.pipeline_core.pipeline import PipelineBuilderImpl
-
-from .pipeline_core import JobBuilderImpl, Pipeline, Stage, WorkflowRule, WorkflowWhen
-from .pipeline_core.jobs import trigger
+from gcip2.pipeline.jobs import trigger
+from gcip2.pipeline.pipeline import GitlabCiBuilderImpl, PipelineBuilderImpl
+from gcip2.pipeline_core import JobBuilderImpl, Pipeline, Stage, WorkflowRule, WorkflowWhen
 
 T = TypeVar("T", PipelineBuilderImpl, GitlabCiBuilderImpl)
 

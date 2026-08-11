@@ -3,6 +3,7 @@ from typing import Self
 
 from _tasks._consts import Tasks
 from gcip2 import BaseLinux, BaseTask, GitlabCiBuilderImpl
+from gcip2.pipeline.jobs.trigger import BuildTriggerPipeline, TriggerPipeline
 from gcip2.pipeline_core import (
     ArtifactsReports,
     ArtifactsReportsCoverage,
@@ -17,7 +18,6 @@ from gcip2.pipeline_core import (
     WorkflowRule,
     WorkflowWhen,
 )
-from gcip2.pipeline_core.jobs.trigger import BuildTriggerPipeline, TriggerPipeline
 
 
 class Stages(str, Enum):
@@ -137,6 +137,8 @@ class GitlabCi(GitlabCiBuilderImpl):
 
     def apply(self: Self) -> Self:
         super(GitlabCi, self).apply()
+
+        print(type(self))
 
         self.model.stages = list(Stages)
 

@@ -1,5 +1,10 @@
 ## Changelog
 
+### [11.08.26 - 0.1.5]
+- updated default tasks
+- fixed module structure
+- changed cli script in module `tasks_core` from `gciptask` to `dothat`
+
 ### [08.08.26 - 0.1.4]
 - fixed package `tasks_core` - added `__init__.py`
 

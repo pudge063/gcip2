@@ -12,9 +12,9 @@ class TestBaseTask(TaskBuilderImpl):
     def apply(self):
         self.with_actions(
             (
-                # _actions.SetupSsh,
+                _actions.SetupSsh,
                 _actions.CheckUvVersion,
-                # _actions.CheckInsecureParam,
+                _actions.CheckInsecureParam,
             )
         )
         return self

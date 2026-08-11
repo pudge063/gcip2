@@ -1,6 +1,6 @@
 [project]
 name = "gcip2"
-version = "0.1.4"
+version = "0.1.5"
 description = "framework for dynamic pipeline generation from python code"
 readme = "README.md"
 license = "MIT"
@@ -37,7 +37,7 @@ dev = [
 
 [project.scripts]
 gcip2 = "gcip2.cli:cli"
-gciptask = "gcip2.tasks_core.cli:cli"
+dothat = "gcip2.tasks_core.cli:cli"
 
 [tool.ruff]
 target-version = "py311"

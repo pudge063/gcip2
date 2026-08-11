@@ -239,12 +239,12 @@ class CreateVersionTag(InteractivePythonAction):
 
 
 class PublishPackage(InteractiveShlex):
-    def impl(self, *, ci: bool, **_: typing.Any) -> list[list[str]]:
+    def impl(self, *, ci: bool, pypi_token_section: str, **_: typing.Any) -> list[list[str]]:
         if not ci:
             LOGGER.warning(f"skipping {type(self)}, not in CI")
             return [["echo", "DRY-RUN"]]
 
-        token = self._secret_handler("pypi-token").fetch()["token"]
+        token = self._secret_handler(pypi_token_section).fetch()["token"]
 
         os.environ["UV_PUBLISH_TOKEN"] = token
 

@@ -4,8 +4,8 @@ import typing
 
 import click
 
-from gcip2.builder import PipelineBuilder
 from gcip2.initialization import TemplateGenerator
+from gcip2.pipeline.builder import PipelineBuilder
 
 CallableCliOption = typing.TypeVar("CallableCliOption", bound=typing.Callable)  # type: ignore
 

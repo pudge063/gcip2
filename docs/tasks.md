@@ -205,7 +205,7 @@ Param(
 Example:
 
 ```bash
-gciptask run test-task --version 2.0.0
+dothat run test-task --version 2.0.0
 ```
 
 The CLI value overrides the default value.
@@ -287,7 +287,7 @@ The generated GitLab job executes:
 
 ```yaml
 script:
-  - gciptask run test-vault-secret
+  - dothat run test-vault-secret
 ```
 
 ---
@@ -298,7 +298,7 @@ script:
 GitLab Job
       │
       ▼
-gciptask run test-vault-secret
+dothat run test-vault-secret
       │
       ▼
 Task Registry

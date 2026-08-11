@@ -2,7 +2,7 @@ from typing import Self
 
 from gcip2.pipeline_core import JobBuilderImpl, Stage
 
-from ..jobs import assets
+from . import assets
 
 
 class Base(JobBuilderImpl):
@@ -57,6 +57,6 @@ class BaseTask(BasePython):
             self._after_script_linux.script,
             "echo Do nothing.",
         ]
-        self.model.script = [self._scipt_linux.script, "gciptask run ${CI_JOB_NAME}"]
+        self.model.script = [self._scipt_linux.script, "dothat run ${CI_JOB_NAME}"]
         self.model.before_script = [self._before_script_linux.script]
         return self.with_compose_image("base_python")
