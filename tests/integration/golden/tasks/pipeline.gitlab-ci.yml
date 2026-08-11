@@ -63,7 +63,7 @@ test-task:test-1:
       echo "using venv '${venv}'"
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - gciptask run ${CI_JOB_NAME}
+    - dothat run ${CI_JOB_NAME}
   stage: jobs
   interruptible: true
 
@@ -113,7 +113,7 @@ test-task:test-1 --insecure:
       echo "using venv '${venv}'"
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - gciptask run ${CI_JOB_NAME}
+    - dothat run ${CI_JOB_NAME}
   stage: jobs
   interruptible: true
 
@@ -163,7 +163,7 @@ test-task:test-1 --secure:
       echo "using venv '${venv}'"
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - gciptask run ${CI_JOB_NAME}
+    - dothat run ${CI_JOB_NAME}
   stage: jobs
   interruptible: true
 
@@ -213,7 +213,7 @@ test-task:test-2:
       echo "using venv '${venv}'"
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - gciptask run ${CI_JOB_NAME}
+    - dothat run ${CI_JOB_NAME}
   stage: jobs
   interruptible: true
 
@@ -263,7 +263,7 @@ test-task:test-2 --insecure:
       echo "using venv '${venv}'"
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - gciptask run ${CI_JOB_NAME}
+    - dothat run ${CI_JOB_NAME}
   stage: jobs
   interruptible: true
 
@@ -313,6 +313,6 @@ test-task:test-2 --secure:
       echo "using venv '${venv}'"
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - gciptask run ${CI_JOB_NAME}
+    - dothat run ${CI_JOB_NAME}
   stage: jobs
   interruptible: true

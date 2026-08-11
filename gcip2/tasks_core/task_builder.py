@@ -15,6 +15,8 @@ class Task(pydantic.BaseModel):
 
     name: typing.Optional[str] = None
 
+    doc: str = ""
+
     actions: typing.Optional[list[type["ActionBuilderImpl"]]] = None
 
     parsed_params: dict[str, typing.Any] = {}
@@ -31,21 +33,26 @@ class Task(pydantic.BaseModel):
         args_iter = iter(args)
 
         for arg in args_iter:
-            if not arg.startswith("--"):
+            if arg.startswith("--"):
+                key = arg.removeprefix("--")
+                param = next(
+                    (p for p in self.params if key in [p.long, p.inverse]),
+                    None,
+                )
+            elif arg.startswith("-"):
+                key = arg.removeprefix("-")
+                param = next(
+                    (p for p in self.params if key in [p.short, p.inverse]),
+                    None,
+                )
+            else:
                 continue
-
-            key = arg.removeprefix("--")
-
-            param = next(
-                (p for p in self.params if key in [p.long, p.inverse]),
-                None,
-            )
 
             if not param:
                 raise ValueError(f"Unknown parameter: --{key}")
 
             if param.type is bool:
-                self.parsed_params[param.name] = True if key == param.long else False
+                self.parsed_params[param.name] = True if key == param.long or key == param.short else False
                 continue
 
             try:
@@ -83,6 +90,14 @@ class TaskBuilderImpl(TaskBulder):
         if not self._basename:
             raise ValueError("task name not set.")
 
+        if not self.model.doc:
+            self.model.doc = ".".join(
+                [
+                    self.__class__.__module__,
+                    self.__class__.__name__,
+                ]
+            )
+
         if isinstance(self._basename, str):
             self.model.basename = self._basename
         else:
@@ -109,4 +124,8 @@ class TaskBuilderImpl(TaskBulder):
 
     def with_name(self, name: str):
         self.model.name = name
+        return self
+
+    def with_doc(self, doc: str):
+        self.model.doc = doc
         return self

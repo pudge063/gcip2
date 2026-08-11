@@ -7,6 +7,7 @@ import click
 
 from gcip2.logging import logger as LOGGER
 from gcip2.project_config import ProjectConfig
+from gcip2.tasks_core.ci_tasks import CI_TASK_GENERATOR
 from gcip2.tasks_core.task_builder import Task
 from gcip2.tasks_core.task_generator import TaskGenerator
 
@@ -19,18 +20,7 @@ def cli():
 config = ProjectConfig.from_file()
 
 
-@lru_cache
-def load_task_registry(module: str) -> dict[str, Task]:
-    module_path = str(pathlib.Path(module).parent)
-
-    sys.path.insert(0, module_path)
-    try:
-        module_obj = __import__(module, fromlist=["TASK_GENERATOR"])
-    finally:
-        sys.path.remove(module_path)
-
-    generator: TaskGenerator = module_obj.TASK_GENERATOR
-
+def load_task_registry(generator: TaskGenerator) -> dict[str, Task]:
     registry: dict[str, Task] = {}
 
     for task in generator.load_tasks():
@@ -42,14 +32,59 @@ def load_task_registry(module: str) -> dict[str, Task]:
     return registry
 
 
-TASK_REGISTRY: dict[str, Task] = load_task_registry(config.extra.tasks.module)
+@lru_cache
+def load_task_registry_from_module(module: str) -> dict[str, Task]:
+    module_path = str(pathlib.Path(module).parent)
+
+    sys.path.insert(0, module_path)
+    try:
+        module_obj = __import__(module, fromlist=["TASK_GENERATOR"])
+    finally:
+        sys.path.remove(module_path)
+
+    generator: TaskGenerator = module_obj.TASK_GENERATOR
+
+    registry: dict[str, Task] = load_task_registry(generator)
+
+    return registry
+
+
+CI_TASK_REGISTRY: dict[str, Task] = load_task_registry(CI_TASK_GENERATOR)
+
+TASK_REGISTRY: dict[str, Task] = {
+    **CI_TASK_REGISTRY,
+    **load_task_registry_from_module(config.extra.tasks.module),
+}
 
 
 @cli.command()
 @click.option("--module", default=None)
 def list(module: str):
-    registry = load_task_registry(module) if module else TASK_REGISTRY
-    LOGGER.info(builtins.list(registry.keys()))
+    registry = load_task_registry_from_module(module) if module else TASK_REGISTRY
+
+    for key, task in registry.items():
+        click.echo(f"R {key:<50} {task.doc}")
+
+
+@cli.command()
+@click.argument("task_name")
+@click.option("--module", default=None)
+def help(task_name: str, module: str):
+    registry = load_task_registry_from_module(module) if module else TASK_REGISTRY
+
+    task = registry[task_name]
+
+    click.echo(f"{task_name}  {task.doc}")
+
+    for param in task.params:
+        description: builtins.list[str] = [f"config: {param.name}"]
+
+        if param.env_var:
+            description.append(f"environ: {param.env_var}")
+        if param.type is bool and param.inverse:
+            description.append(f"opposite of {param.inverse}")
+
+        click.echo(f"  --{param.long:<30} ({', '.join(description)})")
 
 
 @cli.command(
@@ -62,7 +97,7 @@ def list(module: str):
 @click.pass_context
 @click.option("--module", default=None)
 def run(ctx: click.Context, task_name: str, module: str | None):
-    registry = load_task_registry(module) if module else TASK_REGISTRY
+    registry = load_task_registry_from_module(module) if module else TASK_REGISTRY
 
     task = registry.get(task_name)
 

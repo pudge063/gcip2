@@ -22,7 +22,8 @@ def test_simple_pipeline(pipeline: str):
 
     subprocess.run(
         [
-            "gcip2",
+            "dothat",
+            "run",
             "build-pipeline",
             "-f",
             str(input_file),
