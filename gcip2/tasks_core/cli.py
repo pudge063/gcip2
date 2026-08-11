@@ -49,7 +49,28 @@ TASK_REGISTRY: dict[str, Task] = load_task_registry(config.extra.tasks.module)
 @click.option("--module", default=None)
 def list(module: str):
     registry = load_task_registry(module) if module else TASK_REGISTRY
-    LOGGER.info(builtins.list(registry.keys()))
+
+    for key, task in registry.items():
+        click.echo(f"R {key:<50} {task.doc}")
+
+
+@cli.command()
+@click.argument("task_name")
+@click.option("--module", default=None)
+def help(task_name: str, module: str):
+    registry = load_task_registry(module) if module else TASK_REGISTRY
+
+    task = registry[task_name]
+    click.echo(f"{task_name}  {task.doc}")
+    for param in task.params:
+        description: builtins.list[str] = [f"config: {param.name}"]
+
+        if param.env_var:
+            description.append(f"environ: {param.env_var}")
+        if param.type is bool and param.inverse:
+            description.append(f"opposite of {param.inverse}")
+
+        click.echo(f"  --{param.long:<30} ({', '.join(description)})")
 
 
 @cli.command(

@@ -15,6 +15,8 @@ class Task(pydantic.BaseModel):
 
     name: typing.Optional[str] = None
 
+    doc: str = ""
+
     actions: typing.Optional[list[type["ActionBuilderImpl"]]] = None
 
     parsed_params: dict[str, typing.Any] = {}
@@ -82,6 +84,14 @@ class TaskBuilderImpl(TaskBulder):
     def build(self) -> Task:
         if not self._basename:
             raise ValueError("task name not set.")
+
+        if not self.model.doc:
+            self.model.doc = ".".join(
+                [
+                    self.__class__.__module__,
+                    self.__class__.__name__,
+                ]
+            )
 
         if isinstance(self._basename, str):
             self.model.basename = self._basename

@@ -5,6 +5,9 @@
 - fixed module structure
 - changed cli script in module `tasks_core` from `gciptask` to `dothat`
 - added all predefined pipeline variables
+- added `dothat` argument `help` for describe task params
+- added detailed information about task in `dothat help`
+- added `doc` field to `Task` model
 
 ### [08.08.26 - 0.1.4]
 - fixed package `tasks_core` - added `__init__.py`
