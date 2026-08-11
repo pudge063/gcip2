@@ -10,7 +10,7 @@ import requests
 
 from _tasks._consts import PipelineStatus
 from _tasks._helpers import GitlabApi
-from gcip2 import Predefined
+from gcip2 import Predefined, PredefinedMergeRequest
 from gcip2.logging import logger as LOGGER
 from gcip2.tasks_core import InteractivePythonAction, InteractiveShlex
 
@@ -182,7 +182,7 @@ class CheckVersion(InteractivePythonAction):
             LOGGER.warning(f"skipping {type(self)}, not in CI")
             return
 
-        if not Predefined.CI_MERGE_REQUEST_ID.getenv(""):
+        if not PredefinedMergeRequest.CI_MERGE_REQUEST_ID.getenv(""):
             LOGGER.warning(f"skipping {type(self)}, not in merge request")
             return
 
