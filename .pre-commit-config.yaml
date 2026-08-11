@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: build-gitlab-ci
         name: generate .gitlab-ci.yml
-        entry: uv run -- gcip2 -- build-gitlab-ci
+        entry: uv run -- dothat -- run -- build-gitlab-ci
         language: system
         pass_filenames: false
         always_run: true

@@ -18,7 +18,7 @@ class BuildTriggerPipeline(pipeline_core.JobBuilderImpl):
     def apply(self: Self) -> Self:
         self.with_name(TriggerPipelineDefaults.build_pipeline.value)
         self.model.artifacts = pipeline_core.Artifacts(paths=[TriggerPipelineDefaults.out_dir])
-        self.model.script = ['exec sh -c "gcip2 build-pipeline"']
+        self.model.script = ['exec sh -c "dothat run ${CI_JOB_NAME}"']
         return self
 
 

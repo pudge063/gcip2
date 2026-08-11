@@ -33,7 +33,7 @@ variables:
   FF_TIMESTAMPS:
     value: 'true'
 
-checkstyle/build-pipeline:
+build-pipeline -f pipelines/checkstyle/ci.py:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -64,7 +64,7 @@ checkstyle/build-pipeline:
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - exec sh -c "gcip2 build-pipeline -f pipelines/checkstyle/ci.py"
+    - exec sh -c "dothat run ${CI_JOB_NAME}"
   stage: jobs
   tags:
     - static-k8s
@@ -79,18 +79,18 @@ checkstyle/trigger-pipeline:
     PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
-    - checkstyle/build-pipeline
+    - build-pipeline -f pipelines/checkstyle/ci.py
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: checkstyle/build-pipeline
+      - job: build-pipeline -f pipelines/checkstyle/ci.py
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
       pipeline_variables: true
 
-initialization/build-pipeline:
+build-pipeline -f pipelines/initialization/ci.py:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -121,7 +121,7 @@ initialization/build-pipeline:
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - exec sh -c "gcip2 build-pipeline -f pipelines/initialization/ci.py"
+    - exec sh -c "dothat run ${CI_JOB_NAME}"
   stage: jobs
   tags:
     - static-k8s
@@ -136,18 +136,18 @@ initialization/trigger-pipeline:
     PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
-    - initialization/build-pipeline
+    - build-pipeline -f pipelines/initialization/ci.py
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: initialization/build-pipeline
+      - job: build-pipeline -f pipelines/initialization/ci.py
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
       pipeline_variables: true
 
-tasks/build-pipeline:
+build-pipeline -f pipelines/tasks/ci.py:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -178,7 +178,7 @@ tasks/build-pipeline:
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - exec sh -c "gcip2 build-pipeline -f pipelines/tasks/ci.py"
+    - exec sh -c "dothat run ${CI_JOB_NAME}"
   stage: jobs
   tags:
     - static-k8s
@@ -193,18 +193,18 @@ tasks/trigger-pipeline:
     PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
-    - tasks/build-pipeline
+    - build-pipeline -f pipelines/tasks/ci.py
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: tasks/build-pipeline
+      - job: build-pipeline -f pipelines/tasks/ci.py
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
       pipeline_variables: true
 
-vault/build-pipeline:
+build-pipeline -f pipelines/vault/ci.py:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -235,7 +235,7 @@ vault/build-pipeline:
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - exec sh -c "gcip2 build-pipeline -f pipelines/vault/ci.py"
+    - exec sh -c "dothat run ${CI_JOB_NAME}"
   stage: jobs
   tags:
     - static-k8s
@@ -250,18 +250,18 @@ vault/trigger-pipeline:
     PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
-    - vault/build-pipeline
+    - build-pipeline -f pipelines/vault/ci.py
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: vault/build-pipeline
+      - job: build-pipeline -f pipelines/vault/ci.py
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
       pipeline_variables: true
 
-multipipeline/build-pipeline:
+build-pipeline -f pipelines/multipipeline/ci.py:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -292,7 +292,7 @@ multipipeline/build-pipeline:
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - exec sh -c "gcip2 build-pipeline -f pipelines/multipipeline/ci.py"
+    - exec sh -c "dothat run ${CI_JOB_NAME}"
   stage: jobs
   tags:
     - static-k8s
@@ -307,18 +307,18 @@ multipipeline/trigger-pipeline:
     PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
-    - multipipeline/build-pipeline
+    - build-pipeline -f pipelines/multipipeline/ci.py
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: multipipeline/build-pipeline
+      - job: build-pipeline -f pipelines/multipipeline/ci.py
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
       pipeline_variables: true
 
-integration/build-pipeline:
+build-pipeline -f pipelines/integration/ci.py:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -349,7 +349,7 @@ integration/build-pipeline:
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - exec sh -c "gcip2 build-pipeline -f pipelines/integration/ci.py"
+    - exec sh -c "dothat run ${CI_JOB_NAME}"
   stage: jobs
   tags:
     - static-k8s
@@ -364,12 +364,12 @@ integration/trigger-pipeline:
     PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
-    - integration/build-pipeline
+    - build-pipeline -f pipelines/integration/ci.py
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: integration/build-pipeline
+      - job: build-pipeline -f pipelines/integration/ci.py
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true

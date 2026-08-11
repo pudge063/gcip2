@@ -103,7 +103,7 @@ class UpdateTestProject(InteractiveShlex):
                 ["gcip2", "init"],
                 ["git", "init"],
                 ["git", "remote", "add", remote, f"ssh://git@gl.pivlab.space/{test_repo}.git"],
-                ["gcip2", "build-gitlab-ci"],
+                ["dothat", "run", "build-gitlab-ci"],
                 ["sed", "-i", sed_string, "pyproject.toml"],
                 ["ls", "-la"],
             ]

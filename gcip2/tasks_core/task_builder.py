@@ -33,21 +33,26 @@ class Task(pydantic.BaseModel):
         args_iter = iter(args)
 
         for arg in args_iter:
-            if not arg.startswith("--"):
+            if arg.startswith("--"):
+                key = arg.removeprefix("--")
+                param = next(
+                    (p for p in self.params if key in [p.long, p.inverse]),
+                    None,
+                )
+            elif arg.startswith("-"):
+                key = arg.removeprefix("-")
+                param = next(
+                    (p for p in self.params if key in [p.short, p.inverse]),
+                    None,
+                )
+            else:
                 continue
-
-            key = arg.removeprefix("--")
-
-            param = next(
-                (p for p in self.params if key in [p.long, p.inverse]),
-                None,
-            )
 
             if not param:
                 raise ValueError(f"Unknown parameter: --{key}")
 
             if param.type is bool:
-                self.parsed_params[param.name] = True if key == param.long else False
+                self.parsed_params[param.name] = True if key == param.long or key == param.short else False
                 continue
 
             try:

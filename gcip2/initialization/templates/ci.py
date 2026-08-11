@@ -26,7 +26,7 @@ class PreCommit(JobBuilderImpl):
 
     def apply(self: Self) -> Self:
         self.with_name(JobName.pre_commit.value)
-        self.model.script = ["pre-commit run -av", "cat environment.toml", "ls -la"]
+        self.model.script = ["pre-commit run -av", "cat environment.toml"]
         return self
 
 

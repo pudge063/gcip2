@@ -8,6 +8,8 @@
 - added `dothat` argument `help` for describe task params
 - added detailed information about task in `dothat help`
 - added `doc` field to `Task` model
+- removed `gcip2` script
+- added predefined `CI_TASK_GENERATOR` with `build-gitlab-ci` and `build-pipeline` tasks
 
 ### [08.08.26 - 0.1.4]
 - fixed package `tasks_core` - added `__init__.py`
