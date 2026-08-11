@@ -618,7 +618,7 @@ create-version-tag:
     - check-package-version
   interruptible: true
 
-publish-package:
+publish-package --skip-publish:
   image:
     name: af.pivlab.space/astral-sh/uv:python3.12
   before_script:

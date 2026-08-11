@@ -76,6 +76,7 @@ class PublishPackage(TaskBuilderImpl):
             (
                 self._params.ci(),
                 _params.pypi_token_section(),
+                _params.skip_publish(),
             )
         )
 

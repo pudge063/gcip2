@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Self
 
 from _tasks._consts import Tasks
-from gcip2 import BaseLinux, BaseTask, GitlabCiBuilderImpl
+from gcip2 import BaseLinux, BaseTask, GitlabCiBuilderImpl, Predefined
 from gcip2.pipeline.jobs.trigger import BuildTriggerPipeline, TriggerPipeline
 from gcip2.pipeline_core import (
     ArtifactsReports,
@@ -56,7 +56,13 @@ class PublishPackage(JobBuilderImpl):
     _base = BaseTask
 
     def apply(self: Self) -> Self:
-        self.model.name = "publish-package"
+        suffix = (
+            " --publish"
+            if Predefined.CI_COMMIT_BRANCH.getenv("-") == Predefined.CI_DEFAULT_BRANCH.getenv("")
+            else " --skip-publish"
+        )
+        self.add_to_name(suffix)
+
         return self.with_needs([Tasks.create_version_tag.value]).with_stage(Stages.PUBLISH)
 
 

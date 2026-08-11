@@ -45,3 +45,13 @@ def pypi_token_section() -> tasks_core.Param:
         default="pypi-token",
         type=str,
     )
+
+
+def skip_publish() -> tasks_core.Param:
+    return tasks_core.Param(
+        name="skip_publish",
+        long="skip-publish",
+        default=True,
+        type=bool,
+        inverse="publish",
+    )

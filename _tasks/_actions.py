@@ -239,20 +239,18 @@ class CreateVersionTag(InteractivePythonAction):
 
 
 class PublishPackage(InteractiveShlex):
-    def impl(self, *, ci: bool, pypi_token_section: str, **_: typing.Any) -> list[list[str]]:
+    def impl(self, *, ci: bool, pypi_token_section: str, skip_publish: bool, **_: typing.Any) -> list[list[str]]:
         if not ci:
             LOGGER.warning(f"skipping {type(self)}, not in CI")
             return [["echo", "DRY-RUN"]]
 
-        token = self._secret_handler(pypi_token_section).fetch()["token"]
+        publish_cmds = ["uv", "publish"]
+        if skip_publish:
+            publish_cmds.append("--dry-run")
+            token = "test-token-value"
+        else:
+            token = self._secret_handler(pypi_token_section).fetch()["token"]
 
         os.environ["UV_PUBLISH_TOKEN"] = token
-
-        publish_cmds = ["uv", "publish"]
-        if not (
-            Predefined.CI_COMMIT_BRANCH.getenv()
-            and Predefined.CI_COMMIT_BRANCH.getenv() == Predefined.CI_DEFAULT_BRANCH.getenv()
-        ):
-            publish_cmds.append("--dry-run")
 
         return [["uv", "build"], publish_cmds]
