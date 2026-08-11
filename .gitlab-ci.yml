@@ -15,6 +15,7 @@ workflow:
     - when: never
 
 stages:
+  - pre-commit
   - jobs
   - unit-tests
   - publish
@@ -33,7 +34,9 @@ variables:
   FF_TIMESTAMPS:
     value: 'true'
 
-build-pipeline -f pipelines/checkstyle/ci.py:
+pre-commit:
+  image:
+    name: af.pivlab.space/astral-sh/uv:python3.12
   before_script:
     - |
       #!/usr/bin/env sh
@@ -64,31 +67,22 @@ build-pipeline -f pipelines/checkstyle/ci.py:
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   script:
-    - exec sh -c "dothat run ${CI_JOB_NAME}"
-  stage: jobs
-  tags:
-    - static-k8s
-  artifacts:
-    paths:
-      - out
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - dothat run ${CI_JOB_NAME}
+  stage: pre-commit
   interruptible: true
-
-checkstyle/trigger-pipeline:
-  variables:
-    PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
-    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
-  stage: jobs
-  needs:
-    - build-pipeline -f pipelines/checkstyle/ci.py
-  interruptible: false
-  trigger:
-    strategy: depend
-    include:
-      - job: build-pipeline -f pipelines/checkstyle/ci.py
-        artifact: out/pipeline.gitlab-ci.yml
-    forward:
-      yaml_variables: true
-      pipeline_variables: true
 
 build-pipeline -f pipelines/initialization/ci.py:
   before_script:
@@ -142,6 +136,63 @@ initialization/trigger-pipeline:
     strategy: depend
     include:
       - job: build-pipeline -f pipelines/initialization/ci.py
+        artifact: out/pipeline.gitlab-ci.yml
+    forward:
+      yaml_variables: true
+      pipeline_variables: true
+
+build-pipeline -f pipelines/integration/ci.py:
+  before_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):before_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+  after_script:
+    - |
+      #!/usr/bin/env sh
+      set -o errexit -o nounset -o xtrace
+      section="$(date +'%s'):after_script_setup"
+      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
+      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
+      export CI_RUNNER_DIR
+      export UV_LINK_MODE=copy
+      uv sync --directory "${CI_RUNNER_DIR}"
+      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
+      echo "using venv '${venv}'"
+      . "${venv}/bin/activate"
+      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
+    - echo Do nothing.
+  script:
+    - exec sh -c "dothat run ${CI_JOB_NAME}"
+  stage: jobs
+  tags:
+    - static-k8s
+  artifacts:
+    paths:
+      - out
+  interruptible: true
+
+integration/trigger-pipeline:
+  variables:
+    PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
+    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
+  stage: jobs
+  needs:
+    - build-pipeline -f pipelines/integration/ci.py
+  interruptible: false
+  trigger:
+    strategy: depend
+    include:
+      - job: build-pipeline -f pipelines/integration/ci.py
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
@@ -313,63 +364,6 @@ multipipeline/trigger-pipeline:
     strategy: depend
     include:
       - job: build-pipeline -f pipelines/multipipeline/ci.py
-        artifact: out/pipeline.gitlab-ci.yml
-    forward:
-      yaml_variables: true
-      pipeline_variables: true
-
-build-pipeline -f pipelines/integration/ci.py:
-  before_script:
-    - |
-      #!/usr/bin/env sh
-      set -o errexit -o nounset -o xtrace
-      section="$(date +'%s'):before_script_setup"
-      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
-      export CI_RUNNER_DIR
-      export UV_LINK_MODE=copy
-      uv sync --directory "${CI_RUNNER_DIR}"
-      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
-      echo "using venv '${venv}'"
-      . "${venv}/bin/activate"
-      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-  after_script:
-    - |
-      #!/usr/bin/env sh
-      set -o errexit -o nounset -o xtrace
-      section="$(date +'%s'):after_script_setup"
-      printf '\e[0Ksection_start:%s[collapsed=true]\r\e[0K%s\n' "${section}" "setup"
-      CI_RUNNER_DIR="$(readlink -f "${CI_RUNNER_DIR:-.}")"
-      export CI_RUNNER_DIR
-      export UV_LINK_MODE=copy
-      uv sync --directory "${CI_RUNNER_DIR}"
-      venv="$(dirname "$(dirname "$(uv run --directory "${CI_RUNNER_DIR}" which python)")")"
-      echo "using venv '${venv}'"
-      . "${venv}/bin/activate"
-      printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - echo Do nothing.
-  script:
-    - exec sh -c "dothat run ${CI_JOB_NAME}"
-  stage: jobs
-  tags:
-    - static-k8s
-  artifacts:
-    paths:
-      - out
-  interruptible: true
-
-integration/trigger-pipeline:
-  variables:
-    PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
-    PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
-  stage: jobs
-  needs:
-    - build-pipeline -f pipelines/integration/ci.py
-  interruptible: false
-  trigger:
-    strategy: depend
-    include:
-      - job: build-pipeline -f pipelines/integration/ci.py
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true

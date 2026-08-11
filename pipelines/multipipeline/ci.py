@@ -19,8 +19,8 @@ class MatrixJob(JobBuilderImpl):
 
     def apply(self: Self) -> Self:
         self.model.name = "matrix-job"
-        self.model.parallel = Parallel(matrix=[{"TEST": ["1", "2", "3"]}])
-        self.model.script = ["echo $TEST"]
+        self.model.parallel = Parallel(matrix=[{"TEST_VARIABLE": ["1", "2", "3", "4", "5"]}])
+        self.model.script = ["echo $TEST_VARIABLE"]
         return self
 
 

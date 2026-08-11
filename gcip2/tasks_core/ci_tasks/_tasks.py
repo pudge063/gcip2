@@ -36,10 +36,18 @@ class InitializeDefaultProject(TaskBuilderImpl):
         return self.with_actions((_actions.InitializeDefaultProject,)).with_params((_params.force(),))
 
 
+class RunPreCommit(TaskBuilderImpl):
+    _basename = "pre-commit"
+
+    def apply(self):
+        return self.with_actions((_actions.RunPreCommit,)).with_doc("default pre-commit job")
+
+
 class TaskGenerator(TaskGeneratorImpl):
     task_build_pipeline = BuildPipeline
     task_build_gitlab_ci = BuildGitlabCi
     task_init = InitializeDefaultProject
+    task_pre_commit = RunPreCommit
 
     def load_tasks(self) -> Iterator[Task]:
         yield from super().load_tasks()

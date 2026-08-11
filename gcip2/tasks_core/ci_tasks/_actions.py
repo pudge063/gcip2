@@ -2,7 +2,7 @@ import pathlib
 
 from gcip2.initialization import TemplateGenerator
 from gcip2.pipeline.builder import PipelineBuilder
-from gcip2.tasks_core.models.actions import InteractivePythonAction
+from gcip2.tasks_core.models.actions import InteractivePythonAction, InteractiveShlex
 
 
 class BuildPipeline(InteractivePythonAction):
@@ -27,3 +27,8 @@ class InitializeDefaultProject(InteractivePythonAction):
     def impl(self, *, force: bool, **_) -> None:
         templategenerator = TemplateGenerator()
         templategenerator.generate_project_structure(force=force)
+
+
+class RunPreCommit(InteractiveShlex):
+    def impl(self, **_) -> list[list[str]]:
+        return [["pre-commit", "run", "-av"]]

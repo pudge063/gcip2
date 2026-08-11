@@ -125,3 +125,7 @@ class TaskBuilderImpl(TaskBulder):
     def with_name(self, name: str):
         self.model.name = name
         return self
+
+    def with_doc(self, doc: str):
+        self.model.doc = doc
+        return self
