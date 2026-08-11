@@ -36,7 +36,6 @@ dev = [
 ]
 
 [project.scripts]
-gcip2 = "gcip2.cli:cli"
 dothat = "gcip2.tasks_core.cli:cli"
 
 [tool.ruff]

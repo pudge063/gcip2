@@ -41,7 +41,7 @@ uv add gcip2
 Initialize a new project:
 
 ```bash
-gcip2 init
+dothat run init
 ```
 
 This generates a minimal project structure:
@@ -57,13 +57,13 @@ This generates a minimal project structure:
 Generate a child pipeline:
 
 ```bash
-gcip2 build-pipeline
+dothat run build-pipeline
 ```
 
 or explicitly:
 
 ```bash
-gcip2 build-pipeline \
+dothat run build-pipeline \
     --ci-file ci.py \
     --out-pipeline out/pipeline.gitlab-ci.yml
 ```
@@ -71,13 +71,13 @@ gcip2 build-pipeline \
 Generate the root `.gitlab-ci.yml`:
 
 ```bash
-gcip2 build-gitlab-ci
+dothat run build-gitlab-ci
 ```
 
 or
 
 ```bash
-gcip2 build-gitlab-ci \
+dothat run build-gitlab-ci \
     --ci-file ci.py \
     --out-gitlab-ci .gitlab-ci.yml
 ```
@@ -123,25 +123,25 @@ ci.py
 Initialize a project:
 
 ```bash
-gcip2 init
+dothat run init
 ```
 
 Force regeneration of template files:
 
 ```bash
-gcip2 init --force
+dothat run init --force
 ```
 
 Build a child pipeline:
 
 ```bash
-gcip2 build-pipeline
+dothat run build-pipeline
 ```
 
 Build the repository `.gitlab-ci.yml`:
 
 ```bash
-gcip2 build-gitlab-ci
+dothat run build-gitlab-ci
 ```
 
 ---

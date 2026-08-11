@@ -82,9 +82,6 @@ class GitlabCi(GitlabCiBuilderImpl):
                 .with_tags(["static-k8s"])
                 .add_to_name(f" -f pipelines/{test_name}/ci.py")
             )
-            # build_pipeline_job.model.script = [
-            #     f'exec sh -c "gcip2 build-pipeline -f pipelines/{test_name}/ci.py"',
-            # ]
 
             trigger_pipeline_job = (
                 self.job(TriggerPipeline)

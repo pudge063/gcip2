@@ -100,7 +100,7 @@ class UpdateTestProject(InteractiveShlex):
             [
                 ["mkdir", "-p", tmp_dir],
                 ["cd", tmp_dir],
-                ["gcip2", "init"],
+                ["dothat", "run", "init"],
                 ["git", "init"],
                 ["git", "remote", "add", remote, f"ssh://git@gl.pivlab.space/{test_repo}.git"],
                 ["dothat", "run", "build-gitlab-ci"],

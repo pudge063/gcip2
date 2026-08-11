@@ -29,9 +29,17 @@ class BuildPipeline(TaskBuilderImpl):
         )
 
 
+class InitializeDefaultProject(TaskBuilderImpl):
+    _basename = "init"
+
+    def apply(self):
+        return self.with_actions((_actions.InitializeDefaultProject,)).with_params((_params.force(),))
+
+
 class TaskGenerator(TaskGeneratorImpl):
     task_build_pipeline = BuildPipeline
     task_build_gitlab_ci = BuildGitlabCi
+    task_init = InitializeDefaultProject
 
     def load_tasks(self) -> Iterator[Task]:
         yield from super().load_tasks()

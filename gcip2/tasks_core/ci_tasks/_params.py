@@ -19,3 +19,13 @@ def out_gitlab_ci(default: str) -> Param:
         default=default,
         type=str,
     )
+
+
+def force() -> Param:
+    return Param(
+        name="force",
+        long="force",
+        short="f",
+        default=False,
+        type=bool,
+    )
