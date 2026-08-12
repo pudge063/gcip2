@@ -3,8 +3,8 @@ from typing import Self
 
 from _tasks._consts import Tasks
 from gcip2 import BaseLinux, BaseTask, GitlabCiBuilderImpl
-from gcip2.pipeline.jobs import base
-from gcip2.pipeline.jobs.trigger import BuildTriggerPipeline, TriggerPipeline
+from gcip2.ci.jobs import base
+from gcip2.ci.jobs.trigger import BuildTriggerPipeline, TriggerPipeline
 from gcip2.pipeline_core import (
     ArtifactsReports,
     ArtifactsReportsCoverage,

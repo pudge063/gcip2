@@ -2,7 +2,7 @@ from typing import Self
 
 from _tasks._consts import Tasks
 from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
-from gcip2.pipeline.jobs.base import BaseTask
+from gcip2.ci.jobs.base import BaseTask
 from gcip2.pipeline_core import (
     Default,
     Image,

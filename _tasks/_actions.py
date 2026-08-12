@@ -85,10 +85,10 @@ class UpdateTestProject(InteractiveShlex):
         cmds: list[list[str]] = []
 
         tmp_dir = "tmp_out"
-        test_repo = self._config.extra.get("test_repo", "")
+        test_repo = self._config.extra.get("test-repo", "")
 
         if not test_repo:
-            raise ValueError("test_repo url not set")
+            raise ValueError("test-repo url not set")
 
         sed_string = (
             f"s|gcip2>=0.0.1|gcip2 @ git+https://gl.pivlab.space/rnd/gcip2.git@{Predefined.CI_COMMIT_SHA.getenv('')}|"
@@ -124,7 +124,7 @@ class UpdateTestProject(InteractiveShlex):
 class RunInitializationPipeline(InteractivePythonAction):
     def impl(self, **_: typing.Any):
         token = self._secret_handler("gl-pivlab-maintainer").fetch()["token"]
-        project_url = self._config.extra.get("test_repo", "").replace("/", "%2F")
+        project_url = self._config.extra.get("test-repo", "").replace("/", "%2F")
 
         gl = GitlabApi(gitlab_token=token)
         pipeline_id = gl.trigger_pipeline(project_url=project_url, ref="master")

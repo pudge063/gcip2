@@ -8,9 +8,9 @@ from typing import Any, Optional, Self, TypeVar
 
 import yaml
 
+from gcip2.ci.jobs import trigger
 from gcip2.logging import logger as LOGGER
 from gcip2.pipeline.dumper import CustomDumper
-from gcip2.pipeline.jobs import trigger
 from gcip2.pipeline.pipeline import GitlabCiBuilderImpl, PipelineBuilderImpl
 from gcip2.pipeline_core import JobBuilderImpl, Pipeline, Stage, WorkflowRule, WorkflowWhen
 

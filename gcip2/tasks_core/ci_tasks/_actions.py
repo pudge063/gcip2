@@ -1,6 +1,7 @@
 import pathlib
 
 from gcip2.initialization import TemplateGenerator
+from gcip2.logging import logger as LOGGER
 from gcip2.pipeline.builder import PipelineBuilder
 from gcip2.tasks_core.models.actions import InteractivePythonAction, InteractiveShlex
 
@@ -32,3 +33,8 @@ class InitializeDefaultProject(InteractivePythonAction):
 class RunPreCommit(InteractiveShlex):
     def impl(self, **_) -> list[list[str]]:
         return [["pre-commit", "run", "-av"]]
+
+
+class CiAfterScript(InteractivePythonAction):
+    def impl(self, **_) -> None:
+        LOGGER.info("Do nothing.")

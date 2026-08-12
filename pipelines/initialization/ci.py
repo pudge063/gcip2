@@ -3,7 +3,7 @@ from typing import Self
 
 from _tasks._consts import Tasks
 from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl, pipeline_core
-from gcip2.pipeline.jobs import base
+from gcip2.ci.jobs import base
 
 
 class Stages(str, Enum):

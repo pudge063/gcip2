@@ -1,7 +1,7 @@
 from typing import Self
 
 from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl, pipeline_core
-from gcip2.pipeline.jobs import base
+from gcip2.ci.jobs import base
 
 from tasks._consts import Tasks
 

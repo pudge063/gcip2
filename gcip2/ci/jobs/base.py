@@ -1,8 +1,7 @@
 from typing import Self
 
+from gcip2.ci.jobs import assets
 from gcip2.pipeline_core import JobBuilderImpl, Stage
-
-from . import assets
 
 
 class Base(JobBuilderImpl):
@@ -39,32 +38,31 @@ class BasePython(JobBuilderImpl):
         super().apply()
         self.model.after_script = [
             self._after_script_linux.script,
-            "echo Do nothing1.",
+            "echo Do nothing.",
         ]
         self.model.before_script = [self._before_script_linux.script]
         return self.with_compose_image("base_python")
 
 
 class BaseTask(BasePython):
-    _base = BaseLinux
-    _scipt_linux: assets.ScriptLinux = assets.ScriptLinux.load()
-    _after_script_linux: assets.AfterScriptLinux = assets.AfterScriptLinux.load()
-    _before_script_linux: assets.BeforeScriptLinux = assets.BeforeScriptLinux.load()
+    _base = BasePython
 
     def apply(self: Self) -> Self:
         super().apply()
         self.model.after_script = [
             self._after_script_linux.script,
-            "echo Do nothing.",
+            "dothat run ci-after-script.",
         ]
-        self.model.script = [self._scipt_linux.script, "dothat run ${CI_JOB_NAME}"]
-        self.model.before_script = [self._before_script_linux.script]
+        self.model.script = [
+            self._scipt_linux.script,
+            "dothat run ${CI_JOB_NAME}",
+        ]
         return self.with_compose_image("base_python")
 
 
-class PreCommit(BaseTask):
+class PreCommit(JobBuilderImpl):
     _name = "pre-commit"
-    _base = BaseLinux
+    _base = BaseTask
 
     def apply(self: Self) -> Self:
         super().apply()

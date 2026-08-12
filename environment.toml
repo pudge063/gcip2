@@ -1,6 +1,6 @@
 [extra]
-version = "0.1.5"
-test_repo = "rnd/gcip2-tests/initialization-test"
+version = "0.1.6"
+test-repo = "rnd/gcip2-tests/initialization-test"
 
 pipelines = [
     "initialization",

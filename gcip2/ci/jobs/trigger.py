@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Self
 
 from gcip2 import pipeline_core
-from gcip2.pipeline.jobs.base import Base, BaseLinux
+from gcip2.ci.jobs.base import Base, BaseLinux
 
 
 class TriggerPipelineDefaults(str, Enum):

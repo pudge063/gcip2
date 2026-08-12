@@ -1,7 +1,7 @@
 from typing import Self
 
 from gcip2 import GitlabCiBuilderImpl, PipelineBuilderImpl
-from gcip2.pipeline.jobs.base import BaseLinux
+from gcip2.ci.jobs.base import BaseLinux
 from gcip2.pipeline_core import (
     Default,
     Image,
