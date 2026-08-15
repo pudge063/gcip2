@@ -13,7 +13,7 @@ class Secrets(BaseModel):
 
 
 class Tasks(BaseModel):
-    module: str = "_tasks"
+    module: typing.Optional[str] = None
 
 
 class Extra(BaseModel):

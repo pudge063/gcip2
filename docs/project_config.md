@@ -98,10 +98,12 @@ module = "_tasks"
 Default value:
 
 ```python
-module = "_tasks"
+module = None
 ```
 
 This module is used for automatic task discovery.
+
+The field is optional. If it is not set, task discovery from a custom module is skipped and only built-in tasks are registered.
 
 ---
 

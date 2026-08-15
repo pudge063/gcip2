@@ -625,6 +625,8 @@ The configured module is used as the source of task definitions.
 
 This allows projects to provide their own task implementations without modifying the core Tasks System.
 
+The `module` field is optional. If it is not set, no additional tasks are loaded from a custom module — only the built-in tasks remain available.
+
 ---
 
 # Building a Task
