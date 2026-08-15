@@ -1,5 +1,8 @@
 ## Changelog
 
+### [15.08.26 - 0.1.7]
+- fixed tasks module initialization
+
 ### [12.08.26 - 0.1.6]
 - job templates moved to gcip2.ci
 

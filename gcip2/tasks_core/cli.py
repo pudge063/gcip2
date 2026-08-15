@@ -34,6 +34,10 @@ def load_task_registry(generator: TaskGenerator) -> dict[str, Task]:
 
 @lru_cache
 def load_task_registry_from_module(module: str) -> dict[str, Task]:
+    if not module:
+        LOGGER.warning("module with tasks not found")
+        return {}
+
     module_path = str(pathlib.Path(module).parent)
 
     sys.path.insert(0, module_path)
