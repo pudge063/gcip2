@@ -51,7 +51,7 @@ class BaseTask(BasePython):
         super().apply()
         self.model.after_script = [
             self._after_script_linux.script,
-            "dothat run ci-after-script.",
+            "dothat run ci-after-script",
         ]
         self.model.script = [
             self._scipt_linux.script,

@@ -1,5 +1,8 @@
 ## Changelog
 
+### [15.08.26 - 0.1.8]
+- fixed `after_script` section - removed point in `ci-after-script` task run cmd
+
 ### [15.08.26 - 0.1.7]
 - fixed tasks module initialization
 

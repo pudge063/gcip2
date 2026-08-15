@@ -48,7 +48,7 @@ test-task:test-1:
       echo "using venv '${venv}'"
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - dothat run ci-after-script.
+    - dothat run ci-after-script
   script:
     - |
       #!/usr/bin/env sh
@@ -98,7 +98,7 @@ test-task:test-1 --insecure:
       echo "using venv '${venv}'"
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - dothat run ci-after-script.
+    - dothat run ci-after-script
   script:
     - |
       #!/usr/bin/env sh
@@ -148,7 +148,7 @@ test-task:test-1 --secure:
       echo "using venv '${venv}'"
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - dothat run ci-after-script.
+    - dothat run ci-after-script
   script:
     - |
       #!/usr/bin/env sh
@@ -198,7 +198,7 @@ test-task:test-2:
       echo "using venv '${venv}'"
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - dothat run ci-after-script.
+    - dothat run ci-after-script
   script:
     - |
       #!/usr/bin/env sh
@@ -248,7 +248,7 @@ test-task:test-2 --insecure:
       echo "using venv '${venv}'"
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - dothat run ci-after-script.
+    - dothat run ci-after-script
   script:
     - |
       #!/usr/bin/env sh
@@ -298,7 +298,7 @@ test-task:test-2 --secure:
       echo "using venv '${venv}'"
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
-    - dothat run ci-after-script.
+    - dothat run ci-after-script
   script:
     - |
       #!/usr/bin/env sh
