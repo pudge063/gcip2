@@ -1,5 +1,10 @@
 ## Changelog
 
+### [24.08.26 - 0.1.9]
+- removed loading tasks on module initialization
+- implemented `injector` for `tasks_core`
+- changed domain `space` to `dev` for infrastructure migrations
+
 ### [15.08.26 - 0.1.8]
 - fixed `after_script` section - removed point in `ci-after-script` task run cmd
 

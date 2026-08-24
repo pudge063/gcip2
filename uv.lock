@@ -5,7 +5,7 @@ requires-python = ">=3.11, <4.0"
 [[package]]
 name = "annotated-types"
 version = "0.8.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/annotated-types/annotated_types-0.8.0.tar.gz", hash = "sha256:13b2beaad985e05e2d6407ee4c4f35590b11f8d693a258a561055cac8f64cab7" }
 wheels = [
     { url = "https://af.pivlab.space/simple/annotated-types/annotated_types-0.8.0-py3-none-any.whl", hash = "sha256:f072f4d804ea359e4eaf198b1af7a8b0943881a87f31bb764f8bf219bb9419e0" },
@@ -14,7 +14,7 @@ wheels = [
 [[package]]
 name = "attrs"
 version = "26.1.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/attrs/attrs-26.1.0.tar.gz", hash = "sha256:d03ceb89cb322a8fd706d4fb91940737b6642aa36998fe130a9bc96c985eff32" }
 wheels = [
     { url = "https://af.pivlab.space/simple/attrs/attrs-26.1.0-py3-none-any.whl", hash = "sha256:c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309" },
@@ -23,7 +23,7 @@ wheels = [
 [[package]]
 name = "certifi"
 version = "2026.7.22"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/certifi/certifi-2026.7.22.tar.gz", hash = "sha256:741e2c3b351ddf169a738da9f2c048608ff7f2c5cc02f1ebc6b118bb090d5d55" }
 wheels = [
     { url = "https://af.pivlab.space/simple/certifi/certifi-2026.7.22-py3-none-any.whl", hash = "sha256:62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775" },
@@ -32,7 +32,7 @@ wheels = [
 [[package]]
 name = "cfgv"
 version = "3.5.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/cfgv/cfgv-3.5.0.tar.gz", hash = "sha256:d5b1034354820651caa73ede66a6294d6e95c1b00acc5e9b098e917404669132" }
 wheels = [
     { url = "https://af.pivlab.space/simple/cfgv/cfgv-3.5.0-py2.py3-none-any.whl", hash = "sha256:a8dc6b26ad22ff227d2634a65cb388215ce6cc96bbcc5cfde7641ae87e8dacc0" },
@@ -41,7 +41,7 @@ wheels = [
 [[package]]
 name = "charset-normalizer"
 version = "3.4.9"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/charset-normalizer/charset_normalizer-3.4.9.tar.gz", hash = "sha256:673611bbd43f0810bec0b0f028ddeaaa501190339cac411f347ac76917c3ae7b" }
 wheels = [
     { url = "https://af.pivlab.space/simple/charset-normalizer/charset_normalizer-3.4.9-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:0e94703ec9684807f20cfb5eed95c70f67f2a8f21ad620146d7b5a13677b93e5" },
@@ -115,7 +115,7 @@ wheels = [
 [[package]]
 name = "click"
 version = "8.4.2"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
@@ -127,7 +127,7 @@ wheels = [
 [[package]]
 name = "colorama"
 version = "0.4.6"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/colorama/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44" }
 wheels = [
     { url = "https://af.pivlab.space/simple/colorama/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6" },
@@ -136,7 +136,7 @@ wheels = [
 [[package]]
 name = "coverage"
 version = "7.15.4"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/coverage/coverage-7.15.4.tar.gz", hash = "sha256:0548198fff07ccf4faf469520bce1c2eceb1ce3e62891921138dec10907f9d00" }
 wheels = [
     { url = "https://af.pivlab.space/simple/coverage/coverage-7.15.4-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:bbac5abad70df71019988f83f26ac7092ff2642975def4429e98dc7585ef3490" },
@@ -255,7 +255,7 @@ toml = [
 [[package]]
 name = "distlib"
 version = "0.4.3"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/distlib/distlib-0.4.3.tar.gz", hash = "sha256:f152097224a0ae24be5a0f6bae1b9359af82133bce63f98a95f86cae1aede9ed" }
 wheels = [
     { url = "https://af.pivlab.space/simple/distlib/distlib-0.4.3-py2.py3-none-any.whl", hash = "sha256:4b0ce306c966eb73bc3a7b6abad017c556dadd92c44701562cd528ac7fde4d5b" },
@@ -264,7 +264,7 @@ wheels = [
 [[package]]
 name = "filelock"
 version = "3.32.2"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/filelock/filelock-3.32.2.tar.gz", hash = "sha256:c33351e1f49cae33414acbc6d56784e6ecee82514ec90795da1161fc4836b5b8" }
 wheels = [
     { url = "https://af.pivlab.space/simple/filelock/filelock-3.32.2-py3-none-any.whl", hash = "sha256:87dd94cf281e586d135fa51132b8e3d9a598b316e90377a288663c9321036c82" },
@@ -278,6 +278,7 @@ dependencies = [
     { name = "click" },
     { name = "gitpython" },
     { name = "hvac" },
+    { name = "injector" },
     { name = "jsonschema" },
     { name = "loguru" },
     { name = "pydantic" },
@@ -302,6 +303,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.4.1,<9.0.0" },
     { name = "gitpython", specifier = ">=3.1.57,<4.0.0" },
     { name = "hvac", specifier = ">=2.4.0,<3.0.0" },
+    { name = "injector", specifier = ">=0.24.0" },
     { name = "jsonschema", specifier = ">=4.26.0,<5.0.0" },
     { name = "loguru", specifier = ">=0.7.3,<1.0.0" },
     { name = "pydantic", specifier = ">=2.13.4,<3.0.0" },
@@ -324,7 +326,7 @@ dev = [
 [[package]]
 name = "gitdb"
 version = "4.0.12"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "smmap" },
 ]
@@ -336,7 +338,7 @@ wheels = [
 [[package]]
 name = "gitpython"
 version = "3.1.59"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "gitdb" },
 ]
@@ -348,7 +350,7 @@ wheels = [
 [[package]]
 name = "hvac"
 version = "2.4.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "requests" },
 ]
@@ -360,7 +362,7 @@ wheels = [
 [[package]]
 name = "identify"
 version = "2.6.19"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/identify/identify-2.6.19.tar.gz", hash = "sha256:6be5020c38fcb07da56c53733538a3081ea5aa70d36a156f83044bfbf9173842" }
 wheels = [
     { url = "https://af.pivlab.space/simple/identify/identify-2.6.19-py2.py3-none-any.whl", hash = "sha256:20e6a87f786f768c092a721ad107fc9df0eb89347be9396cadf3f4abbd1fb78a" },
@@ -369,7 +371,7 @@ wheels = [
 [[package]]
 name = "idna"
 version = "3.18"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/idna/idna-3.18.tar.gz", hash = "sha256:ffb385a7e039654cef1ab9ef32c6fafe283c0c0467bba1d9029738ce4a14a848" }
 wheels = [
     { url = "https://af.pivlab.space/simple/idna/idna-3.18-py3-none-any.whl", hash = "sha256:7f952cbe720b688055e3f87de14f5c3e5fdaa8bc3928985c4077ca689de849a2" },
@@ -378,16 +380,25 @@ wheels = [
 [[package]]
 name = "iniconfig"
 version = "2.3.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/iniconfig/iniconfig-2.3.0.tar.gz", hash = "sha256:c76315c77db068650d49c5b56314774a7804df16fee4402c1f19d6d15d8c4730" }
 wheels = [
     { url = "https://af.pivlab.space/simple/iniconfig/iniconfig-2.3.0-py3-none-any.whl", hash = "sha256:f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12" },
 ]
 
 [[package]]
+name = "injector"
+version = "0.24.0"
+source = { registry = "https://af.pivlab.dev/simple" }
+sdist = { url = "https://af.pivlab.space/simple/injector/injector-0.24.0.tar.gz", hash = "sha256:e85a75d1516cff2f03170f3fd1219f56acb25c9a05e307819ae0dcde3dad3d3f" }
+wheels = [
+    { url = "https://af.pivlab.space/simple/injector/injector-0.24.0-py3-none-any.whl", hash = "sha256:47294c7a7fdb811f0d1b442a1e0152bb2fc28b2ccaaba4cba44e5e125e0da2d0" },
+]
+
+[[package]]
 name = "jsonschema"
 version = "4.26.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "attrs" },
     { name = "jsonschema-specifications" },
@@ -402,7 +413,7 @@ wheels = [
 [[package]]
 name = "jsonschema-specifications"
 version = "2025.9.1"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "referencing" },
 ]
@@ -414,7 +425,7 @@ wheels = [
 [[package]]
 name = "loguru"
 version = "0.7.3"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
     { name = "win32-setctime", marker = "sys_platform == 'win32'" },
@@ -427,7 +438,7 @@ wheels = [
 [[package]]
 name = "nodeenv"
 version = "1.10.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/nodeenv/nodeenv-1.10.0.tar.gz", hash = "sha256:996c191ad80897d076bdfba80a41994c2b47c68e224c542b48feba42ba00f8bb" }
 wheels = [
     { url = "https://af.pivlab.space/simple/nodeenv/nodeenv-1.10.0-py2.py3-none-any.whl", hash = "sha256:5bb13e3eed2923615535339b3c620e76779af4cb4c6a90deccc9e36b274d3827" },
@@ -436,7 +447,7 @@ wheels = [
 [[package]]
 name = "packaging"
 version = "26.3"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/packaging/packaging-26.3.tar.gz", hash = "sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79" }
 wheels = [
     { url = "https://af.pivlab.space/simple/packaging/packaging-26.3-py3-none-any.whl", hash = "sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c" },
@@ -445,7 +456,7 @@ wheels = [
 [[package]]
 name = "platformdirs"
 version = "4.11.2"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/platformdirs/platformdirs-4.11.2.tar.gz", hash = "sha256:3a2ae5fca3520a01ab1be8b45613537f52ddf5b5f6f53d88233892dfbf0cd82d" }
 wheels = [
     { url = "https://af.pivlab.space/simple/platformdirs/platformdirs-4.11.2-py3-none-any.whl", hash = "sha256:7f89089b6ea71bda7962953edcf784b2e2d9d285b40ad88be2bb75c6e9d82ab4" },
@@ -454,7 +465,7 @@ wheels = [
 [[package]]
 name = "pluggy"
 version = "1.6.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/pluggy/pluggy-1.6.0.tar.gz", hash = "sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3" }
 wheels = [
     { url = "https://af.pivlab.space/simple/pluggy/pluggy-1.6.0-py3-none-any.whl", hash = "sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746" },
@@ -463,7 +474,7 @@ wheels = [
 [[package]]
 name = "pre-commit"
 version = "4.6.1"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "cfgv" },
     { name = "identify" },
@@ -479,7 +490,7 @@ wheels = [
 [[package]]
 name = "pydantic"
 version = "2.13.4"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "annotated-types" },
     { name = "pydantic-core" },
@@ -494,7 +505,7 @@ wheels = [
 [[package]]
 name = "pydantic-core"
 version = "2.46.4"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "typing-extensions" },
 ]
@@ -596,7 +607,7 @@ wheels = [
 [[package]]
 name = "pygments"
 version = "2.20.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/pygments/pygments-2.20.0.tar.gz", hash = "sha256:6757cd03768053ff99f3039c1a36d6c0aa0b263438fcab17520b30a303a82b5f" }
 wheels = [
     { url = "https://af.pivlab.space/simple/pygments/pygments-2.20.0-py3-none-any.whl", hash = "sha256:81a9e26dd42fd28a23a2d169d86d7ac03b46e2f8b59ed4698fb4785f946d0176" },
@@ -605,7 +616,7 @@ wheels = [
 [[package]]
 name = "pytest"
 version = "9.1.1"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
     { name = "iniconfig" },
@@ -621,7 +632,7 @@ wheels = [
 [[package]]
 name = "pytest-cov"
 version = "7.1.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "coverage", extra = ["toml"] },
     { name = "pluggy" },
@@ -635,7 +646,7 @@ wheels = [
 [[package]]
 name = "pytest-datadir"
 version = "1.8.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "pytest" },
 ]
@@ -647,7 +658,7 @@ wheels = [
 [[package]]
 name = "pytest-regressions"
 version = "2.11.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "pytest" },
     { name = "pytest-datadir" },
@@ -661,7 +672,7 @@ wheels = [
 [[package]]
 name = "python-discovery"
 version = "1.5.1"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "filelock" },
 ]
@@ -673,7 +684,7 @@ wheels = [
 [[package]]
 name = "pyyaml"
 version = "6.0.3"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/pyyaml/pyyaml-6.0.3.tar.gz", hash = "sha256:d76623373421df22fb4cf8817020cbb7ef15c725b9d5e45f17e189bfc384190f" }
 wheels = [
     { url = "https://af.pivlab.space/simple/pyyaml/pyyaml-6.0.3-cp311-cp311-macosx_10_13_x86_64.whl", hash = "sha256:44edc647873928551a01e7a563d7452ccdebee747728c1080d881d68af7b997e" },
@@ -728,7 +739,7 @@ wheels = [
 [[package]]
 name = "referencing"
 version = "0.37.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "attrs" },
     { name = "rpds-py" },
@@ -742,7 +753,7 @@ wheels = [
 [[package]]
 name = "requests"
 version = "2.34.2"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "certifi" },
     { name = "charset-normalizer" },
@@ -757,7 +768,7 @@ wheels = [
 [[package]]
 name = "rpds-py"
 version = "2026.6.3"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/rpds-py/rpds_py-2026.6.3.tar.gz", hash = "sha256:1cebd1337c242e4ec2293e541f712b2da849b29f48f0c293684b71c0632625d4" }
 wheels = [
     { url = "https://af.pivlab.space/simple/rpds-py/rpds_py-2026.6.3-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:7b689145a1485c335569bd056464f3243a29af7ed3871c7be31ad624ba239bc7" },
@@ -880,7 +891,7 @@ wheels = [
 [[package]]
 name = "ruff"
 version = "0.16.2"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/ruff/ruff-0.16.2.tar.gz", hash = "sha256:c3d7828d12e8927a6fc65fe38e2c2541b9e762d360a1786d752cb1b8883b3c9c" }
 wheels = [
     { url = "https://af.pivlab.space/simple/ruff/ruff-0.16.2-py3-none-linux_armv6l.whl", hash = "sha256:3c8de4cf2181f01d57946d87d777aa52916976fc09942aed89938fab5e013318" },
@@ -905,7 +916,7 @@ wheels = [
 [[package]]
 name = "smmap"
 version = "5.0.3"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/smmap/smmap-5.0.3.tar.gz", hash = "sha256:4d9debb8b99007ae47165abc08670bd74cb74b5227dda7f643eccc4e9eb5642c" }
 wheels = [
     { url = "https://af.pivlab.space/simple/smmap/smmap-5.0.3-py3-none-any.whl", hash = "sha256:c106e05d5a61449cf6ba9a1e650227ecfb141590d2a98412103ff35d89fc7b2f" },
@@ -914,7 +925,7 @@ wheels = [
 [[package]]
 name = "tomli"
 version = "2.4.1"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/tomli/tomli-2.4.1.tar.gz", hash = "sha256:7c7e1a961a0b2f2472c1ac5b69affa0ae1132c39adcb67aba98568702b9cc23f" }
 wheels = [
     { url = "https://af.pivlab.space/simple/tomli/tomli-2.4.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:f8f0fc26ec2cc2b965b7a3b87cd19c5c6b8c5e5f436b984e85f486d652285c30" },
@@ -968,7 +979,7 @@ wheels = [
 [[package]]
 name = "types-hvac"
 version = "2.4.0.20260731"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "requests" },
 ]
@@ -980,7 +991,7 @@ wheels = [
 [[package]]
 name = "types-jsonschema"
 version = "4.26.0.20260518"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "referencing" },
 ]
@@ -992,7 +1003,7 @@ wheels = [
 [[package]]
 name = "types-pyyaml"
 version = "6.0.12.20260724"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/types-pyyaml/types_pyyaml-6.0.12.20260724.tar.gz", hash = "sha256:3c1ce1bb73cd5ec02e90390c2b1f00e810d241d8825fd73ff359696839271b6b" }
 wheels = [
     { url = "https://af.pivlab.space/simple/types-pyyaml/types_pyyaml-6.0.12.20260724-py3-none-any.whl", hash = "sha256:d57db930a4b2efbc57cf430ec8882765d246929432fa253092f383902329a453" },
@@ -1001,7 +1012,7 @@ wheels = [
 [[package]]
 name = "typing-extensions"
 version = "4.16.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/typing-extensions/typing_extensions-4.16.0.tar.gz", hash = "sha256:dc983d19a509c94dba722ee6abd33940f7c05a89e243c47e907eb4db6f1a43e5" }
 wheels = [
     { url = "https://af.pivlab.space/simple/typing-extensions/typing_extensions-4.16.0-py3-none-any.whl", hash = "sha256:481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8" },
@@ -1010,7 +1021,7 @@ wheels = [
 [[package]]
 name = "typing-inspection"
 version = "0.4.3"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "typing-extensions" },
 ]
@@ -1022,7 +1033,7 @@ wheels = [
 [[package]]
 name = "urllib3"
 version = "2.7.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/urllib3/urllib3-2.7.0.tar.gz", hash = "sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c" }
 wheels = [
     { url = "https://af.pivlab.space/simple/urllib3/urllib3-2.7.0-py3-none-any.whl", hash = "sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897" },
@@ -1031,7 +1042,7 @@ wheels = [
 [[package]]
 name = "virtualenv"
 version = "21.7.3"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 dependencies = [
     { name = "distlib" },
     { name = "filelock" },
@@ -1046,7 +1057,7 @@ wheels = [
 [[package]]
 name = "win32-setctime"
 version = "1.2.0"
-source = { registry = "https://af.pivlab.space/simple" }
+source = { registry = "https://af.pivlab.dev/simple" }
 sdist = { url = "https://af.pivlab.space/simple/win32-setctime/win32_setctime-1.2.0.tar.gz", hash = "sha256:ae1fdf948f5640aae05c511ade119313fb6a30d7eabe25fef9764dca5873c4c0" }
 wheels = [
     { url = "https://af.pivlab.space/simple/win32-setctime/win32_setctime-1.2.0-py3-none-any.whl", hash = "sha256:95d644c4e708aba81dc3704a116d8cbc974d70b3bdb8be1d150e36be6e9d1390" },

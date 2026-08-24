@@ -115,7 +115,3 @@ def test_tasks_core_run_2():
     result = runner.invoke(cli.cli, ["run", "test-task-2", "--module", "_test_tasks"])
 
     assert result.exit_code == 0
-
-
-def test_load_task_registry_from_module_none():
-    assert cli.load_task_registry_from_module(None) == {}
