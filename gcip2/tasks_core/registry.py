@@ -18,7 +18,7 @@ class TaskRegistry:
 
         self._tasks: dict[str, Task] | None = None
 
-    def load_task_registry(self, generator: TaskGenerator) -> dict[str, Task]:
+    def _load_tasks_from_generator(self, generator: TaskGenerator) -> dict[str, Task]:
         registry: dict[str, Task] = {}
 
         for task in generator.load_tasks():
@@ -29,7 +29,7 @@ class TaskRegistry:
 
         return registry
 
-    def load_task_registry_from_module(self, module: str | None) -> dict[str, Task]:
+    def load_tasks_from_module(self, module: str | None) -> dict[str, Task]:
         if not module:
             LOGGER.warning("module with tasks not found")
             return {}
@@ -44,7 +44,7 @@ class TaskRegistry:
 
         generator: TaskGenerator = self._di.create_object(module_obj.TaskGenerator)
 
-        registry: dict[str, Task] = self.load_task_registry(generator)
+        registry: dict[str, Task] = self._load_tasks_from_generator(generator)
 
         return registry
 
@@ -52,7 +52,7 @@ class TaskRegistry:
     def tasks(self) -> dict[str, Task]:
         if self._tasks is None:
             self._tasks = {
-                **self.load_task_registry(self._di.create_object(CiTaskGenerator)),
-                **self.load_task_registry_from_module(self._config.extra.tasks.module),
+                **self._load_tasks_from_generator(self._di.create_object(CiTaskGenerator)),
+                **self.load_tasks_from_module(self._config.extra.tasks.module),
             }
         return self._tasks

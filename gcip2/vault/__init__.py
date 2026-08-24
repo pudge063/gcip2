@@ -11,7 +11,6 @@ from gcip2.project_config.vault_config import VaultAuthMethod, VaultConfig
 @injector.inject
 class Vault:
     def __init__(self, vault_config: VaultConfig):
-
         self.vault_config = vault_config
         self.client = hvac.Client(url=self.vault_config.url)
         LOGGER.debug(f"initialized client for vault instance: {self.vault_config.url}")

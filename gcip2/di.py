@@ -19,7 +19,7 @@ class Module(injector.Module):
         self.config_path = config_path
 
     def configure(self, binder: injector.Binder) -> None:
-        binder.bind(ConfigPath, to=ConfigPath(self.config_path), scope=injector.singleton)
+        binder.bind(ConfigPath, to=ConfigPath(self.config_path))
         binder.bind(TaskRegistry, scope=injector.singleton)
         binder.bind(SecretsHandler, scope=injector.singleton)
         binder.bind(Params, scope=injector.singleton)
