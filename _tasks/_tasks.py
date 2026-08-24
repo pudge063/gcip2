@@ -109,6 +109,3 @@ class TaskGenerator(TaskGeneratorImpl):
             )
 
         yield (self.builder(TestVaultSecret).apply().build())
-
-
-TASK_GENERATOR = TaskGenerator()

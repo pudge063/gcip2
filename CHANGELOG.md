@@ -1,9 +1,17 @@
 ## Changelog
 
-### [24.08.26 - 0.1.9]
+### [25.08.26 - 0.2.0]
+- implemented DI with `injector`: `ProjectConfig`, script assets and `SecretsHandler`
+  are now resolved through the container
+- `--config` is now respected by pipeline and job builders (previously the config
+  was read from the current working directory at import time)
 - removed loading tasks on module initialization
-- implemented `injector` for `tasks_core`
-- changed domain `space` to `dev` for infrastructure migrations
+- refactored `vault` module: `SecretsHandler.fetch(section)` replaces
+  `SecretsHandler(section).fetch()`; vault is no longer contacted unless a secret is requested
+- **breaking**: `Task.exec_task` now requires an `injector.Injector` argument
+- **breaking**: `_BasePipelineBuilder.job` is no longer a `staticmethod`
+- **breaking**: builders must be created via `injector.create_object`, not directly
+- changed domain `space` to `dev` for infrastructure migrations converted to dataclasses `JobBuilderImpl`, `PipelineBuilderImpl`, `GitlabCiBuilderImpl`, etc.
 
 ### [15.08.26 - 0.1.8]
 - fixed `after_script` section - removed point in `ci-after-script` task run cmd

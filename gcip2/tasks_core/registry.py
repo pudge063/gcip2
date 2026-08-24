@@ -5,15 +5,17 @@ import injector
 
 from gcip2.logging import logger as LOGGER
 from gcip2.project_config import ProjectConfig
-from gcip2.tasks_core.ci_tasks._tasks import CI_TASK_GENERATOR
+from gcip2.tasks_core.ci_tasks._tasks import CiTaskGenerator
 from gcip2.tasks_core.task_builder import Task
 from gcip2.tasks_core.task_generator import TaskGenerator
 
 
 class TaskRegistry:
     @injector.inject
-    def __init__(self, config: ProjectConfig) -> None:
+    def __init__(self, config: ProjectConfig, di: injector.Injector) -> None:
+        self._di = di
         self._config = config
+
         self._tasks: dict[str, Task] | None = None
 
     def load_task_registry(self, generator: TaskGenerator) -> dict[str, Task]:
@@ -36,11 +38,11 @@ class TaskRegistry:
 
         sys.path.insert(0, module_path)
         try:
-            module_obj = __import__(module, fromlist=["TASK_GENERATOR"])
+            module_obj = __import__(module, fromlist=["TaskGenerator"])
         finally:
             sys.path.remove(module_path)
 
-        generator: TaskGenerator = module_obj.TASK_GENERATOR
+        generator: TaskGenerator = self._di.create_object(module_obj.TaskGenerator)
 
         registry: dict[str, Task] = self.load_task_registry(generator)
 
@@ -50,7 +52,7 @@ class TaskRegistry:
     def tasks(self) -> dict[str, Task]:
         if self._tasks is None:
             self._tasks = {
-                **self.load_task_registry(CI_TASK_GENERATOR),
+                **self.load_task_registry(self._di.create_object(CiTaskGenerator)),
                 **self.load_task_registry_from_module(self._config.extra.tasks.module),
             }
         return self._tasks

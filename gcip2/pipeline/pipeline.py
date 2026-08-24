@@ -1,5 +1,8 @@
+import dataclasses
 from collections.abc import Iterable
 from typing import Self
+
+import injector
 
 from gcip2.pipeline_core import (
     Default,
@@ -22,11 +25,16 @@ class _PipelineBuilder:
         raise NotImplementedError
 
 
+@injector.inject
+@dataclasses.dataclass
 class _BasePipelineBuilder(_PipelineBuilder):
-    def __init__(self) -> None:
-        self.model: Pipeline = Pipeline()
+    _config: ProjectConfig
+    _di: injector.Injector
 
-    _config = ProjectConfig.from_file()
+    model: Pipeline = dataclasses.field(init=False, default_factory=Pipeline)
+
+    def __post_init__(self):
+        "extends point for childs"
 
     def apply(self: Self) -> Self:
         return self
@@ -49,9 +57,8 @@ class _BasePipelineBuilder(_PipelineBuilder):
 
         return self.model.model_copy(deep=True)
 
-    @staticmethod
-    def job(job_class: type[JobBuilderImpl]) -> JobBuilderImpl:
-        return job_class()
+    def job(self, job_class: type[JobBuilderImpl]) -> JobBuilderImpl:
+        return self._di.create_object(job_class)
 
     def add_jobs(self, jobs: Iterable[Job | JobBuilderImpl]):
         self.model.jobs.extend(jobs)
@@ -66,8 +73,7 @@ class _BasePipelineBuilder(_PipelineBuilder):
 
 
 class PipelineBuilderImpl(_BasePipelineBuilder):
-    def __init__(self) -> None:
-        self.model: Pipeline = Pipeline()
+    def __post_init__(self) -> None:
         self.model.workflow = Workflow(
             auto_cancel=WorkflowAutoCancel(on_new_commit=WorkflowAutoCancelOnNewCommit.NONE),
             rules=[

@@ -73,11 +73,11 @@ def run(ctx: click.Context, task_name: str, module: str | None):
         raise click.ClickException(f"Unknown task: {task_name}")
     task = task.model_copy(deep=True)
 
-    task.parse_task_params(args=ctx.args)
+    task.parse_task_params(args=ctx.args, di=ctx.obj)
 
     LOGGER.debug(f"running task: {task.basename}")
 
-    task.exec_task()
+    task.exec_task(inj=ctx.obj)
 
 
 if __name__ == "__main__":

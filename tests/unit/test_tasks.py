@@ -1,14 +1,19 @@
+import pathlib
 import typing
 
+import injector
 import pytest
 from click.testing import CliRunner
 
+from gcip2.di import Module
 from gcip2.tasks_core import (
     InteractivePythonAction,
     InteractiveShlex,
     TaskBuilderImpl,
     cli,
 )
+
+INJECTOR = injector.Injector([Module(config_path=pathlib.Path("environment.toml"))])
 
 
 def test_taskbuilderimpl_name():
@@ -18,7 +23,7 @@ def test_taskbuilderimpl_name():
         def apply(self):
             return self
 
-    task = DummyTask().apply().build()
+    task = INJECTOR.create_object(DummyTask).apply().build()
 
     assert task.basename == "test-task-name"
 
@@ -33,7 +38,7 @@ def test_taskbuilderimpl_without_name_FAILURE():
             return self.with_actions((DummyAction,))
 
     with pytest.raises(ValueError):
-        DummyTask().apply().build()
+        INJECTOR.create_object(DummyTask).apply().build()
 
 
 def test_taskbuilderimpl_actions():
@@ -47,7 +52,7 @@ def test_taskbuilderimpl_actions():
         def apply(self):
             return self.with_actions((DummyAction,))
 
-    task = DummyTask().apply().build()
+    task = INJECTOR.create_object(DummyTask).apply().build()
 
     assert task.actions == [DummyAction]
 
@@ -63,8 +68,8 @@ def test_taskbuilder_exec_task():
         def apply(self):
             return self.with_actions((DummyAction,))
 
-    task = DummyTask().apply().build()
-    task.exec_task()
+    task = INJECTOR.create_object(DummyTask).apply().build()
+    task.exec_task(INJECTOR)
 
 
 def test_action_InteractivePythonAction_impl():
@@ -73,7 +78,7 @@ def test_action_InteractivePythonAction_impl():
             raise NotImplementedError
 
     with pytest.raises(NotImplementedError):
-        DummyAction().execute()
+        INJECTOR.create_object(DummyAction).execute()
 
 
 def test_action_InteractiveShlex_impl():
@@ -82,7 +87,7 @@ def test_action_InteractiveShlex_impl():
             raise NotImplementedError
 
     with pytest.raises(NotImplementedError):
-        DummyAction().execute()
+        INJECTOR.create_object(DummyAction).execute()
 
 
 def test_action_InteractiveShlex_execute():
@@ -90,7 +95,7 @@ def test_action_InteractiveShlex_execute():
         def impl(self, **kwargs: typing.Any) -> list[list[str]]:
             return [["echo", "123"]]
 
-    DummyAction().execute()
+    INJECTOR.create_object(DummyAction).execute()
 
 
 def test_tasks_core_cli_list():

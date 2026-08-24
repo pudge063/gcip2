@@ -1,17 +1,18 @@
 from os import getenv as os_getenv
 
 import hvac
+import injector
 
 from gcip2.logging import logger as LOGGER
 from gcip2.project_config import ProjectConfig
-from gcip2.project_config.vault_config import VaultAuthMethod
+from gcip2.project_config.vault_config import VaultAuthMethod, VaultConfig
 
 
+@injector.inject
 class Vault:
-    _config = ProjectConfig.from_file()
+    def __init__(self, vault_config: VaultConfig):
 
-    def __init__(self, vault_section: str):
-        self.vault_config = self._config.extra.secrets.vault[vault_section]
+        self.vault_config = vault_config
         self.client = hvac.Client(url=self.vault_config.url)
         LOGGER.debug(f"initialized client for vault instance: {self.vault_config.url}")
         self.auth()
@@ -35,4 +36,21 @@ class Vault:
         )["data"]["data"]
 
 
-class SecretsHandler(Vault): ...
+class SecretsHandler:
+    @injector.inject
+    def __init__(self, config: ProjectConfig) -> None:
+        self._config = config
+
+    def normalize_secret(self, secret: str) -> VaultConfig:
+        if isinstance(secret, VaultConfig):
+            return secret
+        vault_config = self._config.extra.secrets.vault.get(secret)
+        if not vault_config:
+            raise ValueError(f"missing secret '{secret}'")
+        return vault_config
+
+    def fetch(self, secret: str):
+        vault_config = self.normalize_secret(secret)
+        LOGGER.info(f"fetching secret: '{secret}'")
+        client = Vault(vault_config)
+        return client.fetch()

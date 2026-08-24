@@ -1,3 +1,3 @@
-from ._tasks import TASK_GENERATOR
+from ._tasks import TaskGenerator
 
-__all__ = ("TASK_GENERATOR",)
+__all__ = ("TaskGenerator",)

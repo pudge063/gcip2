@@ -41,6 +41,3 @@ class TaskGenerator(TaskGeneratorImpl):
     def load_tasks(self):
         yield (self.builder(DummyTask1).apply().build())
         yield (self.builder(DummyTask2).apply().build())
-
-
-TASK_GENERATOR = TaskGenerator()

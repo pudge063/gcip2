@@ -1,4 +1,7 @@
+import dataclasses
 from typing import Self
+
+import injector
 
 from gcip2.ci.jobs import assets
 from gcip2.pipeline_core import JobBuilderImpl, Stage
@@ -13,11 +16,13 @@ class Base(JobBuilderImpl):
         return self
 
 
+@injector.inject
+@dataclasses.dataclass
 class BaseLinux(JobBuilderImpl):
     _base = Base
-    _scipt_linux: assets.ScriptLinux = assets.ScriptLinux.load()
-    _after_script_linux: assets.AfterScriptLinux = assets.AfterScriptLinux.load()
-    _before_script_linux: assets.BeforeScriptLinux = assets.BeforeScriptLinux.load()
+    _scipt_linux: assets.ScriptLinux
+    _after_script_linux: assets.AfterScriptLinux
+    _before_script_linux: assets.BeforeScriptLinux
 
     def apply(self: Self) -> Self:
         self.model.after_script = [
@@ -28,11 +33,13 @@ class BaseLinux(JobBuilderImpl):
         return self
 
 
+@injector.inject
+@dataclasses.dataclass
 class BasePython(JobBuilderImpl):
     _base = Base
-    _scipt_linux: assets.ScriptLinux = assets.ScriptLinux.load()
-    _after_script_linux: assets.AfterScriptLinux = assets.AfterScriptLinux.load()
-    _before_script_linux: assets.BeforeScriptLinux = assets.BeforeScriptLinux.load()
+    _scipt_linux: assets.ScriptLinux
+    _after_script_linux: assets.AfterScriptLinux
+    _before_script_linux: assets.BeforeScriptLinux
 
     def apply(self: Self) -> Self:
         super().apply()

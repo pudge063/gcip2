@@ -9,7 +9,7 @@ class VaultAuthMethod(str, enum.Enum):
     JWKS = "jwks"
 
 
-class Vault(pydantic.BaseModel):
+class VaultConfig(pydantic.BaseModel):
     url: str
     auth_method: VaultAuthMethod
     app_role_id_env_var: Optional[str] = None

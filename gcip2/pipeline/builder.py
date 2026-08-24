@@ -6,6 +6,7 @@ from difflib import unified_diff
 from enum import Enum
 from typing import Any, Optional, Self, TypeVar
 
+import injector
 import yaml
 
 from gcip2.ci.jobs import trigger
@@ -23,6 +24,10 @@ class TriggerPipelineDefaults(str, Enum):
 
 class PipelineBuilder:
     yaml_dumper = CustomDumper
+
+    @injector.inject
+    def __init__(self, di: injector.Injector) -> None:
+        self._di = di
 
     @staticmethod
     def show_file_diff(path: pathlib.Path, data: str):
@@ -62,7 +67,7 @@ class PipelineBuilder:
 
         for obj in module.__dict__.values():
             if isinstance(obj, type) and issubclass(obj, obj_type) and obj is not obj_type:
-                return obj()
+                return self._di.create_object(obj)
 
         raise RuntimeError(f"{obj_type.__name__} child class not found")
 
@@ -107,8 +112,8 @@ class PipelineBuilder:
         ci_file_path: pathlib.Path,
         out_gitlab_ci: pathlib.Path,
     ) -> None:
-        _build_trigger_pipeline = trigger.BuildTriggerPipeline()
-        _trigger_pipeline = trigger.TriggerPipeline()
+        _build_trigger_pipeline = self._di.create_object(trigger.BuildTriggerPipeline)
+        _trigger_pipeline = self._di.create_object(trigger.TriggerPipeline)
 
         pipeline_entry = self.load_pipeline(ci_file_path, obj_type=GitlabCiBuilderImpl)
 
@@ -129,7 +134,7 @@ class PipelineBuilder:
             pipeline_obj.workflow.rules = [downstream_rule] + pipeline_obj.workflow.rules
 
         if not pipeline_obj.stages:
-            pipeline_entry.stages = [Stage.JOBS]
+            pipeline_obj.stages = [Stage.JOBS]
 
         self.build_pipeline_file(
             pipeline=pipeline_obj,
