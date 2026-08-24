@@ -6,6 +6,7 @@ import pytest
 from click.testing import CliRunner
 
 from gcip2.di import Module
+from gcip2.pipeline_core import JobBuilderImpl
 from gcip2.tasks_core import (
     InteractivePythonAction,
     InteractiveShlex,
@@ -120,3 +121,18 @@ def test_tasks_core_run_2():
     result = runner.invoke(cli.cli, ["run", "test-task-2", "--module", "_test_tasks"])
 
     assert result.exit_code == 0
+
+
+def test_custom_config_path():
+    marker = "custom-marker"
+
+    tmp_path = pathlib.Path("out/tmp")
+    tmp_path.mkdir(exist_ok=True)
+    cfg = tmp_path / "custom.toml"
+    cfg.write_text(f'[extra]\nmarker = "{marker}"')
+
+    di = injector.Injector([Module(config_path=cfg)])
+
+    job = di.create_object(JobBuilderImpl)
+
+    assert job._config.extra.get("marker") == marker
