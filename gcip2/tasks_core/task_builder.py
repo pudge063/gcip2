@@ -1,8 +1,10 @@
+import dataclasses
 import os
 import typing
 from collections.abc import Iterable
 from enum import Enum
 
+import injector
 import pydantic
 
 from gcip2 import ProjectConfig
@@ -23,8 +25,8 @@ class Task(pydantic.BaseModel):
 
     params: list[Param] = pydantic.Field(default_factory=lambda: [])
 
-    def parse_task_params(self, args: list[str]):
-        _config = ProjectConfig.from_file()
+    def parse_task_params(self, args: list[str], di: injector.Injector):
+        _config = di.get(ProjectConfig)
 
         if _config.extra.model_extra:
             for key, val in _config.extra.model_extra.items():
@@ -62,11 +64,11 @@ class Task(pydantic.BaseModel):
 
             self.parsed_params[param.name] = param.type(value)
 
-    def exec_task(self):
+    def exec_task(self, inj: injector.Injector):
         if not self.actions:
             raise RuntimeError("not found actions to execute.")
         for action_cls in self.actions:
-            action = action_cls()
+            action = inj.create_object(action_cls)
             action.execute(**self.parsed_params)
 
 
@@ -75,13 +77,18 @@ class TaskBulder:
         raise NotImplementedError
 
 
+@injector.inject
+@dataclasses.dataclass
 class TaskBuilderImpl(TaskBulder):
     _basename: typing.ClassVar[str | Enum | None] = None
 
-    _params: Params = Params()
+    _params: Params
+    _config: ProjectConfig
 
-    def __init__(self):
-        self.model = Task()
+    model: Task = dataclasses.field(init=False, default_factory=Task)
+
+    def __post_init__(self):
+        "extension point for childs"
 
     def apply(self):
         return self

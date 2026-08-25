@@ -1,38 +1,38 @@
 [project]
 name = "gcip2"
-version = "0.1.8"
+version = "0.2.0"
 description = "framework for dynamic pipeline generation from python code"
 readme = "README.md"
 license = "MIT"
 authors = [
-    { name = "Arsenii Nikulin", email = "a.nikulin@pivlab.space" },
-    { name = "PivLab Tech" },
+  { name = "Arsenii Nikulin", email = "a.nikulin@pivlab.dev" },
+  { name = "PivLab Dev" },
 ]
 requires-python = ">=3.11,<4.0"
 
 dependencies = [
-    "argparse>=1.4.0,<2.0.0",
-    "click>=8.4.1,<9.0.0",
-    "gitpython>=3.1.57,<4.0.0",
-    "hvac>=2.4.0,<3.0.0",
-    "jinja2>=3.1.6,<4.0.0",
-    "jsonschema>=4.26.0,<5.0.0",
-    "loguru>=0.7.3,<1.0.0",
-    "pre-commit>=4.6.0,<5.0.0",
-    "pydantic>=2.13.4,<3.0.0",
-    "pyyaml>=6.0.3,<7.0.0",
-    "pytest>=9.1.1,<10.0.0",
-    "pytest-cov>=7.1.0,<8.0.0",
-    "pytest-regressions>=2.11.0,<3.0.0",
-    "ruff>=0.16.1,<0.17.0",
+  "click>=8.4.1,<9.0.0",
+  "gitpython>=3.1.57,<4.0.0",
+  "hvac>=2.4.0,<3.0.0",
+  "injector>=0.24.0",
+  "jsonschema>=4.26.0,<5.0.0",
+  "keyring>=25.7.0",
+  "loguru>=0.7.3,<1.0.0",
+  "pydantic>=2.13.4,<3.0.0",
+  "pyyaml>=6.0.3,<7.0.0",
 ]
 
 [dependency-groups]
 dev = [
-    "requests>=2.34.2,<3.0.0",
-    "types-hvac>=2.4.0.20260731",
-    "types-jsonschema>=4.26.0.20260518",
-    "types-pyyaml>=6.0.12.20260724",
+  "pre-commit>=4.6.0,<5.0.0",
+  "ruff>=0.16.1,<0.17.0",
+  "requests>=2.34.2,<3.0.0",
+  "types-hvac>=2.4.0.20260731",
+  "types-jsonschema>=4.26.0.20260518",
+  "types-pyyaml>=6.0.12.20260724",
+  "pytest>=9.1.1,<10.0.0",
+  "pytest-cov>=7.1.0,<8.0.0",
+  "pytest-regressions>=2.11.0,<3.0.0",
 ]
 
 [project.scripts]
@@ -42,22 +42,22 @@ dothat = "gcip2.tasks_core.cli:cli"
 target-version = "py311"
 line-length = 120
 exclude = [
-    ".git",
-    ".mypy_cache",
-    ".pyenv",
-    ".pytest_cache",
-    ".pytype",
-    ".ruff_cache",
-    ".venv",
-    ".vscode",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "site-packages",
-    "*venv*",
+  ".git",
+  ".mypy_cache",
+  ".pyenv",
+  ".pytest_cache",
+  ".pytype",
+  ".ruff_cache",
+  ".venv",
+  ".vscode",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "site-packages",
+  "*venv*",
 ]
 
 [tool.ruff.lint]
@@ -73,4 +73,4 @@ build-backend = "hatchling.build"
 
 [[tool.uv.index]]
 name = "pypi"
-url = "https://af.pivlab.space/simple"
+url = "https://af.pivlab.dev/simple"

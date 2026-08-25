@@ -1,14 +1,8 @@
 [extra]
-version = "0.1.8"
+version = "0.2.0"
 test-repo = "rnd/gcip2-tests/initialization-test"
 
-pipelines = [
-    "initialization",
-    "integration",
-    "tasks",
-    "vault",
-    "multipipeline",
-]
+pipelines = ["initialization", "integration", "tasks", "vault", "multipipeline"]
 
 [extra.tests]
 coverage-module = { "job" = "gcip2.pipeline_core", "pipeline" = "gcip2.pipeline_core", "tasks" = "gcip2.tasks_core" }
@@ -25,7 +19,7 @@ param1 = "2"
 
 
 [extra.secrets.vault.vault-with-approle]
-url = "https://vault.pivlab.space"
+url = "https://vault.pivlab.dev"
 auth_method = "approle"
 app_role_id_env_var = "APP_ROLE_ID"
 app_role_secret_id_env_var = "APP_ROLE_SECRET_ID"
@@ -34,13 +28,13 @@ path = "infra/test"
 env_vars = [{ value = "", field = "" }]
 
 [extra.secrets.vault.vault-with-jwks]
-url = "https://vault.pivlab.space"
+url = "https://vault.pivlab.dev"
 auth_method = "jwks"
 mount_point = "rnd"
 path = "infra/test"
 
 [extra.secrets.vault.pypi-token]
-url = "https://vault.pivlab.space"
+url = "https://vault.pivlab.dev"
 auth_method = "approle"
 app_role_id_env_var = "APP_ROLE_ID"
 app_role_secret_id_env_var = "APP_ROLE_SECRET_ID"
@@ -48,7 +42,7 @@ mount_point = "rnd"
 path = "infra/pypi"
 
 [extra.secrets.vault.gitlab-token]
-url = "https://vault.pivlab.space"
+url = "https://vault.pivlab.dev"
 auth_method = "approle"
 app_role_id_env_var = "APP_ROLE_ID"
 app_role_secret_id_env_var = "APP_ROLE_SECRET_ID"
@@ -56,7 +50,7 @@ mount_point = "rnd"
 path = "infra/accounts/gitlab/ci"
 
 [extra.secrets.vault.gl-pivlab-maintainer]
-url = "https://vault.pivlab.space"
+url = "https://vault.pivlab.dev"
 auth_method = "approle"
 app_role_id_env_var = "APP_ROLE_ID"
 app_role_secret_id_env_var = "APP_ROLE_SECRET_ID"

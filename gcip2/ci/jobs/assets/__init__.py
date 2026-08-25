@@ -2,7 +2,7 @@ import dataclasses
 import pathlib
 import typing
 
-ASSERTS_DIR = pathlib.Path(__file__).parent
+ASSETS_DIR = pathlib.Path(__file__).parent
 
 
 @dataclasses.dataclass
@@ -13,7 +13,7 @@ class TextAsset:
 
     @classmethod
     def load(cls) -> typing.Self:
-        path = ASSERTS_DIR / cls.relative_path
+        path = ASSETS_DIR / cls.relative_path
         return cls(script=path.read_text(), path=path)
 
 

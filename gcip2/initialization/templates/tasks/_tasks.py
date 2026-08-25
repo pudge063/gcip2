@@ -30,6 +30,3 @@ class TaskGenerator(TaskGeneratorImpl):
         yield from super().load_tasks()
 
         yield (self.builder(CheckPythonVersion).apply().build())
-
-
-TASK_GENERATOR = TaskGenerator()

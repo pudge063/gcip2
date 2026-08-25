@@ -5,11 +5,11 @@ import typing
 from pydantic import BaseModel, ConfigDict, Field
 
 from gcip2.project_config.compose import Compose
-from gcip2.project_config.vault_config import Vault
+from gcip2.project_config.vault_config import VaultConfig
 
 
 class Secrets(BaseModel):
-    vault: dict[str, Vault] = Field(default_factory=dict)
+    vault: dict[str, VaultConfig] = Field(default_factory=dict)
 
 
 class Tasks(BaseModel):

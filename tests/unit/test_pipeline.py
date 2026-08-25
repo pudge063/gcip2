@@ -1,4 +1,9 @@
+import pathlib
+
+import injector
+
 from gcip2 import PipelineBuilderImpl, ProjectConfig
+from gcip2.di import Module
 from gcip2.pipeline_core import (
     Default,
     Image,
@@ -11,11 +16,13 @@ from gcip2.pipeline_core import (
     WorkflowWhen,
 )
 
+INJECTOR = injector.Injector([Module(config_path=pathlib.Path("environment.toml"))])
+
 
 def test_default_pipeline():
-    config = ProjectConfig.from_file()
+    config = INJECTOR.get(ProjectConfig)
 
-    pipeline: Pipeline = PipelineBuilderImpl().apply().build()
+    pipeline: Pipeline = INJECTOR.create_object(PipelineBuilderImpl).apply().build()
 
     base_pipeline = Pipeline()
     base_pipeline.stages = [Stage.JOBS]
@@ -41,6 +48,6 @@ def test_default_pipeline():
 
 def test_pipeline_workflow_name():
     name = "default"
-    pipeline: Pipeline = PipelineBuilderImpl().apply().with_workflow(Workflow(name=name)).build()
+    pipeline: Pipeline = INJECTOR.create_object(PipelineBuilderImpl).apply().with_workflow(Workflow(name=name)).build()
 
     assert pipeline.workflow and pipeline.workflow.name == name

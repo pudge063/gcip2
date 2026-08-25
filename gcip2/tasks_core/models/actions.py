@@ -1,8 +1,11 @@
+import dataclasses
 import shlex
 import subprocess
 import typing
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
+
+import injector
 
 from gcip2.logging import logger as LOGGER
 from gcip2.project_config import ProjectConfig
@@ -11,10 +14,12 @@ from gcip2.vault import SecretsHandler
 ActionResult = typing.Any
 
 
+@injector.inject
+@dataclasses.dataclass
 class ActionBuilderImpl(ABC):
-    _config = ProjectConfig.from_file()
-
-    _secret_handler = SecretsHandler
+    _di: injector.Injector
+    _config: ProjectConfig
+    _secret_handler: SecretsHandler
 
     @abstractmethod
     def impl(self, **kwargs: typing.Any) -> ActionResult: ...

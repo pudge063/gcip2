@@ -1,82 +1,52 @@
 import builtins
+import dataclasses
 import pathlib
-import sys
-from functools import lru_cache
 
 import click
+import injector
 
+from gcip2.di import Module
 from gcip2.logging import logger as LOGGER
-from gcip2.project_config import ProjectConfig
-from gcip2.tasks_core.ci_tasks import CI_TASK_GENERATOR
+from gcip2.tasks_core.registry import TaskRegistry
 from gcip2.tasks_core.task_builder import Task
-from gcip2.tasks_core.task_generator import TaskGenerator
+
+
+@dataclasses.dataclass
+class DothatContext:
+    di: injector.Injector
+
+
+def get_registry(di: injector.Injector, module: str | None) -> dict[str, Task]:
+    if module:
+        return di.get(TaskRegistry).load_tasks_from_module(module)
+    return di.get(TaskRegistry).tasks
 
 
 @click.group()
-def cli():
-    pass
-
-
-config = ProjectConfig.from_file()
-
-
-def load_task_registry(generator: TaskGenerator) -> dict[str, Task]:
-    registry: dict[str, Task] = {}
-
-    for task in generator.load_tasks():
-        if not task.basename:
-            raise ValueError("Task basename is not set.")
-        taskname = task.basename if not task.name else ":".join([task.basename, task.name])
-        registry[taskname] = task
-
-    return registry
-
-
-@lru_cache
-def load_task_registry_from_module(module: str) -> dict[str, Task]:
-    if not module:
-        LOGGER.warning("module with tasks not found")
-        return {}
-
-    module_path = str(pathlib.Path(module).parent)
-
-    sys.path.insert(0, module_path)
-    try:
-        module_obj = __import__(module, fromlist=["TASK_GENERATOR"])
-    finally:
-        sys.path.remove(module_path)
-
-    generator: TaskGenerator = module_obj.TASK_GENERATOR
-
-    registry: dict[str, Task] = load_task_registry(generator)
-
-    return registry
-
-
-CI_TASK_REGISTRY: dict[str, Task] = load_task_registry(CI_TASK_GENERATOR)
-
-TASK_REGISTRY: dict[str, Task] = {
-    **CI_TASK_REGISTRY,
-    **load_task_registry_from_module(config.extra.tasks.module),
-}
+@click.option("--config", type=pathlib.Path, default=pathlib.Path("environment.toml"))
+@click.pass_context
+def cli(ctx: click.Context, config: pathlib.Path):
+    ctx.obj = DothatContext(di=injector.Injector([Module(config_path=config)]))
 
 
 @cli.command()
 @click.option("--module", default=None)
-def list(module: str):
-    registry = load_task_registry_from_module(module) if module else TASK_REGISTRY
+@click.pass_obj
+def list(dothat_context: DothatContext, module: str | None):
+    _registry = get_registry(dothat_context.di, module)
 
-    for key, task in registry.items():
+    for key, task in _registry.items():
         click.echo(f"R {key:<50} {task.doc}")
 
 
 @cli.command()
 @click.argument("task_name")
 @click.option("--module", default=None)
-def help(task_name: str, module: str):
-    registry = load_task_registry_from_module(module) if module else TASK_REGISTRY
+@click.pass_obj
+def help(dothat_context: DothatContext, task_name: str, module: str):
+    _registry = get_registry(di=dothat_context.di, module=module)
 
-    task = registry[task_name]
+    task = _registry[task_name]
 
     click.echo(f"{task_name}  {task.doc}")
 
@@ -101,19 +71,19 @@ def help(task_name: str, module: str):
 @click.pass_context
 @click.option("--module", default=None)
 def run(ctx: click.Context, task_name: str, module: str | None):
-    registry = load_task_registry_from_module(module) if module else TASK_REGISTRY
+    _registry = get_registry(di=ctx.obj.di, module=module)
 
-    task = registry.get(task_name)
+    task = _registry.get(task_name)
 
     if task is None:
         raise click.ClickException(f"Unknown task: {task_name}")
     task = task.model_copy(deep=True)
 
-    task.parse_task_params(args=ctx.args)
+    task.parse_task_params(args=ctx.args, di=ctx.obj.di)
 
     LOGGER.debug(f"running task: {task.basename}")
 
-    task.exec_task()
+    task.exec_task(inj=ctx.obj.di)
 
 
 if __name__ == "__main__":

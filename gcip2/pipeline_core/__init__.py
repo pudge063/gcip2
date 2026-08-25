@@ -1,8 +1,10 @@
 # ruff: noqa: E501
+import dataclasses
 import json
 from enum import Enum
 from typing import Any, ClassVar, Optional, Self
 
+import injector
 import jsonschema
 import pydantic
 
@@ -693,22 +695,28 @@ class JobBuilder:
         raise NotImplementedError
 
 
+@injector.inject
+@dataclasses.dataclass
 class JobBuilderImpl(JobBuilder):
+    __pydantic_config__ = pydantic.ConfigDict(arbitrary_types_allowed=True)
+
     _base: ClassVar[type["JobBuilderImpl"] | None] = None
     _name: ClassVar[str | Enum | None] = None
 
-    _config = ProjectConfig.from_file()
     _secret_handler = SecretsHandler
 
-    def __init__(self) -> None:
-        self.model: Job = Job()
+    _config: ProjectConfig
+    _di: injector.Injector
+    model: Job = dataclasses.field(init=False, default_factory=Job)
+
+    def __post_init__(self) -> None:
         self._apply_name()
 
     def _apply_base(self) -> None:
         if self._base is None:
             return
 
-        base = self._base()
+        base = self._di.create_object(self._base)
         base._apply_base()
         base.apply()
 

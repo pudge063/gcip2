@@ -30,7 +30,7 @@ class CheckSecret(InteractivePythonAction):
         if not Predefined.CI_PIPELINE_SOURCE.getenv():
             LOGGER.info("not ci.")
             return
-        secret = self._secret_handler("vault-with-approle").fetch()
+        secret = self._secret_handler.fetch("vault-with-approle")
         username, password = secret["test_username"], secret["test_password"]
         LOGGER.info(f"secret username: {username}")
         LOGGER.info(f"secret password: {password}")

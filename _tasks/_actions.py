@@ -21,7 +21,7 @@ class SetupSsh(InteractivePythonAction):
             LOGGER.warning("not CI")
             return
 
-        secret = self._secret_handler("gl-pivlab-maintainer").fetch()
+        secret = self._secret_handler.fetch("gl-pivlab-maintainer")
         ssh_private_key = secret["ssh_private_key"]
 
         ssh_dir = pathlib.Path("/root/.ssh")
@@ -74,7 +74,7 @@ class TestVaultSecretAction(InteractivePythonAction):
         vault_section: str,
         **_: typing.Any,
     ):
-        secret = self._secret_handler(vault_section).fetch()
+        secret = self._secret_handler.fetch(vault_section)
         username, password = secret["test_username"], secret["test_password"]
         LOGGER.info(f"secret username: {username}")
         LOGGER.info(f"secret password: {password}")
@@ -123,7 +123,7 @@ class UpdateTestProject(InteractiveShlex):
 
 class RunInitializationPipeline(InteractivePythonAction):
     def impl(self, **_: typing.Any):
-        token = self._secret_handler("gl-pivlab-maintainer").fetch()["token"]
+        token = self._secret_handler.fetch("gl-pivlab-maintainer")["token"]
         project_url = self._config.extra.get("test-repo", "").replace("/", "%2F")
 
         gl = GitlabApi(gitlab_token=token)
@@ -231,7 +231,7 @@ class CreateVersionTag(InteractivePythonAction):
         LOGGER.info(f"creating tag for release: {version}")
 
         if Predefined.CI_DEFAULT_BRANCH.must() == Predefined.CI_COMMIT_BRANCH.getenv():
-            token = self._secret_handler(gitlab_token_section).fetch()["token"]
+            token = self._secret_handler.fetch(gitlab_token_section)["token"]
             gl = GitlabApi(gitlab_token=token)
             gl.create_release_tag(version=version)
         else:
@@ -249,7 +249,7 @@ class PublishPackage(InteractiveShlex):
             publish_cmds.append("--dry-run")
             token = "test-token-value"
         else:
-            token = self._secret_handler(pypi_token_section).fetch()["token"]
+            token = self._secret_handler.fetch(pypi_token_section)["token"]
 
         os.environ["UV_PUBLISH_TOKEN"] = token
 

@@ -37,10 +37,19 @@ class DummyTask2(TaskBuilderImpl):
         return self
 
 
+class DummyTask3(TaskBuilderImpl):
+    _basename = "test-task-3"
+
+    def apply(self):
+        self.with_actions((CheckShellCmd,)).with_params((self._params.ci(),))
+        return self
+
+
 class TaskGenerator(TaskGeneratorImpl):
+    task_test_task_3 = DummyTask3
+
     def load_tasks(self):
+        yield from super().load_tasks()
+
         yield (self.builder(DummyTask1).apply().build())
         yield (self.builder(DummyTask2).apply().build())
-
-
-TASK_GENERATOR = TaskGenerator()
