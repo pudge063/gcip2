@@ -7,29 +7,26 @@ from click.testing import CliRunner
 
 from gcip2.di import Module
 from gcip2.pipeline_core import JobBuilderImpl
+from gcip2.project_config import ProjectConfig
 from gcip2.tasks_core import (
     InteractivePythonAction,
     InteractiveShlex,
     TaskBuilderImpl,
     cli,
 )
+from tests.unit import _test_tasks
 
 INJECTOR = injector.Injector([Module(config_path=pathlib.Path("environment.toml"))])
 
 
-def test_taskbuilderimpl_name():
+def test_taskbuilderimpl_name(build_dummy_task):
     class DummyTask(TaskBuilderImpl):
         _basename = "test-task-name"
 
-        def apply(self):
-            return self
-
-    task = INJECTOR.create_object(DummyTask).apply().build()
-
-    assert task.basename == "test-task-name"
+    assert build_dummy_task(DummyTask).basename == "test-task-name"
 
 
-def test_taskbuilderimpl_without_name_FAILURE():
+def test_taskbuilderimpl_without_name_FAILURE(build_dummy_task):
     class DummyAction(InteractivePythonAction):
         def impl(self, **kwargs: typing.Any):
             pass
@@ -39,10 +36,10 @@ def test_taskbuilderimpl_without_name_FAILURE():
             return self.with_actions((DummyAction,))
 
     with pytest.raises(ValueError):
-        INJECTOR.create_object(DummyTask).apply().build()
+        build_dummy_task(DummyTask)
 
 
-def test_taskbuilderimpl_actions():
+def test_taskbuilderimpl_actions(build_dummy_task):
     class DummyAction(InteractivePythonAction):
         def impl(self, **kwargs: typing.Any):
             pass
@@ -53,12 +50,10 @@ def test_taskbuilderimpl_actions():
         def apply(self):
             return self.with_actions((DummyAction,))
 
-    task = INJECTOR.create_object(DummyTask).apply().build()
-
-    assert task.actions == [DummyAction]
+    assert build_dummy_task(DummyTask).actions == [DummyAction]
 
 
-def test_taskbuilder_exec_task():
+def test_taskbuilder_exec_task(build_dummy_task, di):
     class DummyAction(InteractiveShlex):
         def impl(self, **kwargs: typing.Any):
             return [["echo", "123"]]
@@ -69,34 +64,33 @@ def test_taskbuilder_exec_task():
         def apply(self):
             return self.with_actions((DummyAction,))
 
-    task = INJECTOR.create_object(DummyTask).apply().build()
-    task.exec_task(INJECTOR)
+    build_dummy_task(DummyTask).exec_task(di)
 
 
-def test_action_InteractivePythonAction_impl():
+def test_action_InteractivePythonAction_impl(build_dummy_action):
     class DummyAction(InteractivePythonAction):
         def impl(self, **kwargs: typing.Any) -> None:
             raise NotImplementedError
 
     with pytest.raises(NotImplementedError):
-        INJECTOR.create_object(DummyAction).execute()
+        build_dummy_action(DummyAction).execute()
 
 
-def test_action_InteractiveShlex_impl():
+def test_action_InteractiveShlex_impl(build_dummy_action):
     class DummyAction(InteractiveShlex):
         def impl(self, **kwargs: typing.Any) -> list[list[str]]:
             raise NotImplementedError
 
     with pytest.raises(NotImplementedError):
-        INJECTOR.create_object(DummyAction).execute()
+        build_dummy_action(DummyAction).execute()
 
 
-def test_action_InteractiveShlex_execute():
+def test_action_InteractiveShlex_execute(build_dummy_action):
     class DummyAction(InteractiveShlex):
         def impl(self, **kwargs: typing.Any) -> list[list[str]]:
             return [["echo", "123"]]
 
-    INJECTOR.create_object(DummyAction).execute()
+    build_dummy_action(DummyAction).execute()
 
 
 def test_tasks_core_cli_list():
@@ -123,6 +117,22 @@ def test_tasks_core_run_2():
     assert result.exit_code == 0
 
 
+def test_tasks_core_run_3_output(di, capfd):
+    runner = CliRunner()
+    result = runner.invoke(cli.cli, ["run", "test-task-3", "--ci", "--module", "tests.unit._test_tasks"])
+    assert result.exit_code == 0
+
+    out, _ = capfd.readouterr()
+    assert di.get(ProjectConfig).extra.get("version") in out
+
+
+def test_build_command(di):
+    action = di.create_object(_test_tasks.CheckShellCmd)
+    assert action.impl(ci=True, extra__version=di.get(ProjectConfig).extra.get("version")) == [
+        ["echo", di.get(ProjectConfig).extra.get("version")]
+    ]
+
+
 def test_custom_config_path():
     marker = "custom-marker"
 
@@ -136,3 +146,8 @@ def test_custom_config_path():
     job = di.create_object(JobBuilderImpl)
 
     assert job._config.extra.get("marker") == marker
+
+
+def test_config_singleton():
+    di = injector.Injector([Module])
+    assert di.create_object(JobBuilderImpl)._config is di.get(ProjectConfig)
