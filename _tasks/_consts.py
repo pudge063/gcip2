@@ -9,6 +9,7 @@ class Tasks(Enum):
     check_package_version = "check-package-version"
     create_version_tag = "create-version-tag"
     publish_package = "publish-package"
+    generate_docs = "generate-docs"
 
 
 class PipelineStatus(Enum):

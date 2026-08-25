@@ -254,3 +254,8 @@ class PublishPackage(InteractiveShlex):
         os.environ["UV_PUBLISH_TOKEN"] = token
 
         return [["uv", "build"], publish_cmds]
+
+
+class GenerateDocs(InteractiveShlex):
+    def impl(self, **_: typing.Any):
+        return [["sphinx-build", "-b", "html", "docs", "out/docs"]]

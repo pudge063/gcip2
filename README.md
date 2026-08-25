@@ -6,20 +6,21 @@ Instead of writing large YAML files, pipelines are defined in Python, validated 
 
 ## Features
 
-* Strongly typed GitLab CI models
-* Fluent builder API
-* Reusable job builders
-* Pipeline inheritance
-* JSON Schema validation
-* Automatic YAML generation
-* Dynamic pipeline discovery
-* GitLab-compatible output
+- Strongly typed GitLab CI models
+- Fluent builder API
+- Reusable job builders
+- Pipeline inheritance
+- JSON Schema validation
+- Automatic YAML generation
+- Dynamic pipeline discovery
+- GitLab-compatible output
 
 ---
 
 # Installation
 
 Create `pyproject.toml` with pyproject configuration
+
 ```
 [project]
 name = "dev"
@@ -28,7 +29,6 @@ description = ""
 requires-python = ">=3.11,<4.0"
 
 ```
-
 
 ```bash
 uv add gcip2
@@ -84,21 +84,6 @@ dothat run build-gitlab-ci \
 
 ---
 
-# Documentation
-
-Detailed documentation is available in the `docs/` directory.
-
-| Document                                       | Description                                         |
-| ---------------------------------------------- | --------------------------------------------------- |
-| [docs/pipeline.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/builder.md)               | Creating pipelines, jobs and workflow configuration |
-| [docs/builder.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/builder.md)                | Pipeline builder, rendering and YAML generation     |
-| [docs/pipeline_core.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/pipeline_core.md)    | Reference for the typed GitLab CI models            |
-| [docs/secrets.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/secrets.md)                | SecretsHandler with Vault integration               |
-| [docs/project_config.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/docs/project_config.md)  | ProjectConfig with global environment               |
-| [CHANGELOG.md](https://gl.pivlab.space/rnd/gcip2/-/blob/master/CHANGELOG.md)                      | Project changelog                                   |
-
----
-
 # Project Structure
 
 A typical project consists of two builders:
@@ -118,34 +103,6 @@ ci.py
 
 ---
 
-# CLI
-
-Initialize a project:
-
-```bash
-dothat run init
-```
-
-Force regeneration of template files:
-
-```bash
-dothat run init --force
-```
-
-Build a child pipeline:
-
-```bash
-dothat run build-pipeline
-```
-
-Build the repository `.gitlab-ci.yml`:
-
-```bash
-dothat run build-gitlab-ci
-```
-
----
-
 # Validation
 
 Generated pipelines can be validated against the bundled GitLab JSON schema before rendering.
@@ -154,12 +111,6 @@ Generated pipelines can be validated against the bundled GitLab JSON schema befo
 
 # External Links
 
-* JSON Schema: [https://json-schema.org/draft-07/json-schema-release-notes#keywords](https://json-schema.org/draft-07/json-schema-release-notes#keywords)
-* GitLab Pipeline Schema: [https://gitlab.com/gitlab-org/gitlab-foss/-/raw/master/app/assets/javascripts/editor/schema/ci.json](https://gitlab.com/gitlab-org/gitlab-foss/-/raw/master/app/assets/javascripts/editor/schema/ci.json)
-* GitLab CI Documentation: [https://docs.gitlab.com/ci/pipeline_editor/#view-full-configuration](https://docs.gitlab.com/ci/pipeline_editor/#view-full-configuration)
-
----
-
-# License
-
-[https://gl.pivlab.space/rnd/gcip2/-/blob/master/LICENCE.md](LICENCE.md) 
+- JSON Schema: [https://json-schema.org/draft-07/json-schema-release-notes#keywords](https://json-schema.org/draft-07/json-schema-release-notes#keywords)
+- GitLab Pipeline Schema: [https://gitlab.com/gitlab-org/gitlab-foss/-/raw/master/app/assets/javascripts/editor/schema/ci.json](https://gitlab.com/gitlab-org/gitlab-foss/-/raw/master/app/assets/javascripts/editor/schema/ci.json)
+- GitLab CI Documentation: [https://docs.gitlab.com/ci/pipeline_editor/#view-full-configuration](https://docs.gitlab.com/ci/pipeline_editor/#view-full-configuration)

@@ -69,6 +69,13 @@ class CreateVersionTag(TaskBuilderImpl):
         )
 
 
+class GenerateDocs(TaskBuilderImpl):
+    _basename = Tasks.generate_docs
+
+    def apply(self):
+        return self.with_actions((_actions.GenerateDocs,))
+
+
 class PublishPackage(TaskBuilderImpl):
     _basename = Tasks.publish_package
 
@@ -87,6 +94,7 @@ class TaskGenerator(TaskGeneratorImpl):
     task_get_publish_token = PublishPackage
     task_initialize_project_pipeline = InitializeProjectPipeline
     task_run_initialization_pipeline = RunInitializedPipeline
+    task_generate_docs = GenerateDocs
 
     def load_tasks(self) -> Iterator[Task]:
         yield from super().load_tasks()

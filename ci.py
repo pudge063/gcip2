@@ -53,6 +53,18 @@ class CreateVersionTag(JobBuilderImpl):
         return self.with_needs([Tasks.check_package_version.value]).with_stage(Stages.PUBLISH)
 
 
+class GenerateDocs(JobBuilderImpl):
+    _name = Tasks.generate_docs
+    _base = BaseTask
+
+    def apply(self):
+        return (
+            self.with_needs([Tasks.create_version_tag.value])
+            .with_stage(Stages.PUBLISH)
+            .with_artifacts(paths=["out/docs"])
+        )
+
+
 class PublishPackage(JobBuilderImpl):
     _name = Tasks.publish_package
     _base = BaseTask
@@ -133,6 +145,7 @@ class GitlabCi(GitlabCiBuilderImpl):
             (
                 self.job(CheckPackageVersion).apply(),
                 self.job(CreateVersionTag).apply(),
+                self.job(GenerateDocs).apply(),
                 self.job(PublishPackage).apply(),
             )
         )

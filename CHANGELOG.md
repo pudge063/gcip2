@@ -1,6 +1,9 @@
-## Changelog
+# Changelog
 
-### [25.08.26 - 0.2.0]
+## [25.08.26 - 0.2.1]
+- updated documentation with new features
+
+## [25.08.26 - 0.2.0]
 - implemented keyring authentication for vault client: `try to get approle from env -> try keyring story -> LDAP with input credentials`
 - implemented DI with `injector`: `ProjectConfig`, script assets and `SecretsHandler`
   are now resolved through the container
@@ -14,16 +17,16 @@
 - **breaking**: builders must be created via `injector.create_object`, not directly
 - changed domain `space` to `dev` for infrastructure migrations converted to dataclasses `JobBuilderImpl`, `PipelineBuilderImpl`, `GitlabCiBuilderImpl`, etc.
 
-### [15.08.26 - 0.1.8]
+## [15.08.26 - 0.1.8]
 - fixed `after_script` section - removed point in `ci-after-script` task run cmd
 
-### [15.08.26 - 0.1.7]
+## [15.08.26 - 0.1.7]
 - fixed tasks module initialization
 
-### [12.08.26 - 0.1.6]
+## [12.08.26 - 0.1.6]
 - job templates moved to gcip2.ci
 
-### [11.08.26 - 0.1.5]
+## [11.08.26 - 0.1.5]
 - updated default tasks
 - fixed module structure
 - changed cli script in module `tasks_core` from `gciptask` to `dothat`
@@ -35,21 +38,21 @@
 - added predefined `CI_TASK_GENERATOR` with `build-gitlab-ci` and `build-pipeline` tasks
 - removed `gcip2.cli`
 
-### [08.08.26 - 0.1.4]
+## [08.08.26 - 0.1.4]
 - fixed package `tasks_core` - added `__init__.py`
 
-### [08.08.26 - 0.1.3]
+## [08.08.26 - 0.1.3]
 - fixed builder for package
 
-### [08.08.26 - 0.1.2]
+## [08.08.26 - 0.1.2]
 - added PyPi proxy for python packages
 
-### [08.08.26 - 0.1.1]
+## [08.08.26 - 0.1.1]
 - changed base image replaced to local artifactory
 - enabled pipeline timestamps provided by `FF_TIMESTAMPS`
 - fixed tag creation
 
-### [04.08.26 - 0.1.0]
+## [04.08.26 - 0.1.0]
 - added `Task`, `TaskBuilder` and `TaskBuilderImpl` entities for job task executing
 - added `InteractivePythonAction` and `InteractiveShlex` actions
 - added `Params` for `Tasks` -> `Actions.impl()`
@@ -68,27 +71,27 @@
 - added `ruff` instead of `black`, `isort`, `mypy`
 - migrated from `poetry` to `uv`
 
-### [02.08.26 - 0.0.12]
+## [02.08.26 - 0.0.12]
 - added readme to package
 
-### [02.08.26 - 0.0.11]
+## [02.08.26 - 0.0.11]
 - added `create_tag` status checks
 - added check version in `environment.toml` - `extra.version` field
 - for `Extra` in `ProjectConfig` added methods `get` and `__getitem__`
 - for `Extra` added `model_config` with allowed `extra` fields
 
 
-### [02.08.26 - 0.0.10]
+## [02.08.26 - 0.0.10]
 - added `initialization` test pipeline
 - init empty `ProjectConfig` model if not found `environment.toml` instead of failure
 
-### [02.08.26 - 0.0.9]
+## [02.08.26 - 0.0.9]
 - added SecretsHandler and Vault modules for secrets
 - added ProjectConfig with `extra` and `secrets` sections and models
 - added `secrets.vault` section with approle and jwks auth methods
 - removed API requests to Vault from jobs `create-version-tag` and `publish`
 
-### [02.08.26 - 0.0.8]
+## [02.08.26 - 0.0.8]
 - added unit-tests with pipeline module coverage ~70%
 - added unit-tests with job module coverage ~ 65%
 - added integration tests with golden pipeline templates
@@ -104,14 +107,14 @@
 - added to PipelineBuilderImpl helper `add_jobs`
 - added version check and create tag on default branch pipeline
 
-### [30.07.26 - 0.0.7]
+## [30.07.26 - 0.0.7]
 - fixed publish job
 - fixed .gitignore in initialization
 
-### [30.07.26 - 0.0.6]
+## [30.07.26 - 0.0.6]
 - added py.typed
 
-### [30.07.26 - 0.0.5]
+## [30.07.26 - 0.0.5]
 - added base project structure initialization with `gcip2 init`
 - added base predefined CI variables for pipelines
 - added pytest and integration regression tests with golden pipelines
@@ -120,15 +123,15 @@
 - updated documentation
 - fixed some bugs and errors
 
-### [28.07.26 - 0.0.4]
+## [28.07.26 - 0.0.4]
 - added GitlabCiBuilderImpl
 - added BaseLinux and _base param for JobBuilderImpl
 - changed base tags from `immortal` to `static-k8s`
 
-### [31.05.26 - 0.0.3]
+## [31.05.26 - 0.0.3]
 - removed pipeline annotation
 - fixed workflow for gitlab-ci and pipeline
 
-### [31.05.26 - 0.0.2]
+## [31.05.26 - 0.0.2]
 - added JobbuilderImpl and PipelineBuilderImpl
 - updated CI schema
