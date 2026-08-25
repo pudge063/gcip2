@@ -148,6 +148,5 @@ def test_custom_config_path():
     assert job._config.extra.get("marker") == marker
 
 
-def test_config_singleton():
-    di = injector.Injector([Module])
+def test_config_singleton(di):
     assert di.create_object(JobBuilderImpl)._config is di.get(ProjectConfig)

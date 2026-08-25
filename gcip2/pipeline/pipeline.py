@@ -34,7 +34,7 @@ class _BasePipelineBuilder(_PipelineBuilder):
     model: Pipeline = dataclasses.field(init=False, default_factory=Pipeline)
 
     def __post_init__(self):
-        "extends point for childs"
+        "extension point for childs"
 
     def apply(self: Self) -> Self:
         return self

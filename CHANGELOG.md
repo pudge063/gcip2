@@ -1,6 +1,7 @@
 ## Changelog
 
 ### [25.08.26 - 0.2.0]
+- implemented keyring authentication for vault client: `try to get approle from env -> try keyring story -> LDAP with input credentials`
 - implemented DI with `injector`: `ProjectConfig`, script assets and `SecretsHandler`
   are now resolved through the container
 - `--config` is now respected by pipeline and job builders (previously the config

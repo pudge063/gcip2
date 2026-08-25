@@ -7,6 +7,7 @@ from gcip2.project_config import ProjectConfig
 from gcip2.tasks_core.models.params import Params
 from gcip2.tasks_core.registry import TaskRegistry
 from gcip2.vault import SecretsHandler
+from gcip2.vault.token_store import TokenStore
 
 
 class ConfigPath:
@@ -23,6 +24,7 @@ class Module(injector.Module):
         binder.bind(TaskRegistry, scope=injector.singleton)
         binder.bind(SecretsHandler, scope=injector.singleton)
         binder.bind(Params, scope=injector.singleton)
+        binder.bind(TokenStore, scope=injector.singleton)
 
     @injector.singleton
     @injector.provider
