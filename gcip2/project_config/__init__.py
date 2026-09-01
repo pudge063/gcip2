@@ -4,6 +4,7 @@ import typing
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from gcip2.logging import logger as LOGGER
 from gcip2.project_config.compose import Compose
 from gcip2.project_config.vault_config import VaultConfig
 
@@ -12,8 +13,9 @@ class Secrets(BaseModel):
     vault: dict[str, VaultConfig] = Field(default_factory=dict)
 
 
-class Tasks(BaseModel):
-    module: typing.Optional[str] = None
+class System(BaseModel):
+    tasks_module: typing.Optional[str] = None
+    compose_path: typing.Optional[str] = None
 
 
 class Extra(BaseModel):
@@ -21,7 +23,7 @@ class Extra(BaseModel):
 
     secrets: Secrets = Field(default_factory=Secrets)
 
-    tasks: Tasks = Field(default_factory=Tasks)
+    system: System = Field(default_factory=System)
 
     def __getitem__(self, key: str) -> typing.Any:
         if key == "secrets":
@@ -45,9 +47,20 @@ class ProjectConfig(BaseModel):
         cls,
         path: pathlib.Path = pathlib.Path("environment.toml"),
     ) -> "ProjectConfig":
-        data = tomllib.loads(path.read_text()) if path.exists() else {}
-        return cls.model_validate(data)
+        if not path.exists():
+            LOGGER.debug("ProjectConfig is not provided: file is not exists")
+            data = {}
+        else:
+            data = tomllib.loads(path.read_text())
 
-    compose: Compose = Compose.load()
+        _cfg = cls.model_validate(data)
+
+        compose_path = _cfg.extra.system.compose_path or "docker-compose.yml"
+        LOGGER.warning(compose_path)
+        _cfg.compose = Compose.load(pathlib.Path(compose_path))
+
+        return _cfg
+
+    compose: Compose = Field(default_factory=Compose)
 
     extra: Extra = Field(default_factory=Extra)

@@ -20,8 +20,9 @@ If the file does not exist, an empty configuration with default values is used.
 framework understands and any project-specific keys:
 
 ```toml
-[extra.tasks]
-module = "_tasks"
+[extra.system]
+tasks_module = "_tasks"
+compose_path = "docker-compose.yml"
 
 [extra.database]
 host = "localhost"
@@ -44,8 +45,8 @@ actions can use configuration values without reading the file. See
 ## Task discovery
 
 ```toml
-[extra.tasks]
-module = "_tasks"
+[extra.system]
+tasks_module = "_tasks"
 ```
 
 Names the module exporting the project's `TaskGenerator` class. The field is optional;

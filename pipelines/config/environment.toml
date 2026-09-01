@@ -1,5 +1,6 @@
 [extra]
 version = "0.0.0"
 
-[extra.tasks]
-module = "pipelines/config/ci.py"
+[extra.system]
+tasks_module = "pipelines/config/ci.py"
+compose_path = "pipelines/config/docker-compose.yml"

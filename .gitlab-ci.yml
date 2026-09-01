@@ -399,6 +399,8 @@ build-pipeline -f pipelines/config/ci.py:
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
+  variables:
+    ENVIRONMENT_TOML_PATH: pipelines/config/environment.toml
   script:
     - exec sh -c "dothat run ${CI_JOB_NAME}"
   stage: jobs

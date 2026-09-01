@@ -115,8 +115,8 @@ Attributes prefixed with `task_` are discovered automatically. The module holdin
 generator is named in the configuration:
 
 ```toml
-[extra.tasks]
-module = "_tasks"
+[extra.system]
+tasks_module = "_tasks"
 ```
 
 The field is optional; without it only built-in tasks are available. Tasks from the

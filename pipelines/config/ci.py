@@ -28,7 +28,7 @@ class PrintEnvJob(pipeline_core.JobBuilderImpl):
     _name = "print-env"
 
     def apply(self: Self) -> Self:
-        return self.update_variables(
+        return self.with_compose_image("linux").update_variables(
             {
                 "ENVIRONMENT_TOML_PATH": "pipelines/config/environment.toml",
             }
@@ -38,9 +38,4 @@ class PrintEnvJob(pipeline_core.JobBuilderImpl):
 class Pipeline(pipeline.PipelineBuilderImpl):
     def apply(self: Self) -> Self:
         self.add_jobs((self.job(PrintEnvJob).apply(),))
-        return self
-
-
-class GitlabCi(pipeline.GitlabCiBuilderImpl):
-    def apply(self: Self) -> Self:
         return self

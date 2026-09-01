@@ -75,6 +75,6 @@ class TaskRegistry:
         if self._tasks is None:
             self._tasks = {
                 **self._load_tasks_from_generator(self._di.create_object(CiTaskGenerator)),
-                **self.load_tasks_from_module(self._config.extra.tasks.module),
+                **self.load_tasks_from_module(self._config.extra.system.tasks_module),
             }
         return self._tasks

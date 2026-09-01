@@ -1,0 +1,5 @@
+services:
+  base_python:
+    image: ghcr.io/astral-sh/uv:python3.11-bookworm
+  linux:
+    image: ghcr.io/astral-sh/uv:python3.14-bookworm

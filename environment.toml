@@ -15,8 +15,8 @@ pipelines = [
 coverage-module = { "job" = "gcip2.pipeline_core", "pipeline" = "gcip2.pipeline_core", "tasks" = "gcip2.tasks_core" }
 unit-tests = ["job", "pipeline", "tasks"]
 
-[extra.tasks]
-module = "_tasks"
+[extra.system]
+tasks_module = "_tasks"
 
 [extra.targets.test-1]
 param1 = "1"
