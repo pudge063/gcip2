@@ -1,3 +1,4 @@
+import importlib.util
 import pathlib
 import sys
 
@@ -18,6 +19,33 @@ class TaskRegistry:
 
         self._tasks: dict[str, Task] | None = None
 
+    def _load_module(self, module: str):
+
+        module_path = pathlib.Path(module)
+
+        LOGGER.debug(f"Tasks loaded from module: {module_path}")
+
+        if module_path.is_file():
+            module_name = module_path.stem
+
+            spec = importlib.util.spec_from_file_location(module_name, module_path)
+            if spec is None or spec.loader is None:
+                raise ImportError(f"Could not load module from {module_path}")
+
+            module_obj = importlib.util.module_from_spec(spec)
+            sys.modules[module_name] = module_obj
+            spec.loader.exec_module(module_obj)
+            return module_obj
+
+        sys.path.insert(0, str(module_path.parent))
+
+        try:
+            module_obj = __import__(module, fromlist=["TaskGenerator"])
+        finally:
+            sys.path.remove(str(module_path.parent))
+
+        return module_obj
+
     def _load_tasks_from_generator(self, generator: TaskGenerator) -> dict[str, Task]:
         registry: dict[str, Task] = {}
 
@@ -34,13 +62,7 @@ class TaskRegistry:
             LOGGER.warning("module with tasks not found")
             return {}
 
-        module_path = str(pathlib.Path(module).parent)
-
-        sys.path.insert(0, module_path)
-        try:
-            module_obj = __import__(module, fromlist=["TaskGenerator"])
-        finally:
-            sys.path.remove(module_path)
+        module_obj = self._load_module(module)
 
         generator: TaskGenerator = self._di.create_object(module_obj.TaskGenerator)
 
@@ -53,6 +75,6 @@ class TaskRegistry:
         if self._tasks is None:
             self._tasks = {
                 **self._load_tasks_from_generator(self._di.create_object(CiTaskGenerator)),
-                **self.load_tasks_from_module(self._config.extra.tasks.module),
+                **self.load_tasks_from_module(self._config.extra.system.tasks_module),
             }
         return self._tasks

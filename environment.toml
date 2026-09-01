@@ -1,15 +1,22 @@
 [extra]
-version = "0.2.1"
+version = "0.2.2"
 test-repo = "rnd/gcip2-tests/initialization-test"
 
-pipelines = ["initialization", "integration", "tasks", "vault", "multipipeline"]
+pipelines = [
+  "initialization",
+  "integration",
+  "tasks",
+  "vault",
+  "multipipeline",
+  "config",
+]
 
 [extra.tests]
 coverage-module = { "job" = "gcip2.pipeline_core", "pipeline" = "gcip2.pipeline_core", "tasks" = "gcip2.tasks_core" }
 unit-tests = ["job", "pipeline", "tasks"]
 
-[extra.tasks]
-module = "_tasks"
+[extra.system]
+tasks_module = "_tasks"
 
 [extra.targets.test-1]
 param1 = "1"

@@ -1,5 +1,9 @@
 # Changelog
 
+## [01.09.26 - 0.2.2]
+- updated pypi and docker proxy repositories
+- fixed config parameter for `dothat` - allowed to use file with `TaskGenerator` class
+
 ## [25.08.26 - 0.2.1]
 - updated documentation with new features
 

@@ -82,6 +82,12 @@ class GitlabCi(GitlabCiBuilderImpl):
                 .with_tags(["static-k8s"])
                 .add_to_name(f" -f pipelines/{test_name}/ci.py")
             )
+            if test_name == "config":
+                build_pipeline_job.update_variables(
+                    {
+                        "ENVIRONMENT_TOML_PATH": "pipelines/config/environment.toml",
+                    }
+                )
 
             trigger_pipeline_job = (
                 self.job(TriggerPipeline)
