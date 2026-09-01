@@ -23,7 +23,14 @@ def get_registry(di: injector.Injector, module: str | None) -> dict[str, Task]:
 
 
 @click.group()
-@click.option("--config", type=pathlib.Path, default=pathlib.Path("environment.toml"))
+@click.option(
+    "--config",
+    type=pathlib.Path,
+    envvar="ENVIRONMENT_TOML_PATH",
+    default=pathlib.Path(
+        "environment.toml",
+    ),
+)
 @click.pass_context
 def cli(ctx: click.Context, config: pathlib.Path):
     ctx.obj = DothatContext(di=injector.Injector([Module(config_path=config)]))
