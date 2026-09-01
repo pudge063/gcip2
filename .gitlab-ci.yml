@@ -22,7 +22,7 @@ stages:
 
 default:
   image:
-    name: af.pivlab.space/astral-sh/uv:python3.12
+    name: af.pivlab.dev/docker/astral-sh/uv:python3.12-trixie
   tags:
     - static-k8s
 
@@ -36,7 +36,7 @@ variables:
 
 pre-commit:
   image:
-    name: af.pivlab.space/astral-sh/uv:python3.12
+    name: af.pivlab.dev/docker/astral-sh/uv:python3.12-trixie
   before_script:
     - |
       #!/usr/bin/env sh
@@ -569,7 +569,7 @@ unit-tests:tasks:
 
 check-package-version:
   image:
-    name: af.pivlab.space/astral-sh/uv:python3.12
+    name: af.pivlab.dev/docker/astral-sh/uv:python3.12-trixie
   before_script:
     - |
       #!/usr/bin/env sh
@@ -619,7 +619,7 @@ check-package-version:
 
 create-version-tag:
   image:
-    name: af.pivlab.space/astral-sh/uv:python3.12
+    name: af.pivlab.dev/docker/astral-sh/uv:python3.12-trixie
   before_script:
     - |
       #!/usr/bin/env sh
@@ -671,7 +671,7 @@ create-version-tag:
 
 generate-docs:
   image:
-    name: af.pivlab.space/astral-sh/uv:python3.12
+    name: af.pivlab.dev/docker/astral-sh/uv:python3.12-trixie
   before_script:
     - |
       #!/usr/bin/env sh
@@ -726,7 +726,7 @@ generate-docs:
 
 publish-package:
   image:
-    name: af.pivlab.space/astral-sh/uv:python3.12
+    name: af.pivlab.dev/docker/astral-sh/uv:python3.12-trixie
   before_script:
     - |
       #!/usr/bin/env sh
