@@ -81,7 +81,12 @@ class GenerateDocs(TaskBuilderImpl):
                 _actions.PublishDocs,
                 _actions.CreateDocsTag,
             )
-        ).with_params((self._params.ci(),))
+        ).with_params(
+            (
+                self._params.ci(),
+                _params.gitlab_token_section(),
+            )
+        )
 
 
 class PublishPackage(TaskBuilderImpl):

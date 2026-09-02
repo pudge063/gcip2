@@ -8,6 +8,7 @@ from time import sleep
 import git
 import requests
 
+from _tasks import _helpers
 from _tasks._consts import PipelineStatus
 from _tasks._helpers import GitlabApi
 from gcip2 import Predefined, PredefinedMergeRequest
@@ -46,6 +47,10 @@ class SetupSsh(InteractivePythonAction):
 
 class SetupGitInsteadOf(InteractiveShlex):
     def impl(self, **_: typing.Any) -> list[list[str]]:
+        if not Predefined.CI_API_V4_URL.getenv(""):
+            LOGGER.warning("not CI")
+            return [["echo", "DRY-RUN"]]
+
         return [
             ["git", "config", "--global", "user.email", "ci@pivlab.space"],
             ["git", "config", "--global", "user.name", "CI"],
@@ -163,11 +168,6 @@ class CheckVersion(InteractivePythonAction):
         if not diff:
             raise ValueError("diff in version not found.")
 
-    def get_tag_from_version_file(self, version_file: pathlib.Path) -> str:
-        if not version_file.exists():
-            raise FileNotFoundError(f"version file: {version_file} not found.")
-        return version_file.read_text()
-
     def get_tag_from_pyproject_file(self, pyproject_file: pathlib.Path) -> str:
         if not pyproject_file.exists():
             raise FileNotFoundError(f"version file: {pyproject_file} not found.")
@@ -189,7 +189,7 @@ class CheckVersion(InteractivePythonAction):
 
         self.check_version_diff()
 
-        version = self.get_tag_from_version_file(version_file=version_file).strip()
+        version = _helpers.get_tag_from_version_file(version_file=version_file)
         pyproject_version = self.get_tag_from_pyproject_file(pyproject_file=pyproject_file)
         project_config_version = self._config.extra["version"]
 
@@ -212,11 +212,6 @@ class CheckVersion(InteractivePythonAction):
 
 
 class CreateVersionTag(InteractivePythonAction):
-    def get_tag_from_version_file(self, version_file: pathlib.Path) -> str:
-        if not version_file.exists():
-            raise FileNotFoundError(f"version file: {version_file} not found.")
-        return version_file.read_text().strip()
-
     def impl(self, *, ci: bool, gitlab_token_section: str, **_: typing.Any) -> None:
         if not ci:
             LOGGER.warning(f"skipping {type(self)}, not in CI")
@@ -224,7 +219,7 @@ class CreateVersionTag(InteractivePythonAction):
 
         version_file = pathlib.Path("gcip2/VERSION")
 
-        version = self.get_tag_from_version_file(version_file=version_file)
+        version = _helpers.get_tag_from_version_file(version_file=version_file)
 
         LOGGER.info(f"creating tag for release: {version}")
 
@@ -263,7 +258,10 @@ class PublishDocs(InteractiveShlex):
     def impl(self, ci: bool, **_: typing.Any):
         if not ci:
             LOGGER.warning(f"skipping {type(self)}, not in CI")
+            return [["echo", "DRY-RUN"]]
 
+        if not Predefined.CI_DEFAULT_BRANCH.must() == Predefined.CI_COMMIT_BRANCH.getenv():
+            return [["echo", "DRY-RUN"]]
         docs_repo = self._config.extra.get("docs-repo")
 
         return [
@@ -271,10 +269,28 @@ class PublishDocs(InteractiveShlex):
             ["git", "init"],
             ["git", "add", "--a"],
             ["git", "commit", "-m", "ci"],
-            ["git", "push", "-f", f"ssh://git@gl.pivlab.dev/{docs_repo}.git", "master"],
+            [
+                "git",
+                "push",
+                "-f",
+                f"ssh://git@gl.pivlab.dev/{docs_repo}.git",
+                "master",
+            ],
         ]
 
 
 class CreateDocsTag(InteractivePythonAction):
-    def impl(self, **_: typing.Any):
-        pass
+    def impl(self, gitlab_token_section: str, **_: typing.Any):
+        version_file = pathlib.Path("gcip2/VERSION")
+
+        version = _helpers.get_tag_from_version_file(version_file=version_file)
+
+        LOGGER.info(f"creating tag for release: {version}")
+
+        if Predefined.CI_DEFAULT_BRANCH.must() == Predefined.CI_COMMIT_BRANCH.getenv():
+            token = self._secret_handler.fetch(gitlab_token_section)["token"]
+            gl = GitlabApi(gitlab_token=token)
+            # TODO: remove hardcode project_id
+            gl.create_release_tag(version=version, project_id="2388", default_branch="master")
+        else:
+            LOGGER.warning("DRY-RUN: not release branch")
