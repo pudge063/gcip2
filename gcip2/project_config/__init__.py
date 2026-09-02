@@ -56,7 +56,6 @@ class ProjectConfig(BaseModel):
         _cfg = cls.model_validate(data)
 
         compose_path = _cfg.extra.system.compose_path or "docker-compose.yml"
-        LOGGER.warning(compose_path)
         _cfg.compose = Compose.load(pathlib.Path(compose_path))
 
         return _cfg

@@ -16,7 +16,7 @@ from gcip2.tasks_core import InteractivePythonAction, InteractiveShlex
 
 
 class SetupSsh(InteractivePythonAction):
-    def impl(self, *, flavor: str, **_):
+    def impl(self, **_):
         if not Predefined.CI_API_V4_URL.getenv(""):
             LOGGER.warning("not CI")
             return
@@ -34,7 +34,7 @@ class SetupSsh(InteractivePythonAction):
 
         ssh_config_file = ssh_dir / "config"
         ssh_config_data = [
-            "Host gl.pivlab.space",
+            "Host gl.pivlab.dev",
             "    IdentityFile /root/.ssh/id_ci",
             "    IdentitiesOnly yes",
             "    StrictHostKeyChecking no",
@@ -42,8 +42,6 @@ class SetupSsh(InteractivePythonAction):
         ]
         ssh_config_file.write_text("\n".join(ssh_config_data))
         ssh_config_file.chmod(0o644)
-
-        LOGGER.info(f"flavor: {flavor}")
 
 
 class SetupGitInsteadOf(InteractiveShlex):
@@ -91,7 +89,7 @@ class UpdateTestProject(InteractiveShlex):
             raise ValueError("test-repo url not set")
 
         sed_string = (
-            f"s|gcip2>=0.0.1|gcip2 @ git+https://gl.pivlab.space/rnd/gcip2.git@{Predefined.CI_COMMIT_SHA.getenv('')}|"
+            f"s|gcip2>=0.0.1|gcip2 @ git+https://gl.pivlab.dev/rnd/gcip2.git@{Predefined.CI_COMMIT_SHA.getenv('')}|"
         )
 
         branch, remote = "master", "origin"
@@ -102,7 +100,7 @@ class UpdateTestProject(InteractiveShlex):
                 ["cd", tmp_dir],
                 ["dothat", "run", "init"],
                 ["git", "init"],
-                ["git", "remote", "add", remote, f"ssh://git@gl.pivlab.space/{test_repo}.git"],
+                ["git", "remote", "add", remote, f"ssh://git@gl.pivlab.dev/{test_repo}.git"],
                 ["dothat", "run", "build-gitlab-ci"],
                 ["sed", "-i", sed_string, "pyproject.toml"],
                 ["ls", "-la"],
@@ -259,3 +257,24 @@ class PublishPackage(InteractiveShlex):
 class GenerateDocs(InteractiveShlex):
     def impl(self, **_: typing.Any):
         return [["sphinx-build", "-b", "html", "docs", "out/docs"]]
+
+
+class PublishDocs(InteractiveShlex):
+    def impl(self, ci: bool, **_: typing.Any):
+        if not ci:
+            LOGGER.warning(f"skipping {type(self)}, not in CI")
+
+        docs_repo = self._config.extra.get("docs-repo")
+
+        return [
+            ["cd", "out/docs"],
+            ["git", "init"],
+            ["git", "add", "--a"],
+            ["git", "commit", "-m", "ci"],
+            ["git", "push", "-f", f"ssh://git@gl.pivlab.dev/{docs_repo}.git", "master"],
+        ]
+
+
+class CreateDocsTag(InteractivePythonAction):
+    def impl(self, **_: typing.Any):
+        pass

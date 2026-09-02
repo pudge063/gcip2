@@ -80,7 +80,10 @@ class GitlabCi(GitlabCiBuilderImpl):
                 self.job(BuildTriggerPipeline)
                 .apply()
                 .with_tags(["static-k8s"])
-                .add_to_name(f" -f pipelines/{test_name}/ci.py")
+                # .add_to_name(f" -f pipelines/{test_name}/ci.py")
+                .add_to_name(f":{test_name}")
+                .with_script(["dothat run build-pipeline"])
+                .update_variables({"INPUT_CI_FILE": f"pipelines/{test_name}/ci.py"})
             )
             if test_name == "config":
                 build_pipeline_job.update_variables(
@@ -92,7 +95,7 @@ class GitlabCi(GitlabCiBuilderImpl):
             trigger_pipeline_job = (
                 self.job(TriggerPipeline)
                 .apply()
-                .with_name(f"{test_name}/trigger-pipeline")
+                .add_to_name(f":{test_name}")
                 .with_needs([build_pipeline_job.model.name])
             )
             trigger_pipeline_job.model.trigger.include = [  # type: ignore

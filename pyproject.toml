@@ -1,6 +1,6 @@
 [project]
 name = "gcip2"
-version = "0.2.2"
+version = "0.2.3"
 description = "framework for dynamic pipeline generation from python code"
 readme = "README.md"
 license = "MIT"

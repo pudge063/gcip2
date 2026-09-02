@@ -84,7 +84,7 @@ pre-commit:
   stage: pre-commit
   interruptible: true
 
-build-pipeline -f pipelines/initialization/ci.py:
+build-pipeline:initialization:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -114,8 +114,10 @@ build-pipeline -f pipelines/initialization/ci.py:
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
+  variables:
+    INPUT_CI_FILE: pipelines/initialization/ci.py
   script:
-    - exec sh -c "dothat run ${CI_JOB_NAME}"
+    - dothat run build-pipeline
   stage: jobs
   tags:
     - static-k8s
@@ -124,24 +126,24 @@ build-pipeline -f pipelines/initialization/ci.py:
       - out
   interruptible: true
 
-initialization/trigger-pipeline:
+trigger-pipeline:initialization:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
     PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
-    - build-pipeline -f pipelines/initialization/ci.py
+    - build-pipeline:initialization
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: build-pipeline -f pipelines/initialization/ci.py
+      - job: build-pipeline:initialization
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
       pipeline_variables: true
 
-build-pipeline -f pipelines/integration/ci.py:
+build-pipeline:integration:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -171,8 +173,10 @@ build-pipeline -f pipelines/integration/ci.py:
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
+  variables:
+    INPUT_CI_FILE: pipelines/integration/ci.py
   script:
-    - exec sh -c "dothat run ${CI_JOB_NAME}"
+    - dothat run build-pipeline
   stage: jobs
   tags:
     - static-k8s
@@ -181,24 +185,24 @@ build-pipeline -f pipelines/integration/ci.py:
       - out
   interruptible: true
 
-integration/trigger-pipeline:
+trigger-pipeline:integration:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
     PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
-    - build-pipeline -f pipelines/integration/ci.py
+    - build-pipeline:integration
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: build-pipeline -f pipelines/integration/ci.py
+      - job: build-pipeline:integration
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
       pipeline_variables: true
 
-build-pipeline -f pipelines/tasks/ci.py:
+build-pipeline:tasks:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -228,8 +232,10 @@ build-pipeline -f pipelines/tasks/ci.py:
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
+  variables:
+    INPUT_CI_FILE: pipelines/tasks/ci.py
   script:
-    - exec sh -c "dothat run ${CI_JOB_NAME}"
+    - dothat run build-pipeline
   stage: jobs
   tags:
     - static-k8s
@@ -238,24 +244,24 @@ build-pipeline -f pipelines/tasks/ci.py:
       - out
   interruptible: true
 
-tasks/trigger-pipeline:
+trigger-pipeline:tasks:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
     PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
-    - build-pipeline -f pipelines/tasks/ci.py
+    - build-pipeline:tasks
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: build-pipeline -f pipelines/tasks/ci.py
+      - job: build-pipeline:tasks
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
       pipeline_variables: true
 
-build-pipeline -f pipelines/vault/ci.py:
+build-pipeline:vault:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -285,8 +291,10 @@ build-pipeline -f pipelines/vault/ci.py:
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
+  variables:
+    INPUT_CI_FILE: pipelines/vault/ci.py
   script:
-    - exec sh -c "dothat run ${CI_JOB_NAME}"
+    - dothat run build-pipeline
   stage: jobs
   tags:
     - static-k8s
@@ -295,24 +303,24 @@ build-pipeline -f pipelines/vault/ci.py:
       - out
   interruptible: true
 
-vault/trigger-pipeline:
+trigger-pipeline:vault:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
     PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
-    - build-pipeline -f pipelines/vault/ci.py
+    - build-pipeline:vault
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: build-pipeline -f pipelines/vault/ci.py
+      - job: build-pipeline:vault
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
       pipeline_variables: true
 
-build-pipeline -f pipelines/multipipeline/ci.py:
+build-pipeline:multipipeline:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -342,8 +350,10 @@ build-pipeline -f pipelines/multipipeline/ci.py:
       . "${venv}/bin/activate"
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
+  variables:
+    INPUT_CI_FILE: pipelines/multipipeline/ci.py
   script:
-    - exec sh -c "dothat run ${CI_JOB_NAME}"
+    - dothat run build-pipeline
   stage: jobs
   tags:
     - static-k8s
@@ -352,24 +362,24 @@ build-pipeline -f pipelines/multipipeline/ci.py:
       - out
   interruptible: true
 
-multipipeline/trigger-pipeline:
+trigger-pipeline:multipipeline:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
     PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
-    - build-pipeline -f pipelines/multipipeline/ci.py
+    - build-pipeline:multipipeline
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: build-pipeline -f pipelines/multipipeline/ci.py
+      - job: build-pipeline:multipipeline
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
       pipeline_variables: true
 
-build-pipeline -f pipelines/config/ci.py:
+build-pipeline:config:
   before_script:
     - |
       #!/usr/bin/env sh
@@ -400,9 +410,10 @@ build-pipeline -f pipelines/config/ci.py:
       printf '\e[0Ksection_end:%s\r\e[0K\n' "${section}"
     - echo Do nothing.
   variables:
+    INPUT_CI_FILE: pipelines/config/ci.py
     ENVIRONMENT_TOML_PATH: pipelines/config/environment.toml
   script:
-    - exec sh -c "dothat run ${CI_JOB_NAME}"
+    - dothat run build-pipeline
   stage: jobs
   tags:
     - static-k8s
@@ -411,18 +422,18 @@ build-pipeline -f pipelines/config/ci.py:
       - out
   interruptible: true
 
-config/trigger-pipeline:
+trigger-pipeline:config:
   variables:
     PARENT_PIPELINE_ID: ${CI_PIPELINE_ID}
     PARENT_PIPELINE_SOURCE: ${CI_PIPELINE_SOURCE}
   stage: jobs
   needs:
-    - build-pipeline -f pipelines/config/ci.py
+    - build-pipeline:config
   interruptible: false
   trigger:
     strategy: depend
     include:
-      - job: build-pipeline -f pipelines/config/ci.py
+      - job: build-pipeline:config
         artifact: out/pipeline.gitlab-ci.yml
     forward:
       yaml_variables: true
