@@ -10,6 +10,7 @@ from gcip2.pipeline_core import (
     ArtifactsReportsCoverage,
     GlobalVariables,
     JobBuilderImpl,
+    JobWhen,
     Stage,
     TriggerIncludeArtifact,
     Workflow,
@@ -22,9 +23,8 @@ from gcip2.pipeline_core import (
 
 
 class Stages(str, Enum):
-    PRE_COMMIT = "pre-commit"
+    QT = "qt"
     JOBS = Stage.JOBS.value
-    UNIT_TESTS = "unit-tests"
     PUBLISH = "publish"
 
 
@@ -80,7 +80,10 @@ class GitlabCi(GitlabCiBuilderImpl):
                 self.job(BuildTriggerPipeline)
                 .apply()
                 .with_tags(["static-k8s"])
-                .add_to_name(f" -f pipelines/{test_name}/ci.py")
+                # .add_to_name(f" -f pipelines/{test_name}/ci.py")
+                .add_to_name(f":{test_name}")
+                .with_script(["dothat run build-pipeline"])
+                .update_variables({"INPUT_CI_FILE": f"pipelines/{test_name}/ci.py"})
             )
             if test_name == "config":
                 build_pipeline_job.update_variables(
@@ -88,11 +91,13 @@ class GitlabCi(GitlabCiBuilderImpl):
                         "ENVIRONMENT_TOML_PATH": "pipelines/config/environment.toml",
                     }
                 )
+            if test_name == "initialization":
+                build_pipeline_job.with_when(JobWhen.MANUAL)
 
             trigger_pipeline_job = (
                 self.job(TriggerPipeline)
                 .apply()
-                .with_name(f"{test_name}/trigger-pipeline")
+                .add_to_name(f":{test_name}")
                 .with_needs([build_pipeline_job.model.name])
             )
             trigger_pipeline_job.model.trigger.include = [  # type: ignore
@@ -113,7 +118,7 @@ class GitlabCi(GitlabCiBuilderImpl):
                 self.job(RunUnitTests)
                 .apply()
                 .add_to_name(f":{module}")
-                .with_stage(Stages.UNIT_TESTS)
+                .with_stage(Stages.QT)
                 .with_script(
                     [
                         (
@@ -141,11 +146,10 @@ class GitlabCi(GitlabCiBuilderImpl):
 
         self.model.stages = list(Stages)
 
-        self.add_jobs((self.job(base.PreCommit).apply().with_stage(Stages.PRE_COMMIT.value),))
-
-        self._add_test_jobs()
+        self.add_jobs((self.job(base.PreCommit).apply().with_stage(Stages.QT.value),))
 
         self._add_unit_tests_jobs()
+        self._add_test_jobs()
 
         self.add_jobs(
             (

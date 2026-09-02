@@ -137,7 +137,7 @@ def test_custom_config_path():
     marker = "custom-marker"
 
     tmp_path = pathlib.Path("out/tmp")
-    tmp_path.mkdir(exist_ok=True)
+    tmp_path.mkdir(exist_ok=True, parents=True)
     cfg = tmp_path / "custom.toml"
     cfg.write_text(f'[extra]\nmarker = "{marker}"')
 

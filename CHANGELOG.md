@@ -1,5 +1,8 @@
 # Changelog
 
+## [02.09.26 - 0.2.3]
+- added auto publishing docs to `gcip2.pivlab.dev`
+
 ## [01.09.26 - 0.2.2]
 - updated pypi and docker proxy repositories
 - fixed config parameter for `dothat` - allowed to use file with `TaskGenerator` class

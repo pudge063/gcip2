@@ -1,3 +1,4 @@
+import pathlib
 from os import getenv as os_getenv
 
 import requests
@@ -51,9 +52,14 @@ class GitlabApi:
 
         return r
 
-    def create_release_tag(self, version: str):
-        project_id = Predefined.CI_PROJECT_ID.must()
-        default_branch = Predefined.CI_DEFAULT_BRANCH.must()
+    def create_release_tag(
+        self,
+        version: str,
+        project_id: str | None = None,
+        default_branch: str | None = None,
+    ):
+        project_id = Predefined.CI_PROJECT_ID.must() if not project_id else project_id
+        default_branch = Predefined.CI_DEFAULT_BRANCH.must() if not default_branch else default_branch
         r = self._send_gitlab_request(
             url_suffix=f"projects/{project_id}/repository/tags",
             method="POST",
@@ -100,3 +106,12 @@ class GitlabApi:
         LOGGER.info(f"pipeline in status {pipeline_status}: {pipeline_url}")
 
         return pipeline_status
+
+
+def get_tag_from_version_file(version_file: pathlib.Path | str) -> str:
+    if isinstance(version_file, str):
+        version_file = pathlib.Path(version_file)
+
+    if not version_file.exists():
+        raise FileNotFoundError(f"version file: {version_file} not found.")
+    return version_file.read_text().strip()

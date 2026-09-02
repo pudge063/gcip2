@@ -73,7 +73,20 @@ class GenerateDocs(TaskBuilderImpl):
     _basename = Tasks.generate_docs
 
     def apply(self):
-        return self.with_actions((_actions.GenerateDocs,))
+        return self.with_actions(
+            (
+                _actions.SetupSsh,
+                _actions.SetupGitInsteadOf,
+                _actions.GenerateDocs,
+                _actions.PublishDocs,
+                _actions.CreateDocsTag,
+            )
+        ).with_params(
+            (
+                self._params.ci(),
+                _params.gitlab_token_section(),
+            )
+        )
 
 
 class PublishPackage(TaskBuilderImpl):

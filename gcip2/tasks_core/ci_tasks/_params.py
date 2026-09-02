@@ -6,6 +6,7 @@ def ci_file() -> Param:
         name="ci_file",
         long="ci-file",
         short="f",
+        env_var="INPUT_CI_FILE",
         default="ci.py",
         type=str,
     )
